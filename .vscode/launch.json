@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "DLX",
+            "type": "java",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "projectName": "dlx",
+            "mainClass": "name.ulbricht.dlx/name.ulbricht.dlx.Main",
+            "vmArgs": [
+                "--enable-native-access=javafx.graphics"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import name.ulbricht.dlx.ui.view.main.MainViewModel?>
+
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+    fx:id="rootPane" fx:controller="name.ulbricht.dlx.ui.view.main.MainController"
+    prefWidth="800" prefHeight="600">
+
+    <fx:define>
+        <MainViewModel fx:id="viewModel" />
+    </fx:define>
+
+</BorderPane>

@@ -1,0 +1,16 @@
+package name.ulbricht.dlx;
+
+import name.ulbricht.dlx.ui.DlxApplication;
+
+/// The main class of the application, serving as the entry point.
+final class Main {
+
+    /// The main method, which launches the JavaFX application.
+    /// 
+    /// @param args The command-line arguments passed to the application.
+    static void main(final String... args) {
+
+        // Launch the JavaFX application
+        DlxApplication.launch(DlxApplication.class, args);
+    }
+}
