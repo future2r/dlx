@@ -9,6 +9,9 @@ import name.ulbricht.dlx.ui.i18n.Messages;
 /// The main view of the application, defined in an FXML file.
 public final class MainView {
 
+    private MainView() {
+    }
+
     /// Loads the main view from the FXML file.
     /// 
     /// @return The root node of the main view.

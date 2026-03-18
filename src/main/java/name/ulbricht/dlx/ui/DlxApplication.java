@@ -14,6 +14,10 @@ import name.ulbricht.dlx.ui.view.main.MainView;
 /// JavaFX application.
 public final class DlxApplication extends Application {
 
+    /// Creates a new DLX application instance.
+    public DlxApplication() {
+    }
+
     /// The entry point of the JavaFX application, which sets up the main stage
     /// and scene.
     @Override
@@ -29,7 +33,7 @@ public final class DlxApplication extends Application {
         primaryStage.setTitle(Messages.getString("mainStage.title"));
         primaryStage.getIcons().addAll(
                 IntStream.of(16, 32, 48, 64, 128, 256)
-                        .mapToObj(size -> "/name/ulbricht/dlx/ui/image/application_%d.png".formatted(size))
+                        .mapToObj("/name/ulbricht/dlx/ui/image/application_%d.png"::formatted)
                         .map(getClass()::getResource)
                         .map(URL::toString)
                         .map(Image::new)

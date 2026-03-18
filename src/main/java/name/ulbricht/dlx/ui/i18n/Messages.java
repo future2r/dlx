@@ -7,6 +7,9 @@ import java.util.ResourceBundle;
 /// the application.
 public final class Messages {
 
+    private Messages() {
+    }
+
     /// The resource bundle for the user interface.
     public static final ResourceBundle BUNDLE = ResourceBundle.getBundle("name.ulbricht.dlx.ui.i18n.messages");
 
