@@ -33,6 +33,9 @@
 			"tryWithResource",
 			"useSwitchForInstanceofPattern"
 		],
+		"xml.format.spaceBeforeEmptyCloseTag": false,
+		"xml.format.enforceQuoteStyle": "preferred",
+		"xml.format.maxLineWidth": 0,
 		"maven.view": "hierarchical",
 		"maven.terminal.useJavaHome": true,
 		"maven.terminal.favorites": [

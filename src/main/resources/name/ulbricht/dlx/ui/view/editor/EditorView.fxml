@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
+
+<TabPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+    fx:id="consoleRoot" fx:controller="name.ulbricht.dlx.ui.view.editor.EditorController"
+    side="bottom" tabClosingPolicy="UNAVAILABLE">
+
+    <stylesheets>
+        <URL value="@EditorView.css"/>
+    </stylesheets>
+
+    <Tab text="Source">
+        <TextArea fx:id="sourceTextArea" text="Not yet implemented."/>
+    </Tab>
+
+    <Tab text="Compiled">
+        <Label text="Not yet implemented."/>
+    </Tab>
+
+</TabPane>

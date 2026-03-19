@@ -1,0 +1,44 @@
+.root {
+    /* common colors */
+    -dlx-black: #212121;
+    -dlx-red: #A1260D;
+    -dlx-green: #3A8B36;
+    -dlx-blue: #1E89D1;
+    -dlx-orange: #F3A600;
+}
+
+/* default icon color */
+.fluent-icon {
+    -fx-fill: -dlx-black;
+}
+
+/* red icons */
+.fluent-icon-red {
+    -fx-fill: -dlx-red;
+}
+
+/* blue icons */
+.fluent-icon-blue {
+    -fx-fill: -dlx-blue;
+}
+
+/* green icons */
+.fluent-icon-green {
+    -fx-fill: -dlx-green;
+}
+
+/* orange icons */
+.fluent-icon-orange {
+    -fx-fill: -dlx-orange;
+}
+
+/* controls in tool bar shall not get the focus */
+.tool-bar .button {
+    -fx-focus-traversable: false;
+}
+
+/* status bar */
+.status-bar {
+    -fx-padding: 0.5em;
+    -fx-spacing: 0.5em;
+}
