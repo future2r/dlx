@@ -1,9 +1,9 @@
 package name.ulbricht.dlx.ui.view.main;
 
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import name.ulbricht.dlx.simulator.CPU;
 
 /// View model for the main application view.
@@ -11,13 +11,11 @@ public final class MainViewModel {
 
     private final ReadOnlyObjectWrapper<CPU> processor = new ReadOnlyObjectWrapper<>();
 
-    private final ReadOnlyBooleanWrapper dirty = new ReadOnlyBooleanWrapper();
-    private final ReadOnlyBooleanWrapper canSave = new ReadOnlyBooleanWrapper();
+    private final BooleanProperty canSave = new SimpleBooleanProperty();
 
     /// Creates a new main view model instance.
     public MainViewModel() {
         this.processor.set(new CPU());
-        this.canSave.bind(this.dirty);
     }
 
     /// {@return a read-only property representing the current processor}
@@ -30,21 +28,9 @@ public final class MainViewModel {
         return processorProperty().get();
     }
 
-    /// {@return a read-only property indicating whether the current file has
-    /// unsaved changes}
-    public ReadOnlyBooleanProperty dirtyProperty() {
-        return this.dirty.getReadOnlyProperty();
-    }
-
-    /// {@return whether the current file has unsaved changes}
-    public boolean isDirty() {
-        return dirtyProperty().get();
-    }
-
-    /// {@return a read-only property indicating whether the current file can
-    /// be saved}
-    public ReadOnlyBooleanProperty canSaveProperty() {
-        return this.canSave.getReadOnlyProperty();
+    /// {@return the property indicating whether the current file can be saved}
+    public BooleanProperty canSaveProperty() {
+        return this.canSave;
     }
 
     /// {@return whether the current file can be saved}
@@ -52,7 +38,15 @@ public final class MainViewModel {
         return canSaveProperty().get();
     }
 
+    /// Sets whether the current file can be saved.
+    ///
+    /// @param canSave whether the current file can be saved
+    public void setCanSave(final boolean canSave) {
+        this.canSave.set(canSave);
+    }
+
     void reset() {
         this.processor.set(new CPU());
     }
+
 }

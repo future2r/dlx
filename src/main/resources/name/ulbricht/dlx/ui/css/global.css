@@ -14,3 +14,13 @@
 .binary-table-cell {
     -fx-alignment: CENTER_RIGHT;
 }
+
+/* Hide empty table rows. */
+.table-row-cell:empty {
+    -fx-background-color: transparent;
+}
+
+/* Hide the border of tables cells in empty table rows. */
+.table-row-cell:empty .table-cell {
+    -fx-border-color: transparent;
+}

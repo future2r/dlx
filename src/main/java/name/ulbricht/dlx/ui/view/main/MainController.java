@@ -7,6 +7,7 @@ import javafx.scene.Parent;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
+import name.ulbricht.dlx.compiler.Programs;
 import name.ulbricht.dlx.ui.DlxApplication;
 import name.ulbricht.dlx.ui.control.Alerts;
 import name.ulbricht.dlx.ui.i18n.Messages;
@@ -38,6 +39,11 @@ public final class MainController {
 
     @FXML
     private void initialize() {
+        this.viewModel.canSaveProperty().bind(this.editorController.getViewModel().dirtyProperty());
+
+        this.editorController.getViewModel().setSource(Programs.createExampleSource());
+        this.editorController.getViewModel().setProgram(Programs.createExampleProgram());
+
         this.internalsController.getViewModel().processorProperty().bind(this.viewModel.processorProperty());
     }
 
@@ -53,7 +59,7 @@ public final class MainController {
     /// 
     /// @param event the window event
     public void windowCloseRequest(final WindowEvent event) {
-        if (this.viewModel.isDirty())
+        if (this.editorController.getViewModel().isDirty())
             event.consume();
     }
 

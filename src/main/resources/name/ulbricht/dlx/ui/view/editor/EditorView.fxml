@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TitledPane?>
+<?import name.ulbricht.dlx.ui.view.editor.EditorView?>
+<?import name.ulbricht.dlx.ui.view.editor.EditorViewModel?>
 
 <TabPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
     fx:id="consoleRoot" fx:controller="name.ulbricht.dlx.ui.view.editor.EditorController"
@@ -14,12 +21,134 @@
         <URL value="@EditorView.css"/>
     </stylesheets>
 
-    <Tab text="Source">
-        <TextArea fx:id="sourceTextArea" text="Not yet implemented."/>
+    <fx:define>
+        <EditorViewModel fx:id="viewModel"/>
+    </fx:define>
+
+    <Tab text="%editor.tab.source.text">
+        <TextArea fx:id="sourceTextArea" editable="false"/>
     </Tab>
 
-    <Tab text="Compiled">
-        <Label text="Not yet implemented."/>
+    <Tab text="%editor.tab.compiled.text">
+        <SplitPane orientation="VERTICAL" dividerPositions="0.5">
+
+            <TitledPane fx:id="dataPane" text="%editor.data.text" collapsible="false" maxHeight="Infinity" SplitPane.resizableWithParent="false">
+
+                <TableView fx:id="dataTableView">
+                    <columns>
+                        <TableColumn text="%editor.data.address.text" prefWidth="80">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="address"/>
+                            </cellValueFactory>
+                            <cellFactory>
+                                <EditorView fx:factory="addressCellFactory"/>
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn text="%editor.data.label.text" prefWidth="80">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="label"/>
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn text="%editor.data.size.text" prefWidth="50">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="size"/>
+                            </cellValueFactory>
+                            <cellFactory>
+                                <EditorView fx:factory="sizeCellFactory"/>
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn text="%editor.data.value.text" prefWidth="120">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="declaration"/>
+                            </cellValueFactory>
+                            <cellFactory>
+                                <EditorView fx:factory="valueCellFactory"/>
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn text="%editor.data.raw.text">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="declaration"/>
+                            </cellValueFactory>
+                            <cellFactory>
+                                <EditorView fx:factory="rawValueCellFactory"/>
+                            </cellFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
+
+            </TitledPane>
+
+            <TitledPane fx:id="codePane" text="%editor.code.text" collapsible="false" maxHeight="Infinity">
+
+                <TableView fx:id="codeTableView">
+                    <columns>
+                        <TableColumn text="%editor.code.address.text" prefWidth="80">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="address"/>
+                            </cellValueFactory>
+                            <cellFactory>
+                                <EditorView fx:factory="addressCellFactory"/>
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn text="%editor.code.label.text" prefWidth="80">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="label"/>
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn text="%editor.code.type.text" prefWidth="50">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="instructionCall"/>
+                            </cellValueFactory>
+                            <cellFactory>
+                                <EditorView fx:factory="instructionTypeCellFactory"/>
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn text="%editor.code.operation.text" prefWidth="80">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="instructionCall"/>
+                            </cellValueFactory>
+                            <cellFactory>
+                                <EditorView fx:factory="operationCellFactory"/>
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn text="%editor.code.source1.text" prefWidth="80">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="instructionCall"/>
+                            </cellValueFactory>
+                            <cellFactory>
+                                <EditorView fx:factory="source1CellFactory"/>
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn text="%editor.code.source2.text" prefWidth="80">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="instructionCall"/>
+                            </cellValueFactory>
+                            <cellFactory>
+                                <EditorView fx:factory="source2CellFactory"/>
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn text="%editor.code.destination.text" prefWidth="80">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="instructionCall"/>
+                            </cellValueFactory>
+                            <cellFactory>
+                                <EditorView fx:factory="destinationCellFactory"/>
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn text="%editor.code.immediate.text">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="instructionCall"/>
+                            </cellValueFactory>
+                            <cellFactory>
+                                <EditorView fx:factory="immediateCellFactory"/>
+                            </cellFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
+
+            </TitledPane>
+
+        </SplitPane>
     </Tab>
 
 </TabPane>

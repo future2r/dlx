@@ -18,7 +18,7 @@ public class BinaryTableCell<S> extends TableCell<S, Integer> {
         if (empty || item == null) {
             this.setText(null);
         } else {
-            this.setText(FormatUtil.binary(item.intValue()));
+            this.setText(FormatUtil.binaryWord(item.intValue()));
         }
     }
 }

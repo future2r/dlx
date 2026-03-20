@@ -27,6 +27,7 @@ public final class InternalsView {
         return _ -> new BinaryTableCell<>();
     }
 
+    /// Private constructor to prevent instantiation.
     private InternalsView() {
     }
 }

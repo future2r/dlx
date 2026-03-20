@@ -24,12 +24,23 @@ public final class FormatUtil {
                 Integer.valueOf(value & 0xFF));
     }
 
+    public static String hexadecimalBytes(final byte[] value) {
+        final var sb = new StringBuilder();
+        for (int i = 0; i < value.length; i++) {
+            if (i > 0) {
+                sb.append(' ');
+            }
+            sb.append("%02X".formatted(value[i] & 0xFF));
+        }
+        return sb.toString();
+    }
+
     /// Formats the given value as a binary string with the format `XXXXXXXX
     /// XXXXXXXX XXXXXXXX XXXXXXXX`.
     ///
     /// @param value the value to format
     /// @return the formatted binary string
-    public static String binary(final int value) {
+    public static String binaryWord(final int value) {
         return "%s %s %s %s".formatted( //
                 "%8s".formatted(Integer.toBinaryString((value >> 24) & 0xFF)).replace(' ', '0'), //
                 "%8s".formatted(Integer.toBinaryString((value >> 16) & 0xFF)).replace(' ', '0'), //

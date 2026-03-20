@@ -8,7 +8,7 @@ module name.ulbricht.dlx {
     // Open UI packages to JavaFX
     opens name.ulbricht.dlx.ui to javafx.graphics;
     opens name.ulbricht.dlx.ui.view.console to javafx.fxml;
-    opens name.ulbricht.dlx.ui.view.editor to javafx.fxml;
+    opens name.ulbricht.dlx.ui.view.editor to javafx.base, javafx.fxml;
     opens name.ulbricht.dlx.ui.view.main to javafx.fxml;
     opens name.ulbricht.dlx.ui.view.internals to javafx.base, javafx.fxml;
 
