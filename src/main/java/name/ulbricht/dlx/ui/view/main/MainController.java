@@ -29,15 +29,16 @@ public final class MainController {
     @FXML
     private ConsoleController consoleController;
 
-    @FXML
-    private MainViewModel viewModel;
+    private final MainViewModel viewModel;
 
     /// Creates a new main controller instance.
     public MainController() {
+        this.viewModel = new MainViewModel();
     }
 
     @FXML
     private void initialize() {
+        this.internalsController.getViewModel().processorProperty().bind(this.viewModel.processorProperty());
     }
 
     /// Handles the window shown event.
@@ -139,7 +140,8 @@ public final class MainController {
 
     @FXML
     private void handleReset() {
-        // Not yet implemented.
+        // TODO Check if we should reset now
+        this.viewModel.reset();
     }
 
     @FXML

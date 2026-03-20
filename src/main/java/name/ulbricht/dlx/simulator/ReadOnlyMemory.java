@@ -11,6 +11,11 @@ public interface ReadOnlyMemory {
         return new ReadOnlyMemory() {
 
             @Override
+            public int size() {
+                return memory.size();
+            }
+
+            @Override
             public int loadWord(final int addr) {
                 return memory.loadWord(addr);
             }
@@ -21,11 +26,19 @@ public interface ReadOnlyMemory {
             }
 
             @Override
-            public int size() {
-                return memory.size();
+            public void addChangeListener(final MemoryChangeListener listener) {
+                memory.addMemoryChangeListener(listener);
+            }
+
+            @Override
+            public void removeChangeListener(final MemoryChangeListener listener) {
+                memory.removeMemoryChangeListener(listener);
             }
         };
     }
+
+    /// {@return the total size of this memory in bytes}
+    int size();
 
     /// {@return a 32-bit word from `addr`}
     ///
@@ -42,6 +55,13 @@ public interface ReadOnlyMemory {
     ///             address with at least 2 bytes remaining
     int loadHalfWord(final int addr);
 
-    /// {@return the total size of this memory in bytes}
-    int size();
+    /// Adds a listener for memory changes.
+    ///
+    /// @param listener the listener to add
+    void addChangeListener(MemoryChangeListener listener);
+
+    /// Removes a listener for memory changes.
+    ///
+    /// @param listener the listener to remove
+    void removeChangeListener(MemoryChangeListener listener);
 }

@@ -20,7 +20,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
     fx:id="mainRoot" fx:controller="name.ulbricht.dlx.ui.view.main.MainController"
-    prefWidth="800" prefHeight="600">
+    prefWidth="900" prefHeight="650">
 
     <stylesheets>
         <URL value="@MainView.css"/>
@@ -39,25 +39,25 @@
             <MenuBar fx:id="menuBar">
 
                 <!-- file menu -->
-                <Menu fx:id="fileMenu" text="%menu.file.text">
-                    <MenuItem fx:id="newMenuItem" text="%menu.file.new.text" accelerator="Ctrl+N" onAction="#handleNew">
+                <Menu fx:id="fileMenu" text="%main.menu.file.text">
+                    <MenuItem fx:id="newMenuItem" text="%main.menu.file.new.text" accelerator="Ctrl+N" onAction="#handleNew">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/document_16_regular.fxml"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="openMenuItem" text="%menu.file.open.text" accelerator="Ctrl+O" onAction="#handleOpen">
+                    <MenuItem fx:id="openMenuItem" text="%main.menu.file.open.text" accelerator="Ctrl+O" onAction="#handleOpen">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_16_regular.fxml"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="saveMenuItem" text="%menu.file.save.text" accelerator="Ctrl+S" onAction="#handleSave" disable="${!viewModel.canSave}">
+                    <MenuItem fx:id="saveMenuItem" text="%main.menu.file.save.text" accelerator="Ctrl+S" onAction="#handleSave" disable="${!viewModel.canSave}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/save_16_regular.fxml"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="saveAsMenuItem" text="%menu.file.saveAs.text" accelerator="Ctrl+Shift+S" onAction="#handleSaveAs" disable="${!viewModel.canSave}"/>
+                    <MenuItem fx:id="saveAsMenuItem" text="%main.menu.file.saveAs.text" accelerator="Ctrl+Shift+S" onAction="#handleSaveAs" disable="${!viewModel.canSave}"/>
                     <SeparatorMenuItem/>
-                    <MenuItem fx:id="exitMenuItem" text="%menu.file.exit.text" onAction="#handleExit">
+                    <MenuItem fx:id="exitMenuItem" text="%main.menu.file.exit.text" onAction="#handleExit">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_exit_16_regular.fxml"/>
                         </graphic>
@@ -65,29 +65,29 @@
                 </Menu>
 
                 <!-- edit menu -->
-                <Menu fx:id="editMenu" text="%menu.edit.text">
-                    <MenuItem fx:id="undoMenuItem" text="%menu.edit.undo.text" accelerator="Ctrl+Z" onAction="#handleUndo">
+                <Menu fx:id="editMenu" text="%main.menu.edit.text">
+                    <MenuItem fx:id="undoMenuItem" text="%main.menu.edit.undo.text" accelerator="Ctrl+Z" onAction="#handleUndo">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_16_regular.fxml"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="redoMenuItem" text="%menu.edit.redo.text" accelerator="Ctrl+Y" onAction="#handleRedo">
+                    <MenuItem fx:id="redoMenuItem" text="%main.menu.edit.redo.text" accelerator="Ctrl+Y" onAction="#handleRedo">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_16_regular.fxml"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
-                    <MenuItem fx:id="cutMenuItem" text="%menu.edit.cut.text" accelerator="Ctrl+X" onAction="#handleCut">
+                    <MenuItem fx:id="cutMenuItem" text="%main.menu.edit.cut.text" accelerator="Ctrl+X" onAction="#handleCut">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/cut_16_regular.fxml"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="copyMenuItem" text="%menu.edit.copy.text" accelerator="Ctrl+C" onAction="#handleCopy">
+                    <MenuItem fx:id="copyMenuItem" text="%main.menu.edit.copy.text" accelerator="Ctrl+C" onAction="#handleCopy">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/copy_16_regular.fxml"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="pasteMenuItem" text="%menu.edit.paste.text" accelerator="Ctrl+V" onAction="#handlePaste">
+                    <MenuItem fx:id="pasteMenuItem" text="%main.menu.edit.paste.text" accelerator="Ctrl+V" onAction="#handlePaste">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_16_regular.fxml"/>
                         </graphic>
@@ -95,13 +95,13 @@
                 </Menu>
 
                 <!-- build menu -->
-                <Menu fx:id="buildMenu" text="%menu.build.text">
-                    <MenuItem fx:id="compileMenuItem" text="%menu.build.compile.text" accelerator="F7" onAction="#handleCompile">
+                <Menu fx:id="buildMenu" text="%main.menu.build.text">
+                    <MenuItem fx:id="compileMenuItem" text="%main.menu.build.compile.text" accelerator="F7" onAction="#handleCompile">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/flash_16_regular.fxml" styleClass="fluent-icon-orange"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="compileAndRunMenuItem" text="%menu.build.compile_and_run.text" accelerator="F5" onAction="#handleCompileAndRun">
+                    <MenuItem fx:id="compileAndRunMenuItem" text="%main.menu.build.compile_and_run.text" accelerator="F5" onAction="#handleCompileAndRun">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/flash_play_16_regular.fxml" styleClass="fluent-icon-orange"/>
                         </graphic>
@@ -109,28 +109,28 @@
                 </Menu>
 
                 <!-- run menu -->
-                <Menu fx:id="runMenu" text="%menu.run.text">
-                    <MenuItem fx:id="runMenuItem" text="%menu.run.run.text" accelerator="F5" onAction="#handleRun">
+                <Menu fx:id="runMenu" text="%main.menu.run.text">
+                    <MenuItem fx:id="runMenuItem" text="%main.menu.run.run.text" accelerator="F5" onAction="#handleRun">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/play_16_regular.fxml" styleClass="fluent-icon-green"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="pauseMenuItem" text="%menu.run.pause.text" accelerator="F6" onAction="#handlePause">
+                    <MenuItem fx:id="pauseMenuItem" text="%main.menu.run.pause.text" accelerator="F6" onAction="#handlePause">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/pause_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="stopMenuItem" text="%menu.run.stop.text" accelerator="Shift+F5" onAction="#handleStop">
+                    <MenuItem fx:id="stopMenuItem" text="%main.menu.run.stop.text" accelerator="Shift+F5" onAction="#handleStop">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/stop_16_regular.fxml" styleClass="fluent-icon-red"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="stepMenuItem" text="%menu.run.step.text" accelerator="F10" onAction="#handleStep">
+                    <MenuItem fx:id="stepMenuItem" text="%main.menu.run.step.text" accelerator="F10" onAction="#handleStep">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/next_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="resetMenuItem" text="%menu.run.reset.text" accelerator="Ctrl+F5" onAction="#handleReset">
+                    <MenuItem fx:id="resetMenuItem" text="%main.menu.run.reset.text" accelerator="Ctrl+F5" onAction="#handleReset">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_counterclockwise_16_regular.fxml" styleClass="fluent-icon-green"/>
                         </graphic>
@@ -138,8 +138,8 @@
                 </Menu>
 
                 <!-- help menu -->
-                <Menu fx:id="helpMenu" text="%menu.help.text">
-                    <MenuItem fx:id="aboutMenuItem" text="%menu.help.about.text" onAction="#handleAbout">
+                <Menu fx:id="helpMenu" text="%main.menu.help.text">
+                    <MenuItem fx:id="aboutMenuItem" text="%main.menu.help.about.text" onAction="#handleAbout">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/info_16_regular.fxml"/>
                         </graphic>
@@ -157,7 +157,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/document_20_regular.fxml"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.new.tooltip"/>
+                        <Tooltip text="%main.toolbar.new.tooltip"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="openButton" onAction="#handleOpen">
@@ -165,7 +165,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_20_regular.fxml"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.open.tooltip"/>
+                        <Tooltip text="%main.toolbar.open.tooltip"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="saveButton" onAction="#handleSave" disable="${!viewModel.canSave}">
@@ -173,7 +173,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/save_20_regular.fxml"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.save.tooltip"/>
+                        <Tooltip text="%main.toolbar.save.tooltip"/>
                     </tooltip>
                 </Button>
                 <Separator/>
@@ -184,7 +184,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_20_regular.fxml"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.undo.tooltip"/>
+                        <Tooltip text="%main.toolbar.undo.tooltip"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="redoButton" onAction="#handleRedo">
@@ -192,7 +192,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_20_regular.fxml"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.redo.tooltip"/>
+                        <Tooltip text="%main.toolbar.redo.tooltip"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="cutButton" onAction="#handleCut">
@@ -200,7 +200,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/cut_20_regular.fxml"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.cut.tooltip"/>
+                        <Tooltip text="%main.toolbar.cut.tooltip"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="copyButton" onAction="#handleCopy">
@@ -208,7 +208,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/copy_20_regular.fxml"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.copy.tooltip"/>
+                        <Tooltip text="%main.toolbar.copy.tooltip"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="pasteButton" onAction="#handlePaste">
@@ -216,7 +216,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_20_regular.fxml"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.paste.tooltip"/>
+                        <Tooltip text="%main.toolbar.paste.tooltip"/>
                     </tooltip>
                 </Button>
                 <Separator/>
@@ -227,7 +227,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/flash_20_regular.fxml" styleClass="fluent-icon-orange"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.compile.tooltip"/>
+                        <Tooltip text="%main.toolbar.compile.tooltip"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="compileAndRunButton" onAction="#handleCompileAndRun">
@@ -235,7 +235,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/flash_play_20_regular.fxml" styleClass="fluent-icon-orange"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.compile_and_run.tooltip"/>
+                        <Tooltip text="%main.toolbar.compile_and_run.tooltip"/>
                     </tooltip>
                 </Button>
                 <Separator/>
@@ -246,7 +246,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/play_20_regular.fxml" styleClass="fluent-icon-green"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.run.tooltip"/>
+                        <Tooltip text="%main.toolbar.run.tooltip"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="pauseButton" onAction="#handlePause">
@@ -254,7 +254,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/pause_20_regular.fxml" styleClass="fluent-icon-blue"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.pause.tooltip"/>
+                        <Tooltip text="%main.toolbar.pause.tooltip"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="stopButton" onAction="#handleStop">
@@ -262,7 +262,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/stop_20_regular.fxml" styleClass="fluent-icon-red"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.stop.tooltip"/>
+                        <Tooltip text="%main.toolbar.stop.tooltip"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="stepButton" onAction="#handleStep">
@@ -270,7 +270,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/next_20_regular.fxml" styleClass="fluent-icon-blue"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.step.tooltip"/>
+                        <Tooltip text="%main.toolbar.step.tooltip"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="resetButton" onAction="#handleReset">
@@ -278,7 +278,7 @@
                         <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_counterclockwise_20_regular.fxml" styleClass="fluent-icon-green"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="%toolbar.reset.tooltip"/>
+                        <Tooltip text="%main.toolbar.reset.tooltip"/>
                     </tooltip>
                 </Button>
 

@@ -2,6 +2,12 @@ package name.ulbricht.dlx.simulator;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import name.ulbricht.dlx.simulator.MemoryChangeListener.MemoryChange;
+
 /// Flat, byte-addressable memory using **big-endian** byte order.
 ///
 /// A single contiguous `byte[]` array backs all memory operations. The address
@@ -20,17 +26,21 @@ final class Memory {
     /// The backing byte array.
     private final byte[] data;
 
+    /// Listeners for memory changes.
+    private final List<MemoryChangeListener> changeListeners = new ArrayList<>();
+
+    /// A cached read-only view of this memory, created on demand.
     private ReadOnlyMemory readOnlyView;
 
     /// Allocates a zero-initialised memory of `sizeBytes` bytes.
     ///
     /// @param sizeBytes the total number of addressable bytes; must be positive
-    public Memory(final int sizeBytes) {
+    Memory(final int sizeBytes) {
         this.data = new byte[sizeBytes];
     }
 
     /// {@returns the total size of this memory in bytes}
-    public int size() {
+    int size() {
         return this.data.length;
     }
 
@@ -39,7 +49,7 @@ final class Memory {
     /// @param addr the byte address of the most-significant byte; must be a valid
     ///             address with at least 4 bytes remaining
     /// @return the 32-bit value assembled from bytes `addr`…`addr+3`
-    public int loadWord(final int addr) {
+    int loadWord(final int addr) {
         checkBounds(addr, 4);
 
         // Assemble four big-endian bytes into one 32-bit integer.
@@ -58,7 +68,7 @@ final class Memory {
     /// @param addr the byte address of the most-significant byte; must be a valid
     ///             address with at least 2 bytes remaining
     /// @return the 32-bit sign-extended half-word value
-    public int loadHalfWord(final int addr) {
+    int loadHalfWord(final int addr) {
         checkBounds(addr, 2);
 
         // Cast to short first; the subsequent int promotion sign-extends.
@@ -72,7 +82,7 @@ final class Memory {
     ///
     /// @param addr the byte address; must have at least 2 bytes remaining
     /// @return the 32-bit zero-extended half-word value
-    public int loadHalfWordU(final int addr) {
+    int loadHalfWordU(final int addr) {
         checkBounds(addr, 2);
 
         return ((this.data[addr] & 0xFF) << 8) | (this.data[addr + 1] & 0xFF);
@@ -85,7 +95,7 @@ final class Memory {
     ///
     /// @param addr the byte address
     /// @return the 32-bit sign-extended byte value (range `[-128, 127]`)
-    public int loadByte(final int addr) {
+    int loadByte(final int addr) {
         checkBounds(addr, 1);
 
         return this.data[addr]; // implicit sign-extension by Java widening
@@ -97,7 +107,7 @@ final class Memory {
     ///
     /// @param addr the byte address
     /// @return the 32-bit zero-extended byte value (range `[0, 255]`)
-    public int loadByteU(final int addr) {
+    int loadByteU(final int addr) {
         checkBounds(addr, 1);
 
         return this.data[addr] & 0xFF;
@@ -107,7 +117,7 @@ final class Memory {
     ///
     /// @param addr  the byte address of the most-significant byte
     /// @param value the 32-bit value to store
-    public void storeWord(final int addr, final int value) {
+    void storeWord(final int addr, final int value) {
         checkBounds(addr, 4);
 
         // Write bytes from most-significant to least-significant.
@@ -115,27 +125,33 @@ final class Memory {
         this.data[addr + 1] = (byte) (value >>> 16);
         this.data[addr + 2] = (byte) (value >>> 8);
         this.data[addr + 3] = (byte) value;
+
+        notifyChangeListeners(addr, Arrays.copyOfRange(this.data, addr, addr + 4));
     }
 
     /// Stores the lower 16 bits of `value` at `addr` in big-endian order.
     ///
     /// @param addr  the byte address of the most-significant byte
     /// @param value the value whose lower 16 bits are stored
-    public void storeHalfWord(final int addr, final int value) {
+    void storeHalfWord(final int addr, final int value) {
         checkBounds(addr, 2);
 
         this.data[addr] = (byte) (value >>> 8);
         this.data[addr + 1] = (byte) value;
+
+        notifyChangeListeners(addr, Arrays.copyOfRange(this.data, addr, addr + 2));
     }
 
     /// Stores the lower 8 bits of `value` at `addr`.
     ///
     /// @param addr  the byte address
     /// @param value the value whose lower 8 bits are stored
-    public void storeByte(final int addr, final int value) {
+    void storeByte(final int addr, final int value) {
         checkBounds(addr, 1);
 
         this.data[addr] = (byte) value;
+
+        notifyChangeListeners(addr, Arrays.copyOfRange(this.data, addr, addr + 1));
     }
 
     /// Writes an array of 32-bit instruction words into memory starting at
@@ -145,7 +161,7 @@ final class Memory {
     ///
     /// @param words     the encoded instruction words to load; must not be `null`
     /// @param startAddr the byte address at which to begin writing; typically 0
-    public void loadProgram(final int[] words, final int startAddr) {
+    void loadProgram(final int[] words, final int startAddr) {
         requireNonNull(words, "words must not be null");
 
         for (var i = 0; i < words.length; i++) {
@@ -167,8 +183,24 @@ final class Memory {
         }
     }
 
+    void addMemoryChangeListener(final MemoryChangeListener listener) {
+        this.changeListeners.add(listener);
+    }
+
+    void removeMemoryChangeListener(final MemoryChangeListener listener) {
+        this.changeListeners.remove(listener);
+    }
+
+    private void notifyChangeListeners(final int address, final byte[] changed) {
+        if (this.changeListeners.isEmpty())
+            return;
+
+        final var change = new MemoryChange(address, changed);
+        List.copyOf(this.changeListeners).forEach(listener -> listener.changed(change));
+    }
+
     /// {@returns a read-only view of this memory}
-    public ReadOnlyMemory asReadOnly() {
+    ReadOnlyMemory asReadOnly() {
         if (this.readOnlyView == null)
             this.readOnlyView = ReadOnlyMemory.of(this);
         return this.readOnlyView;

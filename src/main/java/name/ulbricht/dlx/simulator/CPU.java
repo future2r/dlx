@@ -104,6 +104,12 @@ public final class CPU {
     /// Latch between MEM and WB stages.
     private MemWbLatch memWb = MemWbLatch.BUBBLE;
 
+    /// Creates a new CPU with a freshly allocated zero-initialised memory of a
+    /// default size.
+    public CPU() {
+        this.memory = new Memory(1024 * 2); // Default memory size: 2 KB
+    }
+
     /// Creates a new CPU with a freshly allocated zero-initialised memory.
     ///
     /// @param memorySizeBytes the total size of the simulated memory in bytes; must

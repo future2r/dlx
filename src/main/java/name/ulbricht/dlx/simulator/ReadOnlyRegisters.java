@@ -19,6 +19,16 @@ public interface ReadOnlyRegisters {
             public int[] snapshot() {
                 return registers.snapshot();
             }
+
+            @Override
+            public void addChangeListener(final RegisterChangeListener listener) {
+                registers.addChangeListener(listener);
+            }
+
+            @Override
+            public void removeChangeListener(final RegisterChangeListener listener) {
+                registers.removeChangeListener(listener);
+            }
         };
     }
 
@@ -29,4 +39,15 @@ public interface ReadOnlyRegisters {
 
     /// {@return a copy of all 32 register values}
     int[] snapshot();
+
+    /// Adds a listener for register changes.
+    ///
+    /// @param listener the listener to add
+    void addChangeListener(RegisterChangeListener listener);
+
+    /// Removes a listener for register changes.
+    ///
+    /// @param listener the listener to remove
+    void removeChangeListener(RegisterChangeListener listener);
+
 }
