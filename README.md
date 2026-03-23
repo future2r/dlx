@@ -90,6 +90,7 @@ The following table lists the DLX instruction set, excluding floating-point inst
 | `JR` | R5 | Jump register |
 | `JAL` | label | Jump and link (saves return address in R31) |
 | `JALR` | R5 | Jump and link register (saves return address in R31) |
+| `HALT` | n/a | Halt the processor |
 
 **Notes:**
 - `val`: 16-bit value used as an address offset or immediate value
