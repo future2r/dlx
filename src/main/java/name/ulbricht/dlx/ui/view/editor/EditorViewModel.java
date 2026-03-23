@@ -12,8 +12,6 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -22,14 +20,12 @@ public final class EditorViewModel {
 
     private final ReadOnlyObjectWrapper<Path> file = new ReadOnlyObjectWrapper<>();
 
-    private final StringProperty modifiableSource = new SimpleStringProperty();
-    private final ReadOnlyStringWrapper source = new ReadOnlyStringWrapper();
+    private final StringProperty source = new SimpleStringProperty();
 
     private final ReadOnlyBooleanWrapper dirty = new ReadOnlyBooleanWrapper();
 
     /// Creates a new editor view model instance.
     public EditorViewModel() {
-        this.source.bind(this.modifiableSource);
     }
 
     /// {@return a read-only property representing the currently loaded file, or
@@ -43,18 +39,21 @@ public final class EditorViewModel {
         return fileProperty().get();
     }
 
-    StringProperty modifiableSourceProperty() {
-        return this.modifiableSource;
-    }
-
-    /// {@return a read-only property representing the source code}
-    public ReadOnlyStringProperty sourceProperty() {
-        return this.source.getReadOnlyProperty();
+    /// {@return a property representing the source code}
+    public StringProperty sourceProperty() {
+        return this.source;
     }
 
     /// {@return the source code}
     public String getSource() {
         return sourceProperty().get();
+    }
+
+    /// Sets the source code.
+    /// 
+    /// @param source the new source code
+    void setSource(final String source) {
+        this.source.set(source);
     }
 
     /// {@return a read-only property indicating whether the current file has
@@ -68,26 +67,29 @@ public final class EditorViewModel {
         return dirtyProperty().get();
     }
 
+    /// Creates a new file with example source code.
     void newFile() throws IOException {
-        this.modifiableSource.set(loadExample());
+        final var fileName = "example.dlx";
+        final String example;
+        try (var in = getClass().getResourceAsStream(fileName)) {
+            if (in == null)
+                throw new FileNotFoundException(fileName);
+            example = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        }
+
+        this.setSource(example);
         this.dirty.set(false);
         this.file.set(null);
     }
 
+    /// Loads the content of the specified file into the editor.
+    /// 
+    /// @param file the file to load
     void loadFile(final Path file) throws IOException {
         requireNonNull(file);
 
-        this.modifiableSource.set(Files.readString(file));
+        this.setSource(Files.readString(file));
         this.dirty.set(false);
         this.file.set(file);
-    }
-
-    private String loadExample() throws IOException {
-        final var fileName = "example.dlx";
-        try (var in = getClass().getResourceAsStream(fileName)) {
-            if (in == null)
-                throw new FileNotFoundException(fileName);
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
-        }
     }
 }

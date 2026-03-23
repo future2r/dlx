@@ -5,6 +5,10 @@ module name.ulbricht.dlx {
     requires javafx.controls;
     requires javafx.fxml;
 
+    // Required incubator modules for syntax highlighting
+    requires jfx.incubator.input;
+    requires jfx.incubator.richtext;
+
     // Open UI packages to JavaFX
     opens name.ulbricht.dlx.ui to javafx.graphics;
     opens name.ulbricht.dlx.ui.view.editor to javafx.base, javafx.fxml;

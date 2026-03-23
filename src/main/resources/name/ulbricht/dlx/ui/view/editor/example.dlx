@@ -1,12 +1,9 @@
+; Example DLX Program
 .data
     op1: .word 10
     op2: .word 32
     res: .word 0
-    b: .byte 42
-    h: .halfword 4200
-    buffer: .space 20
-    msg: .ascii "Hello"
-    name: .asciiz "World"
+         .ascii "Hello, World!"
 
 .text
     main:

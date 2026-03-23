@@ -51,6 +51,17 @@
             </dependency>
 
             <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>jfx-incubator-input</artifactId>
+                <version>${javafx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>jfx-incubator-richtext</artifactId>
+                <version>${javafx.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
                 <version>${junit.version}</version>
@@ -64,6 +75,7 @@
 
     <dependencies>
 
+        <!-- JavaFX dependencies -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
@@ -77,6 +89,17 @@
             <artifactId>javafx-controls</artifactId>
         </dependency>
 
+        <!-- JavaFX incubator dependencies -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>jfx-incubator-input</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>jfx-incubator-richtext</artifactId>
+        </dependency>
+
+        <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

@@ -1,3 +1,53 @@
-#sourceTextArea {
+#sourceCodeArea {
     -fx-font-family: monospace;
+    -fx-font-size: 1.2em;
+    -fx-highlight-current-paragraph: true;
+}
+
+.code-default {
+    -fx-fill: black;
+}
+
+.code-instruction {
+    -fx-font-weight: bold;
+    -fx-fill: #1d4ed8;
+}
+
+.code-register {
+    -fx-fill: #0f6e56;
+}
+
+.code-int {
+    -fx-fill: #854f0b;
+}
+
+.code-string {
+    -fx-fill: #3b6d11;
+}
+
+.code-directive {
+    -fx-fill: #6d28d9;
+}
+
+.code-label-definition {
+    -fx-font-weight: bold;
+    -fx-fill: #9f1239;
+}
+
+.code-label-reference {
+    -fx-fill: #be185d;
+}
+
+.code-comment {
+    -fx-font-style: italic;
+    -fx-fill: #888780;
+}
+
+.code-comma,
+.code-paren {
+    -fx-fill: #888780;
+}
+
+.code-unknown {
+    -fx-fill: #dc2626;
 }

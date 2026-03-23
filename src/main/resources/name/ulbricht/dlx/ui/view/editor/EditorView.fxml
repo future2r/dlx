@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
-<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.StackPane?>
+<?import jfx.incubator.scene.control.richtext.CodeArea?>
 <?import name.ulbricht.dlx.ui.view.editor.EditorViewModel?>
 
 <StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
@@ -16,6 +16,6 @@
         <EditorViewModel fx:id="viewModel"/>
     </fx:define>
 
-    <TextArea fx:id="sourceTextArea" editable="false"/>
+    <CodeArea fx:id="sourceCodeArea" lineNumbersEnabled="true"/>
 
 </StackPane>
