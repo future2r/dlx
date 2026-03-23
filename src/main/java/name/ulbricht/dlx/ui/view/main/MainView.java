@@ -14,16 +14,19 @@ public final class MainView {
     /// Loads the main view from the FXML file.
     /// 
     /// @return The configured FXML loader with the loaded content.
-    /// @throws IOException If the FXML file cannot be loaded.
-    public static FXMLLoader load() throws IOException {
+    public static FXMLLoader load() {
 
         // Configure the FXML loader
         final var resources = Messages.BUNDLE;
         final var fxmlLocation = MainView.class.getResource("MainView.fxml");
         final var fxmlLoader = new FXMLLoader(fxmlLocation, resources);
 
-        // Load and return the root node
-        fxmlLoader.load();
+        // Load the view layout
+        try {
+            fxmlLoader.load();
+        } catch (final IOException ex) {
+            throw new IllegalStateException("Failed to load MainView FXML", ex);
+        }
 
         // Return the configured FXML loader with the loaded content
         return fxmlLoader;

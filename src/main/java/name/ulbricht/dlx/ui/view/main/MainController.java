@@ -2,18 +2,25 @@ package name.ulbricht.dlx.ui.view.main;
 
 import java.lang.module.ModuleDescriptor.Version;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.Tooltip;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
-import name.ulbricht.dlx.compiler.Programs;
+import name.ulbricht.dlx.program.Programs;
 import name.ulbricht.dlx.ui.DlxApplication;
-import name.ulbricht.dlx.ui.control.Alerts;
+import name.ulbricht.dlx.ui.controls.Alerts;
 import name.ulbricht.dlx.ui.i18n.Messages;
-import name.ulbricht.dlx.ui.view.console.ConsoleController;
-import name.ulbricht.dlx.ui.view.editor.EditorController;
-import name.ulbricht.dlx.ui.view.internals.InternalsController;
+import name.ulbricht.dlx.ui.view.ViewPart;
+import name.ulbricht.dlx.ui.view.editor.EditorView;
+import name.ulbricht.dlx.ui.view.memory.MemoryView;
+import name.ulbricht.dlx.ui.view.outline.OutlineView;
+import name.ulbricht.dlx.ui.view.problems.ProblemsView;
+import name.ulbricht.dlx.ui.view.registers.RegistersView;
 
 /// Controller for the main application view.
 public final class MainController {
@@ -24,11 +31,13 @@ public final class MainController {
     private Parent mainRoot;
 
     @FXML
-    private EditorController editorController;
+    private TabPane leftTabPane;
     @FXML
-    private InternalsController internalsController;
+    private TabPane editorsTabPane;
     @FXML
-    private ConsoleController consoleController;
+    private TabPane rightTabPane;
+    @FXML
+    private TabPane bottomTabPane;
 
     private final MainViewModel viewModel;
 
@@ -39,12 +48,6 @@ public final class MainController {
 
     @FXML
     private void initialize() {
-        this.viewModel.canSaveProperty().bind(this.editorController.getViewModel().dirtyProperty());
-
-        this.editorController.getViewModel().setSource(Programs.createExampleSource());
-        this.editorController.getViewModel().setProgram(Programs.createExampleProgram());
-
-        this.internalsController.getViewModel().processorProperty().bind(this.viewModel.processorProperty());
     }
 
     /// Handles the window shown event.
@@ -52,35 +55,38 @@ public final class MainController {
     /// @param event the window event
     public void windowShown(final WindowEvent event) {
         this.window = (Window) event.getSource();
-        this.editorController.windowShown(event);
+
+        // Open the default views
+        Platform.runLater(this::openDefaultViews);
+
+        // Open an empty editor
+        Platform.runLater(this::openNewEditor);
     }
 
     /// Handles the window close request event.
     /// 
     /// @param event the window event
     public void windowCloseRequest(final WindowEvent event) {
-        if (this.editorController.getViewModel().isDirty())
-            event.consume();
     }
 
     @FXML
     private void handleNew() {
-        // Not yet implemented.
+        openNewEditor();
     }
 
     @FXML
     private void handleOpen() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
     private void handleSave() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
     private void handleSaveAs() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
@@ -91,57 +97,62 @@ public final class MainController {
 
     @FXML
     private void handleUndo() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
     private void handleRedo() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
     private void handleCut() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
     private void handleCopy() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
     private void handlePaste() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
     private void handleCompile() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
     private void handleCompileAndRun() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
     private void handleRun() {
-        // Not yet implemented.
+        // TODO Check if we can run now
+
+        // For now, get a dummy program
+        final var program = Programs.createExampleProgram();
+        if (program != null)
+            this.viewModel.run(program);
     }
 
     @FXML
     private void handlePause() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
     private void handleStop() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
     private void handleStep() {
-        // Not yet implemented.
+        Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
     @FXML
@@ -152,6 +163,64 @@ public final class MainController {
 
     @FXML
     private void handleAbout() {
+        showAbout();
+    }
+
+    private void openDefaultViews() {
+        // Outline View
+        openLeftView(OutlineView.load());
+
+        // Registers View
+        final var registersView = RegistersView.load();
+        registersView.getViewModel().processorProperty().bind(this.viewModel.processorProperty());
+        openRightView(registersView);
+
+        // Memory View
+        openRightView(MemoryView.load());
+
+        // Problems View
+        openBottomView(ProblemsView.load());
+    }
+
+    private void openLeftView(final ViewPart viewPart) {
+        final var tab = createViewTab(viewPart);
+
+        this.leftTabPane.getTabs().add(tab);
+    }
+
+    private void openRightView(final ViewPart viewPart) {
+        final var tab = createViewTab(viewPart);
+
+        this.rightTabPane.getTabs().add(tab);
+    }
+
+    private void openBottomView(final ViewPart viewPart) {
+        final var tab = createViewTab(viewPart);
+
+        this.bottomTabPane.getTabs().add(tab);
+    }
+
+    private Tab createViewTab(final ViewPart viewPart) {
+        final var tab = new Tab();
+        tab.setContent(viewPart.getRoot());
+
+        tab.textProperty().bind(viewPart.titleProperty());
+
+        final var tooltip = new Tooltip();
+        tooltip.textProperty().bind(viewPart.descriptionProperty());
+        tab.setTooltip(tooltip);
+
+        return tab;
+    }
+
+    private void openNewEditor() {
+        final var view = EditorView.load();
+        final var tab = createViewTab(view);
+
+        this.editorsTabPane.getTabs().add(tab);
+    }
+
+    private void showAbout() {
         final var applicationVersion = DlxApplication.class.getModule().getDescriptor().version().map(Version::toString)
                 .orElse("");
         final var javaVersion = System.getProperty("java.version");
@@ -166,5 +235,4 @@ public final class MainController {
         alert.setHeaderText(Messages.getString("main.about.header"));
         alert.showAndWait();
     }
-
 }

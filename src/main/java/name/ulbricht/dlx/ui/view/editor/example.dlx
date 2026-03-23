@@ -1,0 +1,17 @@
+.data
+    op1: .word 10
+    op2: .word 32
+    res: .word 0
+    b: .byte 42
+    h: .halfword 4200
+    buffer: .space 20
+    msg: .ascii "Hello"
+    name: .asciiz "World"
+
+.text
+    main:
+    lw r1, op1(r0)
+    lw r2, op2(r0)
+    add r3, r1, r2
+    sw res(r0), r3
+    halt

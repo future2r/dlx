@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import name.ulbricht.dlx.simulator.MemoryChangeListener.MemoryChange;
+import name.ulbricht.dlx.simulator.MemoryAccessListener.MemoryAccess;
 
 /// Flat, byte-addressable memory using **big-endian** byte order.
 ///
@@ -26,8 +26,8 @@ final class Memory {
     /// The backing byte array.
     private final byte[] data;
 
-    /// Listeners for memory changes.
-    private final List<MemoryChangeListener> changeListeners = new ArrayList<>();
+    /// Listeners for access.
+    private final List<MemoryAccessListener> accessListeners = new ArrayList<>();
 
     /// A cached read-only view of this memory, created on demand.
     private ReadOnlyMemory readOnlyView;
@@ -39,7 +39,7 @@ final class Memory {
         this.data = new byte[sizeBytes];
     }
 
-    /// {@returns the total size of this memory in bytes}
+    /// {@return the total size of this memory in bytes}
     int size() {
         return this.data.length;
     }
@@ -54,10 +54,14 @@ final class Memory {
 
         // Assemble four big-endian bytes into one 32-bit integer.
         // The `& 0xFF` masks prevent sign-extension of individual bytes.
-        return (this.data[addr] << 24)
+        final int value = (this.data[addr] << 24)
                 | ((this.data[addr + 1] & 0xFF) << 16)
                 | ((this.data[addr + 2] & 0xFF) << 8)
                 | (this.data[addr + 3] & 0xFF);
+
+        notifyReadAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 4));
+
+        return value;
     }
 
     /// Loads a **sign-extended** 16-bit half-word from `addr` (big-endian).
@@ -72,8 +76,12 @@ final class Memory {
         checkBounds(addr, 2);
 
         // Cast to short first; the subsequent int promotion sign-extends.
-        return (short) (((this.data[addr] & 0xFF) << 8)
+        final int value = (short) (((this.data[addr] & 0xFF) << 8)
                 | (this.data[addr + 1] & 0xFF));
+
+        notifyReadAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 2));
+
+        return value;
     }
 
     /// Loads a **zero-extended** 16-bit half-word from `addr` (big-endian).
@@ -85,7 +93,11 @@ final class Memory {
     int loadHalfWordU(final int addr) {
         checkBounds(addr, 2);
 
-        return ((this.data[addr] & 0xFF) << 8) | (this.data[addr + 1] & 0xFF);
+        final int value = ((this.data[addr] & 0xFF) << 8) | (this.data[addr + 1] & 0xFF);
+
+        notifyReadAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 2));
+
+        return value;
     }
 
     /// Loads a **sign-extended** byte from `addr`.
@@ -98,7 +110,11 @@ final class Memory {
     int loadByte(final int addr) {
         checkBounds(addr, 1);
 
-        return this.data[addr]; // implicit sign-extension by Java widening
+        final int value = this.data[addr]; // implicit sign-extension by Java widening
+
+        notifyReadAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 1));
+
+        return value;
     }
 
     /// Loads a **zero-extended** byte from `addr`.
@@ -110,7 +126,11 @@ final class Memory {
     int loadByteU(final int addr) {
         checkBounds(addr, 1);
 
-        return this.data[addr] & 0xFF;
+        final int value = this.data[addr] & 0xFF;
+
+        notifyReadAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 1));
+
+        return value;
     }
 
     /// Stores a 32-bit word at `addr` in big-endian order.
@@ -126,7 +146,7 @@ final class Memory {
         this.data[addr + 2] = (byte) (value >>> 8);
         this.data[addr + 3] = (byte) value;
 
-        notifyChangeListeners(addr, Arrays.copyOfRange(this.data, addr, addr + 4));
+        notifyWriteAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 4));
     }
 
     /// Stores the lower 16 bits of `value` at `addr` in big-endian order.
@@ -139,7 +159,7 @@ final class Memory {
         this.data[addr] = (byte) (value >>> 8);
         this.data[addr + 1] = (byte) value;
 
-        notifyChangeListeners(addr, Arrays.copyOfRange(this.data, addr, addr + 2));
+        notifyWriteAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 2));
     }
 
     /// Stores the lower 8 bits of `value` at `addr`.
@@ -151,21 +171,18 @@ final class Memory {
 
         this.data[addr] = (byte) value;
 
-        notifyChangeListeners(addr, Arrays.copyOfRange(this.data, addr, addr + 1));
+        notifyWriteAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 1));
     }
 
-    /// Writes an array of 32-bit instruction words into memory starting at
-    /// `startAddr`, using big-endian byte order.
+    /// Copies `bytes` into memory starting at `startAddr`.
     ///
-    /// Each element of `words` occupies exactly 4 bytes.
-    ///
-    /// @param words     the encoded instruction words to load; must not be `null`
+    /// @param data      the raw bytes to load; must not be `null`
     /// @param startAddr the byte address at which to begin writing; typically 0
-    void loadProgram(final int[] words, final int startAddr) {
-        requireNonNull(words, "words must not be null");
+    void loadProgram(final byte[] data, final int startAddr) {
+        requireNonNull(data, "bytes must not be null");
 
-        for (var i = 0; i < words.length; i++) {
-            storeWord(startAddr + i * 4, words[i]);
+        for (var i = 0; i < data.length; i++) {
+            storeByte(startAddr + i, data[i]);
         }
     }
 
@@ -183,23 +200,31 @@ final class Memory {
         }
     }
 
-    void addMemoryChangeListener(final MemoryChangeListener listener) {
-        this.changeListeners.add(listener);
+    void addAccessListener(final MemoryAccessListener listener) {
+        this.accessListeners.add(listener);
     }
 
-    void removeMemoryChangeListener(final MemoryChangeListener listener) {
-        this.changeListeners.remove(listener);
+    void removeAccessListener(final MemoryAccessListener listener) {
+        this.accessListeners.remove(listener);
     }
 
-    private void notifyChangeListeners(final int address, final byte[] changed) {
-        if (this.changeListeners.isEmpty())
+    private void notifyReadAccess(final int address, final byte[] value) {
+        notifyAccessListeners(Access.READ, address, value);
+    }
+
+    private void notifyWriteAccess(final int address, final byte[] value) {
+        notifyAccessListeners(Access.WRITE, address, value);
+    }
+
+    private void notifyAccessListeners(final Access access, final int address, final byte[] value) {
+        if (this.accessListeners.isEmpty())
             return;
 
-        final var change = new MemoryChange(address, changed);
-        List.copyOf(this.changeListeners).forEach(listener -> listener.changed(change));
+        final var event = new MemoryAccess(access, address, value);
+        List.copyOf(this.accessListeners).forEach(listener -> listener.memoryAccessed(event));
     }
 
-    /// {@returns a read-only view of this memory}
+    /// {@return a read-only view of this memory}
     ReadOnlyMemory asReadOnly() {
         if (this.readOnlyView == null)
             this.readOnlyView = ReadOnlyMemory.of(this);

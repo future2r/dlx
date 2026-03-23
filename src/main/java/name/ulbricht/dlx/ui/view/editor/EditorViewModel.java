@@ -1,58 +1,60 @@
 package name.ulbricht.dlx.ui.view.editor;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import static java.util.Objects.requireNonNull;
 
-import javafx.beans.property.ObjectProperty;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.ReadOnlyListProperty;
-import javafx.beans.property.ReadOnlyListWrapper;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import name.ulbricht.dlx.compiler.DataDeclaration;
-import name.ulbricht.dlx.compiler.InstructionCall;
-import name.ulbricht.dlx.compiler.Program;
 
+/// View model for the editor view.
 public final class EditorViewModel {
 
-    private final StringProperty source = new SimpleStringProperty();
+    private final ReadOnlyObjectWrapper<Path> file = new ReadOnlyObjectWrapper<>();
+
+    private final StringProperty modifiableSource = new SimpleStringProperty();
+    private final ReadOnlyStringWrapper source = new ReadOnlyStringWrapper();
 
     private final ReadOnlyBooleanWrapper dirty = new ReadOnlyBooleanWrapper();
 
-    private final ObjectProperty<Program> program = new SimpleObjectProperty<>();
-
-    private final ObservableList<DataItem<?>> modifiableDataItems = FXCollections.observableArrayList();
-    private final ReadOnlyListWrapper<DataItem<?>> dataItems = new ReadOnlyListWrapper<>(
-            FXCollections.unmodifiableObservableList(modifiableDataItems));
-
-    private final ObservableList<CodeItem> modifiableCodeItems = FXCollections.observableArrayList();
-    private final ReadOnlyListWrapper<CodeItem> codeItems = new ReadOnlyListWrapper<>(
-            FXCollections.unmodifiableObservableList(modifiableCodeItems));
-
     /// Creates a new editor view model instance.
     public EditorViewModel() {
-        this.program.subscribe(this::programChanged);
+        this.source.bind(this.modifiableSource);
     }
 
-    /// {@return a property representing the source code}
-    public StringProperty sourceProperty() {
-        return this.source;
+    /// {@return a read-only property representing the currently loaded file, or
+    /// `null` if no file is loaded}
+    public ReadOnlyObjectProperty<Path> fileProperty() {
+        return this.file.getReadOnlyProperty();
+    }
+
+    /// {@return the currently loaded file, or `null` if no file is loaded}
+    public Path getFile() {
+        return fileProperty().get();
+    }
+
+    StringProperty modifiableSourceProperty() {
+        return this.modifiableSource;
+    }
+
+    /// {@return a read-only property representing the source code}
+    public ReadOnlyStringProperty sourceProperty() {
+        return this.source.getReadOnlyProperty();
     }
 
     /// {@return the source code}
     public String getSource() {
         return sourceProperty().get();
-    }
-
-    /// Sets the source code.
-    /// 
-    /// @param source the source code to set
-    public void setSource(final String source) {
-        this.source.set(source);
     }
 
     /// {@return a read-only property indicating whether the current file has
@@ -66,70 +68,26 @@ public final class EditorViewModel {
         return dirtyProperty().get();
     }
 
-    /// {@return a property representing the current program}
-    public ObjectProperty<Program> programProperty() {
-        return this.program;
+    void newFile() throws IOException {
+        this.modifiableSource.set(loadExample());
+        this.dirty.set(false);
+        this.file.set(null);
     }
 
-    /// {@return the current program}
-    public Program getProgram() {
-        return programProperty().get();
+    void loadFile(final Path file) throws IOException {
+        requireNonNull(file);
+
+        this.modifiableSource.set(Files.readString(file));
+        this.dirty.set(false);
+        this.file.set(file);
     }
 
-    /// Sets the current program.
-    /// 
-    /// @param program the program to set
-    public void setProgram(final Program program) {
-        this.program.set(program);
-    }
-
-    /// {@return a read-only property representing the list of data items}
-    public ReadOnlyListProperty<DataItem<?>> dataItemsProperty() {
-        return this.dataItems.getReadOnlyProperty();
-    }
-
-    /// {@return the list of data items}
-    public ObservableList<DataItem<?>> getDataItems() {
-        return dataItemsProperty().get();
-    }
-
-    /// {@return a read-only property representing the list of code items}
-    public ReadOnlyListProperty<CodeItem> codeItemsProperty() {
-        return this.codeItems.getReadOnlyProperty();
-    }
-
-    /// {@return the list of code items}
-    public ObservableList<CodeItem> getCodeItems() {
-        return codeItemsProperty().get();
-    }
-
-    private void programChanged(final Program newProgram) {
-        this.modifiableDataItems.clear();
-        this.modifiableCodeItems.clear();
-
-        if (newProgram != null) {
-
-            // Container for both, data items and code items
-            record Sections(List<DataItem<?>> data, List<CodeItem> code) {
-            }
-
-            // Process the addressed program elements and separate them into data items and
-            // code items
-            final var sections = newProgram.addressed().stream().collect(Collectors.teeing(
-                    Collectors.filtering(addressed -> addressed.element() instanceof DataDeclaration,
-                            Collectors.mapping(
-                                    addressed -> new DataItem<>(addressed.address(),
-                                            (DataDeclaration) addressed.element()),
-                                    Collectors.toList())),
-                    Collectors.filtering(addressed -> addressed.element() instanceof InstructionCall,
-                            Collectors.mapping(
-                                    addressed -> new CodeItem(addressed.address(),
-                                            (InstructionCall) addressed.element()),
-                                    Collectors.toList())),
-                    Sections::new));
-
-            this.modifiableDataItems.addAll(sections.data());
-            this.modifiableCodeItems.addAll(sections.code());
+    private String loadExample() throws IOException {
+        final var fileName = "example.dlx";
+        try (var in = getClass().getResourceAsStream(fileName)) {
+            if (in == null)
+                throw new FileNotFoundException(fileName);
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 }

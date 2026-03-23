@@ -26,13 +26,13 @@ public interface ReadOnlyMemory {
             }
 
             @Override
-            public void addChangeListener(final MemoryChangeListener listener) {
-                memory.addMemoryChangeListener(listener);
+            public void addAccessListener(final MemoryAccessListener listener) {
+                memory.addAccessListener(listener);
             }
 
             @Override
-            public void removeChangeListener(final MemoryChangeListener listener) {
-                memory.removeMemoryChangeListener(listener);
+            public void removeAccessListener(final MemoryAccessListener listener) {
+                memory.removeAccessListener(listener);
             }
         };
     }
@@ -55,13 +55,13 @@ public interface ReadOnlyMemory {
     ///             address with at least 2 bytes remaining
     int loadHalfWord(final int addr);
 
-    /// Adds a listener for memory changes.
+    /// Adds a listener for memory access.
     ///
     /// @param listener the listener to add
-    void addChangeListener(MemoryChangeListener listener);
+    void addAccessListener(MemoryAccessListener listener);
 
-    /// Removes a listener for memory changes.
+    /// Removes a listener for memory access.
     ///
     /// @param listener the listener to remove
-    void removeChangeListener(MemoryChangeListener listener);
+    void removeAccessListener(MemoryAccessListener listener);
 }

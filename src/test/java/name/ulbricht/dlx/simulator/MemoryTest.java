@@ -108,7 +108,11 @@ final class MemoryTest {
 
     @Test
     void loadProgramWritesWordsSequentially() {
-        int[] program = { 0x11111111, 0x22222222, 0x33333333 };
+        final byte[] program = {
+                0x11, 0x11, 0x11, 0x11,
+                0x22, 0x22, 0x22, 0x22,
+                0x33, 0x33, 0x33, 0x33
+        };
         this.mem.loadProgram(program, 0);
         assertEquals(0x11111111, this.mem.loadWord(0));
         assertEquals(0x22222222, this.mem.loadWord(4));
@@ -117,7 +121,7 @@ final class MemoryTest {
 
     @Test
     void loadProgramAtNonZeroAddress() {
-        int[] program = { 0xABCDEF01 };
+        final byte[] program = { (byte) 0xAB, (byte) 0xCD, (byte) 0xEF, 0x01 };
         this.mem.loadProgram(program, 16);
         assertEquals(0xABCDEF01, this.mem.loadWord(16));
     }

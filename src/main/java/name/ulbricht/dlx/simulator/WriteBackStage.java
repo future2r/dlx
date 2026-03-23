@@ -22,11 +22,11 @@ import static java.util.Objects.requireNonNull;
 /// branches, unconditional jumps without link, NOP bubbles, and HALT.
 ///
 /// ## Ordering inside a clock cycle
-/// The [CPU][name.ulbricht.dlx.simulator.core.CPU] calls `execute` as the very
-/// first stage operation each cycle (before IF, ID, EX, MEM are computed). This
-/// means WB reads the MEM/WB latch snapshot from the **previous** cycle and its
-/// write is visible to the register file only for future cycles - consistent
-/// with the edge-triggered flip-flop model used throughout the simulator.
+/// The [CPU][name.ulbricht.dlx.simulator.CPU] calls `execute` as the very first
+/// stage operation each cycle (before IF, ID, EX, MEM are computed). This means
+/// WB reads the MEM/WB latch snapshot from the **previous** cycle and its write
+/// is visible to the register file only for future cycles - consistent with the
+/// edge-triggered flip-flop model used throughout the simulator.
 final class WriteBackStage {
 
     /// Private constructor - this class is not instantiable.

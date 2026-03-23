@@ -1,0 +1,23 @@
+.table-row-cell:read {
+    -fx-background-color: derive(-dlx-green-background, -20%), -dlx-green-background, transparent;
+}
+
+.table-row-cell:write {
+    -fx-background-color: derive(-dlx-red-background, -20%), -dlx-red-background, transparent;
+}
+
+.table-row-cell:read:selected {
+    -fx-background-color: derive(-dlx-green-background, -20%), derive(-dlx-green-background, -25%), transparent;
+}
+
+.table-row-cell:write:selected {
+    -fx-background-color: derive(-dlx-red-background, -20%), derive(-dlx-red-background, -25%), transparent;
+}
+
+.table-view:focused .table-row-cell:read:filled:selected {
+    -fx-background-color: -fx-table-cell-border-color, derive(-dlx-green-background, -35%), transparent;
+}
+
+.table-view:focused .table-row-cell:write:filled:selected {
+    -fx-background-color: -fx-table-cell-border-color, derive(-dlx-red-background, -35%), transparent;
+}

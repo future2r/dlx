@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.StackPane?>
+<?import name.ulbricht.dlx.ui.view.outline.OutlineViewModel?>
+
+<StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+    fx:id="outlineRoot" fx:controller="name.ulbricht.dlx.ui.view.outline.OutlineController">
+
+    <stylesheets>
+        <URL value="@OutlineView.css"/>
+    </stylesheets>
+
+    <fx:define>
+        <OutlineViewModel fx:id="viewModel"/>
+    </fx:define>
+
+    <Label text="Not implemented yet."/>
+
+</StackPane>

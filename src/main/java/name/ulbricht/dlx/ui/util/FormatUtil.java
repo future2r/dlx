@@ -24,6 +24,10 @@ public final class FormatUtil {
                 Integer.valueOf(value & 0xFF));
     }
 
+    /// Formats the given byte array as a hexadecimal string.
+    /// 
+    /// @param value the byte array to format
+    /// @return the formatted hexadecimal string
     public static String hexadecimalBytes(final byte[] value) {
         final var sb = new StringBuilder();
         for (int i = 0; i < value.length; i++) {

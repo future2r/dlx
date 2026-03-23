@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.StackPane?>
+<?import name.ulbricht.dlx.ui.view.registers.RegistersView?>
+<?import name.ulbricht.dlx.ui.view.registers.RegistersViewModel?>
+
+<StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+    fx:id="registersRoot" fx:controller="name.ulbricht.dlx.ui.view.registers.RegistersController">
+
+    <stylesheets>
+        <URL value="@RegistersView.css"/>
+    </stylesheets>
+
+    <fx:define>
+        <RegistersViewModel fx:id="viewModel"/>
+    </fx:define>
+
+    <TableView fx:id="registersTable">
+        <rowFactory>
+            <RegistersView fx:factory="registerTableRowFactory"/>
+        </rowFactory>
+        <columns>
+            <TableColumn fx:id="registersIndexColumn" text="%registers.index.text" prefWidth="50">
+                <cellValueFactory>
+                    <PropertyValueFactory property="index"/>
+                </cellValueFactory>
+                <cellFactory>
+                    <RegistersView fx:factory="decimalCellFactory"/>
+                </cellFactory>
+            </TableColumn>
+            <TableColumn fx:id="registersDecimalColumn" text="%registers.decimal.text" prefWidth="80">
+                <cellValueFactory>
+                    <PropertyValueFactory property="value"/>
+                </cellValueFactory>
+                <cellFactory>
+                    <RegistersView fx:factory="decimalCellFactory"/>
+                </cellFactory>
+            </TableColumn>
+            <TableColumn fx:id="registersHexColumn" text="%registers.hexadecimal.text" prefWidth="80">
+                <cellValueFactory>
+                    <PropertyValueFactory property="value"/>
+                </cellValueFactory>
+                <cellFactory>
+                    <RegistersView fx:factory="hexadecimalCellFactory"/>
+                </cellFactory>
+            </TableColumn>
+            <TableColumn fx:id="registersBinaryColumn" text="%registers.binary.text" prefWidth="250">
+                <cellValueFactory>
+                    <PropertyValueFactory property="value"/>
+                </cellValueFactory>
+                <cellFactory>
+                    <RegistersView fx:factory="binaryCellFactory"/>
+                </cellFactory>
+            </TableColumn>
+        </columns>
+    </TableView>
+
+</StackPane>

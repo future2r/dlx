@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.StackPane?>
+<?import name.ulbricht.dlx.ui.view.memory.MemoryViewModel?>
+
+<StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+    fx:id="memoryRoot" fx:controller="name.ulbricht.dlx.ui.view.memory.MemoryController">
+
+    <stylesheets>
+        <URL value="@MemoryView.css"/>
+    </stylesheets>
+
+    <fx:define>
+        <MemoryViewModel fx:id="viewModel"/>
+    </fx:define>
+
+    <Label text="Not implemented yet."/>
+
+</StackPane>

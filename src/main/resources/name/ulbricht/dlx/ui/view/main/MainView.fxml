@@ -9,6 +9,7 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.image.Image?>
@@ -50,12 +51,12 @@
                             <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_16_regular.fxml"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="saveMenuItem" text="%main.menu.file.save.text" accelerator="Ctrl+S" onAction="#handleSave" disable="${!viewModel.canSave}">
+                    <MenuItem fx:id="saveMenuItem" text="%main.menu.file.save.text" accelerator="Ctrl+S" onAction="#handleSave">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/save_16_regular.fxml"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="saveAsMenuItem" text="%main.menu.file.saveAs.text" accelerator="Ctrl+Shift+S" onAction="#handleSaveAs" disable="${!viewModel.canSave}"/>
+                    <MenuItem fx:id="saveAsMenuItem" text="%main.menu.file.saveAs.text" accelerator="Ctrl+Shift+S" onAction="#handleSaveAs"/>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="exitMenuItem" text="%main.menu.file.exit.text" onAction="#handleExit">
                         <graphic>
@@ -168,7 +169,7 @@
                         <Tooltip text="%main.toolbar.open.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="saveButton" onAction="#handleSave" disable="${!viewModel.canSave}">
+                <Button fx:id="saveButton" onAction="#handleSave">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/save_20_regular.fxml"/>
                     </graphic>
@@ -290,13 +291,26 @@
 
     <center>
 
-        <!-- work area-->
+        <!-- Work area-->
         <SplitPane orientation="VERTICAL" dividerPositions="0.7">
-            <SplitPane dividerPositions="0.6">
-                <fx:include fx:id="editor" source="../editor/EditorView.fxml"/>
-                <fx:include fx:id="internals" source="../internals/InternalsView.fxml" SplitPane.resizableWithParent="false"/>
+
+
+            <SplitPane dividerPositions="0.3,0.7">
+
+                <!-- Left panel, used for view parts directly associated with the current editor. -->
+                <TabPane fx:id="leftTabPane" tabClosingPolicy="UNAVAILABLE" SplitPane.resizableWithParent="false"/>
+
+                <!-- Center editor area, used for source editors. -->
+                <TabPane fx:id="editorsTabPane"/>
+
+                <!-- Right panel, used for processor view parts. -->
+                <TabPane fx:id="rightTabPane" tabClosingPolicy="UNAVAILABLE" SplitPane.resizableWithParent="false"/>
+
             </SplitPane>
-            <fx:include fx:id="console" source="../console/ConsoleView.fxml" SplitPane.resizableWithParent="false"/>
+
+            <!-- Bottom panel, used for message view parts. -->
+            <TabPane fx:id="bottomTabPane" tabClosingPolicy="UNAVAILABLE" SplitPane.resizableWithParent="false"/>
+
         </SplitPane>
 
     </center>

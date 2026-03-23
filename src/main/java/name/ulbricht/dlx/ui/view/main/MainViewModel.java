@@ -1,17 +1,14 @@
 package name.ulbricht.dlx.ui.view.main;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleBooleanProperty;
+import name.ulbricht.dlx.program.Program;
 import name.ulbricht.dlx.simulator.CPU;
 
 /// View model for the main application view.
 public final class MainViewModel {
 
     private final ReadOnlyObjectWrapper<CPU> processor = new ReadOnlyObjectWrapper<>();
-
-    private final BooleanProperty canSave = new SimpleBooleanProperty();
 
     /// Creates a new main view model instance.
     public MainViewModel() {
@@ -28,21 +25,15 @@ public final class MainViewModel {
         return processorProperty().get();
     }
 
-    /// {@return the property indicating whether the current file can be saved}
-    public BooleanProperty canSaveProperty() {
-        return this.canSave;
-    }
+    void run(final Program program) {
+        final var encodedProgram = program.encoded();
+        final var entryPoint = program.entryPoint();
 
-    /// {@return whether the current file can be saved}
-    public boolean isCanSave() {
-        return canSaveProperty().get();
-    }
-
-    /// Sets whether the current file can be saved.
-    ///
-    /// @param canSave whether the current file can be saved
-    public void setCanSave(final boolean canSave) {
-        this.canSave.set(canSave);
+        // TODO Consider using a JavaFX service
+        Thread.ofVirtual().start(() -> {
+            this.processor.get().loadProgram(encodedProgram, entryPoint);
+            this.processor.get().run();
+        });
     }
 
     void reset() {

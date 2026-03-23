@@ -9,7 +9,7 @@ import static java.util.Objects.requireNonNull;
 /// address and package it into the IF/ID latch for the ID stage to consume next
 /// cycle.
 ///
-/// The caller ([CPU][name.ulbricht.dlx.simulator.core.CPU]) is responsible for
+/// The caller ([CPU][name.ulbricht.dlx.simulator.CPU]) is responsible for
 /// incrementing the PC by 4 after calling [#execute]. The PC value passed in is
 /// stored in the latch so that later stages can use it for branch-target and
 /// link-address calculations.
@@ -32,7 +32,7 @@ final class InstructionFetchStage {
     ///
     /// The method reads exactly four bytes (one word) from `memory` starting at `pc`
     /// using big-endian byte order. No bounds checking beyond what
-    /// [Memory#loadWord][name.ulbricht.dlx.simulator.core.Memory#loadWord(int)] performs.
+    /// [Memory#loadWord][name.ulbricht.dlx.simulator.Memory#loadWord(int)] performs.
     ///
     /// @param pc     the byte address of the instruction to fetch; must be
     ///               word-aligned (multiple of 4)

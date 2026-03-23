@@ -6,6 +6,9 @@
     -dlx-green: #3A8B36;
     -dlx-blue: #1E89D1;
     -dlx-orange: #F3A600;
+
+    -dlx-red-background: derive(-dlx-red, 100%);
+    -dlx-green-background: derive(-dlx-green, 100%);
 }
 
 /* Some table cells shall be right aligned. */

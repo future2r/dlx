@@ -11,7 +11,7 @@ import static java.util.Objects.requireNonNull;
 /// 2. Asks the [ControlUnit] to produce the [ControlSignals] for that
 ///    instruction.
 /// 3. Reads the required source-register values from the
-///    [Registers][name.ulbricht.dlx.simulator.core.Registers].
+///    [Registers][name.ulbricht.dlx.simulator.Registers].
 /// 4. Packages everything into an [IdExLatch] latch for the EX stage.
 ///
 /// ## Register read timing

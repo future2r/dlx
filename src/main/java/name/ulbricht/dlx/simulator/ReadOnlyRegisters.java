@@ -21,13 +21,13 @@ public interface ReadOnlyRegisters {
             }
 
             @Override
-            public void addChangeListener(final RegisterChangeListener listener) {
-                registers.addChangeListener(listener);
+            public void addAccessListener(final RegisterAccessListener listener) {
+                registers.addAccessListener(listener);
             }
 
             @Override
-            public void removeChangeListener(final RegisterChangeListener listener) {
-                registers.removeChangeListener(listener);
+            public void removeAccessListener(final RegisterAccessListener listener) {
+                registers.removeAccessListener(listener);
             }
         };
     }
@@ -40,14 +40,14 @@ public interface ReadOnlyRegisters {
     /// {@return a copy of all 32 register values}
     int[] snapshot();
 
-    /// Adds a listener for register changes.
+    /// Adds a listener for register access events.
     ///
     /// @param listener the listener to add
-    void addChangeListener(RegisterChangeListener listener);
+    void addAccessListener(RegisterAccessListener listener);
 
-    /// Removes a listener for register changes.
+    /// Removes a listener for register access events.
     ///
     /// @param listener the listener to remove
-    void removeChangeListener(RegisterChangeListener listener);
+    void removeAccessListener(RegisterAccessListener listener);
 
 }

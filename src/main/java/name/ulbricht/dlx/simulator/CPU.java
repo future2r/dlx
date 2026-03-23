@@ -136,22 +136,21 @@ public final class CPU {
 
     /// Loads a program and resets all CPU state to its initial values.
     ///
-    /// The encoded instruction words are written to memory starting at address 0,
-    /// the PC is set to 0, the cycle counter is reset, and all four pipeline latches
-    /// are flushed to their bubble values. The memory outside the program area
-    /// retains its previous contents (or zero on first load).
+    /// The encoded data and instructions are written to memory starting at address
+    /// 0, the PC is set to `entryPoint`, the cycle counter is reset, and all four
+    /// pipeline latches are flushed to their bubble values. The memory outside the
+    /// program area retains its previous contents (or zero on first load).
     ///
-    /// @param programWords array of 32-bit encoded instruction words;
-    ///                     `programWords[0]` is placed at address 0; must not be
-    ///                     `null`
-    /// @throws NullPointerException if `programWords` is `null`
-    public void loadProgram(final int[] programWords) {
-        requireNonNull(programWords, "programWords must not be null");
-        // Write the instruction words into memory.
-        this.memory.loadProgram(programWords, 0);
+    /// @param program    array of bytes representing the program; must not be `null`
+    ///                   `program[0]` is placed at address 0
+    /// @param entryPoint the initial PC value
+    public void loadProgram(final byte[] program, final int entryPoint) {
+        requireNonNull(program, "program must not be null");
+        // Write the program bytes into memory.
+        this.memory.loadProgram(program, 0);
 
         // Reset all mutable CPU state.
-        this.pc = 0;
+        this.pc = entryPoint;
         this.halted = false;
         this.cycles = 0;
 

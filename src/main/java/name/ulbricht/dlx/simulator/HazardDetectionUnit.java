@@ -25,7 +25,7 @@ import static java.util.Objects.requireNonNull;
 ///
 /// ## Scope
 /// This unit only detects the *structural* condition. The
-/// [CPU][name.ulbricht.dlx.simulator.core.CPU] is responsible for acting on the
+/// [CPU][name.ulbricht.dlx.simulator.CPU] is responsible for acting on the
 /// result by freezing the PC and the IF/ID latch and inserting a bubble.
 ///
 /// All other RAW hazards (where the producing instruction is an ALU instruction)

@@ -3,7 +3,7 @@ package name.ulbricht.dlx.simulator;
 import java.util.ArrayList;
 import java.util.List;
 
-import name.ulbricht.dlx.simulator.RegisterChangeListener.RegisterChange;
+import name.ulbricht.dlx.simulator.RegisterAccessListener.RegisterAccess;
 
 /// A bank of 32 general-purpose 32-bit registers.
 ///
@@ -32,8 +32,8 @@ final class Registers {
     /// The backing storage for the 32 register values.
     private final int[] regs = new int[32];
 
-    /// Listeners for register changes.
-    private final List<RegisterChangeListener> changeListeners = new ArrayList<>();
+    /// Listeners for register access events.
+    private final List<RegisterAccessListener> accessListeners = new ArrayList<>();
 
     /// A cached read-only view of this registers, created on demand.
     private ReadOnlyRegisters readOnlyView;
@@ -45,7 +45,12 @@ final class Registers {
     ///
     /// @param index the register number (0–31; higher bits are masked away)
     int read(final int index) {
-        return this.regs[index & 0x1F];
+        final var idx = index & 0x1F;
+        final var value = this.regs[idx];
+
+        notifyReadAccess(idx, value);
+
+        return value;
     }
 
     /// Writes `value` to the register at `index`.
@@ -59,11 +64,12 @@ final class Registers {
         final var idx = index & 0x1F;
         if (idx != 0) {
             this.regs[idx] = value;
-            notifyChangeListeners(idx, value);
+
+            notifyWriteAccess(idx, value);
         }
     }
 
-    /// {@returns a copy of all 32 register values}
+    /// {@return a copy of all 32 register values}
     ///
     /// Modifying the array does not affect the registers. Use this method when the
     /// contents need to be displayed or captured at a particular point in time.
@@ -71,23 +77,31 @@ final class Registers {
         return this.regs.clone();
     }
 
-    void addChangeListener(final RegisterChangeListener listener) {
-        this.changeListeners.add(listener);
+    void addAccessListener(final RegisterAccessListener listener) {
+        this.accessListeners.add(listener);
     }
 
-    void removeChangeListener(final RegisterChangeListener listener) {
-        this.changeListeners.remove(listener);
+    void removeAccessListener(final RegisterAccessListener listener) {
+        this.accessListeners.remove(listener);
     }
 
-    void notifyChangeListeners(final int index, final int newValue) {
-        if (this.changeListeners.isEmpty())
+    private void notifyReadAccess(final int index, final int newValue) {
+        notifyAccessListeners(Access.READ, index, newValue);
+    }
+
+    private void notifyWriteAccess(final int index, final int newValue) {
+        notifyAccessListeners(Access.WRITE, index, newValue);
+    }
+
+    private void notifyAccessListeners(final Access access, final int index, final int value) {
+        if (this.accessListeners.isEmpty())
             return;
 
-        final var change = new RegisterChange(index, newValue);
-        List.copyOf(this.changeListeners).forEach(listener -> listener.changed(change));
+        final var event = new RegisterAccess(access, index, value);
+        List.copyOf(this.accessListeners).forEach(listener -> listener.registerAccessed(event));
     }
 
-    /// {@returns a read-only view of this registers}
+    /// {@return a read-only view of this registers}
     ReadOnlyRegisters asReadOnly() {
         if (this.readOnlyView == null)
             this.readOnlyView = ReadOnlyRegisters.of(this);
