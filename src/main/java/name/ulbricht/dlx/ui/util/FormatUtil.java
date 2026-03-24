@@ -34,7 +34,7 @@ public final class FormatUtil {
             if (i > 0) {
                 sb.append(' ');
             }
-            sb.append("%02X".formatted(value[i] & 0xFF));
+            sb.append("%02X".formatted(Integer.valueOf(value[i] & 0xFF)));
         }
         return sb.toString();
     }

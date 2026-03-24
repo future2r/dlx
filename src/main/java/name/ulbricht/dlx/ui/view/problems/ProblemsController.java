@@ -18,6 +18,6 @@ public final class ProblemsController {
 
     /// {@return the root node of the problems view}
     Parent getRoot() {
-        return problemsRoot;
+        return this.problemsRoot;
     }
 }

@@ -1,5 +1,7 @@
 package name.ulbricht.dlx.ui.view.registers;
 
+import java.util.Objects;
+
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyListProperty;
@@ -19,7 +21,7 @@ public final class RegistersViewModel implements RegisterAccessListener, MemoryA
 
     private final ObservableList<RegisterItem> modifiableRegisters = FXCollections.observableArrayList();
     private final ReadOnlyListWrapper<RegisterItem> registers = new ReadOnlyListWrapper<>(FXCollections
-            .unmodifiableObservableList(modifiableRegisters));
+            .unmodifiableObservableList(this.modifiableRegisters));
 
     /// Creates a new internals view model instance.
     public RegistersViewModel() {
@@ -85,6 +87,7 @@ public final class RegistersViewModel implements RegisterAccessListener, MemoryA
                 item.updateValue(access.value());
                 item.updateAccess(Access.WRITE);
             }
+            default -> throw new IllegalStateException(Objects.toString(access.type()));
         }
     }
 

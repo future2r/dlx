@@ -19,7 +19,7 @@ import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.view.ViewPart;
 
 /// View for the internals of the processor.
-public final class RegistersView implements ViewPart {
+public final class RegistersView implements ViewPart<RegistersViewModel> {
 
     /// Loads the registers view from the FXML file.
     /// 
@@ -82,6 +82,7 @@ public final class RegistersView implements ViewPart {
     }
 
     /// {@return the view model of the registers view}
+    @Override
     public RegistersViewModel getViewModel() {
         return this.controller.getViewModel();
     }

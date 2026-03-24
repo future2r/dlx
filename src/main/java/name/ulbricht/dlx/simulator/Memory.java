@@ -54,7 +54,7 @@ final class Memory {
 
         // Assemble four big-endian bytes into one 32-bit integer.
         // The `& 0xFF` masks prevent sign-extension of individual bytes.
-        final int value = (this.data[addr] << 24)
+        final var value = (this.data[addr] << 24)
                 | ((this.data[addr + 1] & 0xFF) << 16)
                 | ((this.data[addr + 2] & 0xFF) << 8)
                 | (this.data[addr + 3] & 0xFF);
@@ -76,7 +76,7 @@ final class Memory {
         checkBounds(addr, 2);
 
         // Cast to short first; the subsequent int promotion sign-extends.
-        final int value = (short) (((this.data[addr] & 0xFF) << 8)
+        final var value = (short) (((this.data[addr] & 0xFF) << 8)
                 | (this.data[addr + 1] & 0xFF));
 
         notifyReadAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 2));
@@ -93,7 +93,7 @@ final class Memory {
     int loadHalfWordU(final int addr) {
         checkBounds(addr, 2);
 
-        final int value = ((this.data[addr] & 0xFF) << 8) | (this.data[addr + 1] & 0xFF);
+        final var value = ((this.data[addr] & 0xFF) << 8) | (this.data[addr + 1] & 0xFF);
 
         notifyReadAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 2));
 
@@ -110,7 +110,7 @@ final class Memory {
     int loadByte(final int addr) {
         checkBounds(addr, 1);
 
-        final int value = this.data[addr]; // implicit sign-extension by Java widening
+        final var value = (int) this.data[addr]; // implicit sign-extension by Java widening
 
         notifyReadAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 1));
 
@@ -126,7 +126,7 @@ final class Memory {
     int loadByteU(final int addr) {
         checkBounds(addr, 1);
 
-        final int value = this.data[addr] & 0xFF;
+        final var value = this.data[addr] & 0xFF;
 
         notifyReadAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 1));
 
@@ -176,13 +176,13 @@ final class Memory {
 
     /// Copies `bytes` into memory starting at `startAddr`.
     ///
-    /// @param data      the raw bytes to load; must not be `null`
-    /// @param startAddr the byte address at which to begin writing; typically 0
-    void loadProgram(final byte[] data, final int startAddr) {
-        requireNonNull(data, "bytes must not be null");
+    /// @param dataToLoad the raw bytes to load; must not be `null`
+    /// @param startAddr  the byte address at which to begin writing; typically 0
+    void loadProgram(final byte[] dataToLoad, final int startAddr) {
+        requireNonNull(dataToLoad, "bytes must not be null");
 
-        for (var i = 0; i < data.length; i++) {
-            storeByte(startAddr + i, data[i]);
+        for (var i = 0; i < dataToLoad.length; i++) {
+            storeByte(startAddr + i, dataToLoad[i]);
         }
     }
 

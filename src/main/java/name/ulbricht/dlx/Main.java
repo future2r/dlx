@@ -1,5 +1,6 @@
 package name.ulbricht.dlx;
 
+import javafx.application.Application;
 import name.ulbricht.dlx.ui.DlxApplication;
 
 /// The main class of the application, serving as the entry point.
@@ -11,6 +12,6 @@ final class Main {
     static void main(final String... args) {
 
         // Launch the JavaFX application
-        DlxApplication.launch(DlxApplication.class, args);
+        Application.launch(DlxApplication.class, args);
     }
 }

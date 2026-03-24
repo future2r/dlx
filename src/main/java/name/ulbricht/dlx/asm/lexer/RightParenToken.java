@@ -1,10 +1,18 @@
 package name.ulbricht.dlx.asm.lexer;
 
+import static java.util.Objects.requireNonNull;
+
+import name.ulbricht.dlx.util.TextPosition;
+
 /// `')'` in a memory operand: `offset(rBase)`.
-/// 
-/// @param line Line number of the comma token.
-/// @param col  Column number of the comma token.
-public record RightParenToken(int line, int col) implements Token {
+///
+/// @param pos 0-based source position of this token.
+public record RightParenToken(TextPosition pos) implements Token {
+
+    /// Validates the record components.
+    public RightParenToken {
+        requireNonNull(pos, "pos must not be null");
+    }
 
     @Override
     public String raw() {

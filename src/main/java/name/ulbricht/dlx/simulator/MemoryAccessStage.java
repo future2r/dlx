@@ -2,6 +2,8 @@ package name.ulbricht.dlx.simulator;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Objects;
+
 /// **MEM** (Memory Access) stage.
 ///
 /// This is the fourth of the five pipeline stages. It interacts with the data
@@ -66,6 +68,7 @@ final class MemoryAccessStage {
                 case BYTE -> memory.storeByte(addr, exMem.rs2Val());
                 case HALF -> memory.storeHalfWord(addr, exMem.rs2Val());
                 case WORD -> memory.storeWord(addr, exMem.rs2Val());
+                default -> throw new IllegalStateException(Objects.toString(ctrl.memWidth()));
             }
             // memData remains 0; regWrite is false for stores so WB ignores it.
         }

@@ -1,18 +1,17 @@
 package name.ulbricht.dlx.asm.lexer;
 
+import name.ulbricht.dlx.util.TextPosition;
+
 /// DLX Token Type Definitions.
 ///
-/// `raw` + `col` lets the highlighter place colour spans exactly. `raw.length()`
-/// gives the underline length for error markers.
+/// `pos` gives the 0-based source position of the token's first character.
+/// `raw.length()` gives the span length, e.g. for underline error markers.
 public sealed interface Token permits WhitespaceToken, CommentToken, EOLToken, DirectiveToken, LabelDefinitionToken,
         LabelReferenceToken, InstructionToken, RegisterToken,
         IntLiteralToken, StringLiteralToken, CommaToken, LeftParenToken, RightParenToken, UnknownToken {
 
-    /// {@return 1-based source line number}
-    int line();
-
-    /// {@return 0-based character offset within the line}
-    int col();
+    /// {@return 0-based source position of this token}
+    TextPosition pos();
 
     /// {@return Original source text, never normalised}
     String raw();

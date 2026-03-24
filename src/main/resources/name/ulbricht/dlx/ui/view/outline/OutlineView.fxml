@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
-<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.cell.TreeItemPropertyValueFactory?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.layout.StackPane?>
+<?import name.ulbricht.dlx.ui.view.outline.OutlineTreeTableRowFactory?>
 <?import name.ulbricht.dlx.ui.view.outline.OutlineViewModel?>
 
 <StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
@@ -16,6 +19,27 @@
         <OutlineViewModel fx:id="viewModel"/>
     </fx:define>
 
-    <Label text="Not implemented yet."/>
+    <TreeTableView fx:id="structureTreeTableView" showRoot="false">
+        <rowFactory>
+            <OutlineTreeTableRowFactory onAction="#handleRowAction"/>
+        </rowFactory>
+        <columns>
+            <TreeTableColumn text="%outline.label" prefWidth="100">
+                <cellValueFactory>
+                    <TreeItemPropertyValueFactory property="label"/>
+                </cellValueFactory>
+            </TreeTableColumn>
+            <TreeTableColumn text="%outline.keyword" prefWidth="60">
+                <cellValueFactory>
+                    <TreeItemPropertyValueFactory property="keyword"/>
+                </cellValueFactory>
+            </TreeTableColumn>
+            <TreeTableColumn text="%outline.operands" prefWidth="100">
+                <cellValueFactory>
+                    <TreeItemPropertyValueFactory property="operands"/>
+                </cellValueFactory>
+            </TreeTableColumn>
+        </columns>
+    </TreeTableView>
 
 </StackPane>

@@ -10,9 +10,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.view.ViewPart;
+import name.ulbricht.dlx.util.TextPosition;
 
 /// View for the editor.
-public final class EditorView implements ViewPart {
+public final class EditorView implements ViewPart<EditorViewModel> {
 
     /// Loads the editor view from the FXML file.
     /// 
@@ -84,5 +85,17 @@ public final class EditorView implements ViewPart {
     @Override
     public Node getRoot() {
         return this.controller.getRoot();
+    }
+
+    @Override
+    public EditorViewModel getViewModel() {
+        return this.controller.getViewModel();
+    }
+
+    /// Shows the specified text position in the editor.
+    ///
+    /// @param position the text position to show
+    public void showTextPosition(final TextPosition position) {
+        this.controller.showTextPosition(position);
     }
 }

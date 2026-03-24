@@ -11,6 +11,7 @@
 			"source.fixAll": "explicit"
 		},
 		"java.configuration.updateBuildConfiguration": "interactive",
+		"java.referencesCodeLens.enabled": true,
 		"java.completion.favoriteStaticMembers": [
 			"java.util.Objects.*",
 			"org.junit.jupiter.api.Assertions.*",

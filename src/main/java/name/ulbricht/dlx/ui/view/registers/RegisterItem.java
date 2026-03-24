@@ -23,7 +23,7 @@ public final class RegisterItem {
 
     /// {@return a property representing the register index}
     public ReadOnlyIntegerProperty indexProperty() {
-        return index.getReadOnlyProperty();
+        return this.index.getReadOnlyProperty();
     }
 
     /// {@return the register index}
@@ -33,7 +33,7 @@ public final class RegisterItem {
 
     /// {@return a property representing the register value}
     public ReadOnlyIntegerProperty valueProperty() {
-        return value.getReadOnlyProperty();
+        return this.value.getReadOnlyProperty();
     }
 
     /// {@return the register value}
@@ -45,7 +45,7 @@ public final class RegisterItem {
     ///
     /// @param newValue the new value to set
     void updateValue(final int newValue) {
-        value.set(newValue);
+        this.value.set(newValue);
     }
 
     /// {@return a property representing the last access type (read/write) of

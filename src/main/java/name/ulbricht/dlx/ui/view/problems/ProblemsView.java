@@ -11,7 +11,7 @@ import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.view.ViewPart;
 
 /// View for displaying the problems detected in the loaded DLX program.
-public final class ProblemsView implements ViewPart {
+public final class ProblemsView implements ViewPart<ProblemsViewModel> {
 
     /// Loads the problems view from the FXML file.
     /// 

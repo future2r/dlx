@@ -18,6 +18,6 @@ public final class MemoryController {
 
     /// {@return the root node of the memory view}
     Parent getRoot() {
-        return memoryRoot;
+        return this.memoryRoot;
     }
 }

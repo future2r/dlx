@@ -16,7 +16,7 @@ final class ALUTest {
         this.alu = new ALU();
     }
 
-    private ALU.Result exec(ALU.Operation op, int a, int b) {
+    private ALU.Result exec(final ALU.Operation op, final int a, final int b) {
         return this.alu.execute(op, a, b);
     }
 
@@ -24,14 +24,14 @@ final class ALUTest {
 
     @Test
     void addTwoPositives() {
-        var r = exec(ALU.Operation.ADD, 3, 4);
+        final var r = exec(ALU.Operation.ADD, 3, 4);
         assertEquals(7, r.value());
         assertFalse(r.overflow());
     }
 
     @Test
     void addPositiveAndNegative() {
-        var r = exec(ALU.Operation.ADD, 10, -3);
+        final var r = exec(ALU.Operation.ADD, 10, -3);
         assertEquals(7, r.value());
         assertFalse(r.overflow());
     }
@@ -39,7 +39,7 @@ final class ALUTest {
     @Test
     void addPositiveOverflow() {
         // MAX_VALUE + 1 wraps to MIN_VALUE
-        var r = exec(ALU.Operation.ADD, Integer.MAX_VALUE, 1);
+        final var r = exec(ALU.Operation.ADD, Integer.MAX_VALUE, 1);
         assertEquals(Integer.MIN_VALUE, r.value());
         assertTrue(r.overflow());
     }
@@ -47,14 +47,14 @@ final class ALUTest {
     @Test
     void addNegativeOverflow() {
         // MIN_VALUE + (-1) wraps to MAX_VALUE
-        var r = exec(ALU.Operation.ADD, Integer.MIN_VALUE, -1);
+        final var r = exec(ALU.Operation.ADD, Integer.MIN_VALUE, -1);
         assertEquals(Integer.MAX_VALUE, r.value());
         assertTrue(r.overflow());
     }
 
     @Test
     void addNoOverflowWhenSignsDiffer() {
-        var r = exec(ALU.Operation.ADD, Integer.MAX_VALUE, -1);
+        final var r = exec(ALU.Operation.ADD, Integer.MAX_VALUE, -1);
         assertFalse(r.overflow());
     }
 
@@ -62,14 +62,14 @@ final class ALUTest {
 
     @Test
     void adduSameBitPatternAsAdd() {
-        var r = exec(ALU.Operation.ADDU, Integer.MAX_VALUE, 1);
+        final var r = exec(ALU.Operation.ADDU, Integer.MAX_VALUE, 1);
         assertEquals(Integer.MIN_VALUE, r.value()); // same wrap
         assertFalse(r.overflow()); // never sets flag
     }
 
     @Test
     void adduNeverSetsOverflow() {
-        var r = exec(ALU.Operation.ADDU, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        final var r = exec(ALU.Operation.ADDU, Integer.MAX_VALUE, Integer.MAX_VALUE);
         assertFalse(r.overflow());
     }
 
@@ -77,14 +77,14 @@ final class ALUTest {
 
     @Test
     void subTwoPositives() {
-        var r = exec(ALU.Operation.SUB, 10, 3);
+        final var r = exec(ALU.Operation.SUB, 10, 3);
         assertEquals(7, r.value());
         assertFalse(r.overflow());
     }
 
     @Test
     void subProducesNegativeResult() {
-        var r = exec(ALU.Operation.SUB, 3, 10);
+        final var r = exec(ALU.Operation.SUB, 3, 10);
         assertEquals(-7, r.value());
         assertFalse(r.overflow());
     }
@@ -92,7 +92,7 @@ final class ALUTest {
     @Test
     void subOverflowMinValueMinusPositive() {
         // MIN_VALUE - 1 wraps to MAX_VALUE
-        var r = exec(ALU.Operation.SUB, Integer.MIN_VALUE, 1);
+        final var r = exec(ALU.Operation.SUB, Integer.MIN_VALUE, 1);
         assertEquals(Integer.MAX_VALUE, r.value());
         assertTrue(r.overflow());
     }
@@ -100,14 +100,14 @@ final class ALUTest {
     @Test
     void subOverflowMaxValueMinusNegative() {
         // MAX_VALUE - (-1) wraps to MIN_VALUE
-        var r = exec(ALU.Operation.SUB, Integer.MAX_VALUE, -1);
+        final var r = exec(ALU.Operation.SUB, Integer.MAX_VALUE, -1);
         assertEquals(Integer.MIN_VALUE, r.value());
         assertTrue(r.overflow());
     }
 
     @Test
     void subNoOverflowWhenSameSigns() {
-        var r = exec(ALU.Operation.SUB, 5, 5);
+        final var r = exec(ALU.Operation.SUB, 5, 5);
         assertEquals(0, r.value());
         assertFalse(r.overflow());
     }
@@ -116,7 +116,7 @@ final class ALUTest {
 
     @Test
     void subuSameBitPatternAsSub() {
-        var r = exec(ALU.Operation.SUBU, Integer.MIN_VALUE, 1);
+        final var r = exec(ALU.Operation.SUBU, Integer.MIN_VALUE, 1);
         assertEquals(Integer.MAX_VALUE, r.value());
         assertFalse(r.overflow());
     }
@@ -125,7 +125,7 @@ final class ALUTest {
 
     @Test
     void andBasic() {
-        var r = exec(ALU.Operation.AND, 0xFF00FF00, 0x0F0F0F0F);
+        final var r = exec(ALU.Operation.AND, 0xFF00FF00, 0x0F0F0F0F);
         assertEquals(0x0F000F00, r.value());
         assertFalse(r.overflow());
     }
@@ -144,7 +144,7 @@ final class ALUTest {
 
     @Test
     void orBasic() {
-        var r = exec(ALU.Operation.OR, 0xF0F0F0F0, 0x0F0F0F0F);
+        final var r = exec(ALU.Operation.OR, 0xF0F0F0F0, 0x0F0F0F0F);
         assertEquals(0xFFFFFFFF, r.value());
         assertFalse(r.overflow());
     }
@@ -168,7 +168,7 @@ final class ALUTest {
 
     @Test
     void xorBasic() {
-        var r = exec(ALU.Operation.XOR, 0b1010, 0b1100);
+        final var r = exec(ALU.Operation.XOR, 0b1010, 0b1100);
         assertEquals(0b0110, r.value());
         assertFalse(r.overflow());
     }
@@ -207,7 +207,7 @@ final class ALUTest {
     @Test
     void srlZeroFillsHighBits() {
         // Logical shift: high bit must be 0, not sign-extended
-        var r = exec(ALU.Operation.SRL, 0x80000000, 1);
+        final var r = exec(ALU.Operation.SRL, 0x80000000, 1);
         assertEquals(0x40000000, r.value());
     }
 
@@ -222,7 +222,7 @@ final class ALUTest {
     @Test
     void sraPreservesSignBit() {
         // Arithmetic shift: high bits filled with 1
-        var r = exec(ALU.Operation.SRA, 0x80000000, 1);
+        final var r = exec(ALU.Operation.SRA, 0x80000000, 1);
         assertEquals(0xC0000000, r.value());
     }
 
@@ -343,7 +343,7 @@ final class ALUTest {
 
     @Test
     void passBReturnsBIgnoringA() {
-        var r = exec(ALU.Operation.PASS_B, 0xDEADBEEF, 0x12345678);
+        final var r = exec(ALU.Operation.PASS_B, 0xDEADBEEF, 0x12345678);
         assertEquals(0x12345678, r.value());
         assertFalse(r.overflow());
     }
@@ -357,7 +357,7 @@ final class ALUTest {
 
     @Test
     void bitwiseAndShiftOpsNeverSetOverflow() {
-        for (var op : new ALU.Operation[] {
+        for (final var op : new ALU.Operation[] {
                 ALU.Operation.AND, ALU.Operation.OR, ALU.Operation.XOR,
                 ALU.Operation.SLL, ALU.Operation.SRL, ALU.Operation.SRA,
                 ALU.Operation.SEQ, ALU.Operation.SNE,

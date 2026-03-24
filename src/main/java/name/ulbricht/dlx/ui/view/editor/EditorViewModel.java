@@ -5,8 +5,8 @@ import static java.util.Objects.requireNonNull;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -14,6 +14,12 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import name.ulbricht.dlx.asm.lexer.Lexer;
+import name.ulbricht.dlx.asm.lexer.LexerMode;
+import name.ulbricht.dlx.asm.lexer.TokenizedProgram;
+import name.ulbricht.dlx.asm.parser.ParsedProgram;
+import name.ulbricht.dlx.asm.parser.Parser;
+import name.ulbricht.dlx.io.SourceFile;
 
 /// View model for the editor view.
 public final class EditorViewModel {
@@ -21,11 +27,15 @@ public final class EditorViewModel {
     private final ReadOnlyObjectWrapper<Path> file = new ReadOnlyObjectWrapper<>();
 
     private final StringProperty source = new SimpleStringProperty();
-
     private final ReadOnlyBooleanWrapper dirty = new ReadOnlyBooleanWrapper();
+
+    private final ReadOnlyObjectWrapper<TokenizedProgram> tokenizedProgram = new ReadOnlyObjectWrapper<>();
+    private final ReadOnlyObjectWrapper<ParsedProgram> parsedProgram = new ReadOnlyObjectWrapper<>();
 
     /// Creates a new editor view model instance.
     public EditorViewModel() {
+        this.tokenizedProgram.bind(this.source.map(this::tokenize));
+        this.parsedProgram.bind(this.tokenizedProgram.map(this::parse));
     }
 
     /// {@return a read-only property representing the currently loaded file, or
@@ -67,6 +77,46 @@ public final class EditorViewModel {
         return dirtyProperty().get();
     }
 
+    /// {@return a read-only property representing the tokenized program, or `null`
+    /// if the source code has not been tokenized}
+    public ReadOnlyObjectProperty<TokenizedProgram> tokenizedProgramProperty() {
+        return this.tokenizedProgram.getReadOnlyProperty();
+    }
+
+    /// {@return the tokenized program, or `null` if the source code has not
+    /// been tokenized}
+    public TokenizedProgram getTokenizedProgram() {
+        return tokenizedProgramProperty().get();
+    }
+
+    /// {@return a read-only property representing the parsed program, or `null` if
+    /// there is none}
+    public ReadOnlyObjectProperty<ParsedProgram> parsedProgramProperty() {
+        return this.parsedProgram.getReadOnlyProperty();
+    }
+
+    /// {@return the parsed program, or `null` if there is none}
+    public ParsedProgram getParsedProgram() {
+        return parsedProgramProperty().get();
+    }
+
+    private TokenizedProgram tokenize(final String src) {
+        if (src != null) {
+            final var lines = List.of(src.split("\\R", -1));
+            final var lexer = new Lexer(LexerMode.ASSEMBLER);
+            return lexer.tokenize(lines);
+        }
+        return null;
+    }
+
+    private ParsedProgram parse(final TokenizedProgram tokenized) {
+        if (tokenized != null) {
+            final var parser = new Parser();
+            return parser.parse(tokenized);
+        }
+        return null;
+    }
+
     /// Creates a new file with example source code.
     void newFile() throws IOException {
         final var fileName = "example.dlx";
@@ -84,12 +134,12 @@ public final class EditorViewModel {
 
     /// Loads the content of the specified file into the editor.
     /// 
-    /// @param file the file to load
-    void loadFile(final Path file) throws IOException {
-        requireNonNull(file);
+    /// @param fileToLoad the file to load
+    void loadFile(final Path fileToLoad) throws IOException {
+        requireNonNull(fileToLoad);
 
-        this.setSource(Files.readString(file));
+        this.setSource(SourceFile.read(fileToLoad));
         this.dirty.set(false);
-        this.file.set(file);
+        this.file.set(fileToLoad);
     }
 }

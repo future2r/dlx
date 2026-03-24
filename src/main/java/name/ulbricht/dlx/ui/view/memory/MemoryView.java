@@ -11,7 +11,7 @@ import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.view.ViewPart;
 
 /// View for displaying the memory state of the DLX simulator.
-public final class MemoryView implements ViewPart {
+public final class MemoryView implements ViewPart<MemoryViewModel> {
 
     /// Loads the memory view from the FXML file.
     /// 

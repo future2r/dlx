@@ -4,7 +4,9 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.scene.Node;
 
 /// Describes a view part that can be displayed in the user interface.
-public interface ViewPart {
+/// 
+/// @param <V> the type of the view model associated with this view part
+public interface ViewPart<V> {
 
     /// {@return the read-only property for the title} This title is usually used in
     /// some kind of caption.
@@ -33,4 +35,11 @@ public interface ViewPart {
     /// {@return the root node of the view part} This is the main content of the
     /// view part that will be displayed in the user interface.
     Node getRoot();
+
+    /// {@return the view model associated with this view part} The default
+    /// implementation returns `null`, so view parts that do not have a view model
+    /// can safely ignore this method.
+    default V getViewModel() {
+        return null;
+    }
 }

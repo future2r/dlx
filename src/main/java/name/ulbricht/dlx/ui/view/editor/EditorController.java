@@ -1,9 +1,12 @@
 package name.ulbricht.dlx.ui.view.editor;
 
+import static java.util.Objects.requireNonNull;
+
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import jfx.incubator.scene.control.richtext.CodeArea;
 import jfx.incubator.scene.control.richtext.model.CodeTextModel;
+import name.ulbricht.dlx.util.TextPosition;
 
 /// Controller for the editor view.
 public final class EditorController {
@@ -45,6 +48,23 @@ public final class EditorController {
     /// {@return the root node of the editor view}
     Parent getRoot() {
         return this.editorRoot;
+    }
+
+    void showTextPosition(final TextPosition position) {
+        requireNonNull(position);
+
+        this.sourceCodeArea.requestFocus();
+
+        this.sourceCodeArea.moveDocumentStart();
+
+        final var line = position.line();
+        for (var i = 0; i < line; i++)
+            this.sourceCodeArea.moveParagraphDown();
+
+        final var column = position.col();
+        for (var i = 0; i < column; i++)
+            this.sourceCodeArea.moveRight();
+
     }
 
     /// Updates the view model when the user edits the source code.

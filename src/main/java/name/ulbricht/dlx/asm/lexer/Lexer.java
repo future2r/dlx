@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/// DLX Lexer.
+import name.ulbricht.dlx.asm.Diagnostic;
+import name.ulbricht.dlx.util.TextPosition;
+
+/// The lexer for the DLX assembler.
 public final class Lexer {
 
     private static final Set<String> DIRECTIVES = Set.of(
@@ -34,61 +37,61 @@ public final class Lexer {
 
     private final LexerMode mode;
     private final List<Token> tokens = new ArrayList<>();
-    private final List<String> errors = new ArrayList<>();
+    private final List<Diagnostic> errors = new ArrayList<>();
 
     private String src; // current line text
-    private int line; // 1-based line number
+    private int line; // 0-based line index
     private int pos; // current character position in src
 
     /// Creates a new Lexer with the given mode.
-    /// 
+    ///
     /// @param mode Determines which tokens are emitted and which are skipped.
     public Lexer(final LexerMode mode) {
         this.mode = requireNonNull(mode);
     }
 
     /// Tokenises one source line.
-    /// 
+    ///
     /// @param source     The line text.
-    /// @param lineNumber 1-based line number (for error reporting).
+    /// @param lineNumber 0-based line index (used as [TextPosition#line]).
     /// @return List of tokens found in the line. In [LexerMode#ASSEMBLER] mode, this
     ///         will exclude whitespace and comments.
     public List<Token> tokenizeLine(final String source, final int lineNumber) {
         this.src = requireNonNull(source);
         this.line = lineNumber;
         this.pos = 0;
-        tokens.clear();
-        errors.clear();
+        this.tokens.clear();
+        this.errors.clear();
 
         scanLine();
-        return List.copyOf(tokens);
+        return List.copyOf(this.tokens);
     }
 
     /// Tokenizes an entire source file split into lines.
-    /// 
+    ///
+    /// Errors from all lines are accumulated and returned in
+    /// [TokenizedProgram#errors()].
+    ///
     /// @param lines List of source lines.
-    /// @return List of tokens found in the source. In [LexerMode#ASSEMBLER] mode,
-    ///         this will exclude whitespace and comments.
-    public List<Token> tokenize(final List<String> lines) {
+    /// @return [TokenizedProgram] containing the flat token list and any errors. In
+    ///         [LexerMode#ASSEMBLER] mode, whitespace and comments are excluded from
+    ///         the token list.
+    public TokenizedProgram tokenize(final List<String> lines) {
         requireNonNull(lines);
 
-        final var all = new ArrayList<Token>();
-        for (int i = 0; i < lines.size(); i++)
-            all.addAll(tokenizeLine(lines.get(i), i + 1));
-        return List.copyOf(all);
-    }
-
-    /// Errors accumulated across all `tokenizeLine()` calls.
-    /// 
-    /// @return List of error messages.
-    public List<String> errors() {
-        return List.copyOf(errors);
+        final var allTokens = new ArrayList<Token>();
+        final var allErrors = new ArrayList<Diagnostic>();
+        for (int i = 0; i < lines.size(); i++) {
+            allTokens.addAll(tokenizeLine(lines.get(i), i));
+            allErrors.addAll(this.errors); // collect before next call clears them
+        }
+        return new TokenizedProgram(List.copyOf(allTokens), List.copyOf(allErrors));
     }
 
     private void scanLine() {
-        while (pos < src.length()) {
-            final int start = pos;
-            final char c = src.charAt(pos);
+        while (this.pos < this.src.length()) {
+            final int start = this.pos;
+            final char c = this.src.charAt(this.pos);
 
             if (isWhitespace(c)) {
                 scanWhitespace(start);
@@ -118,7 +121,7 @@ public final class Lexer {
                 scanDirective(start);
                 continue;
             }
-            if (isSign(c) && hasDigitAhead(pos + 1)) {
+            if (isSign(c) && hasDigitAhead(this.pos + 1)) {
                 scanNumber(start);
                 continue;
             }
@@ -133,107 +136,107 @@ public final class Lexer {
 
             // Unrecognised character
             addError("Unexpected character '" + c + "'", start, 1);
-            emit(new UnknownToken(line, start, String.valueOf(c)));
-            pos++;
+            emit(new UnknownToken(new TextPosition(this.line, start), String.valueOf(c)));
+            this.pos++;
         }
 
         // End of line marker — always emitted in both modes
-        emit(new EOLToken(line, pos));
+        emit(new EOLToken(new TextPosition(this.line, this.pos)));
     }
 
     private void scanWhitespace(final int start) {
-        while (pos < src.length() && isWhitespace(src.charAt(pos)))
-            pos++;
-        if (mode == LexerMode.HIGHLIGHTING)
-            emit(new WhitespaceToken(line, start, src.substring(start, pos)));
+        while (this.pos < this.src.length() && isWhitespace(this.src.charAt(this.pos)))
+            this.pos++;
+        if (this.mode == LexerMode.HIGHLIGHTING)
+            emit(new WhitespaceToken(new TextPosition(this.line, start), this.src.substring(start, this.pos)));
         // ASSEMBLER mode: silently skip
     }
 
     private void scanComment(final int start) {
         // Consume from ';' to end of line
-        pos = src.length();
-        final String raw = src.substring(start);
-        if (mode == LexerMode.HIGHLIGHTING)
-            emit(new CommentToken(line, start, raw));
+        this.pos = this.src.length();
+        final var raw = this.src.substring(start);
+        if (this.mode == LexerMode.HIGHLIGHTING)
+            emit(new CommentToken(new TextPosition(this.line, start), raw));
         // ASSEMBLER mode: silently skip
     }
 
     private void scanComma() {
-        final int start = pos++;
-        emit(new CommaToken(line, start));
+        final int start = this.pos++;
+        emit(new CommaToken(new TextPosition(this.line, start)));
     }
 
     private void scanLParen() {
-        final int start = pos++;
-        emit(new LeftParenToken(line, start));
+        final int start = this.pos++;
+        emit(new LeftParenToken(new TextPosition(this.line, start)));
     }
 
     private void scanRParen() {
-        final int start = pos++;
-        emit(new RightParenToken(line, start));
+        final int start = this.pos++;
+        emit(new RightParenToken(new TextPosition(this.line, start)));
     }
 
     private void scanDirective(final int start) {
-        pos++; // consume '.'
-        while (pos < src.length() && isIdentChar(src.charAt(pos)))
-            pos++;
-        final String raw = src.substring(start, pos);
-        final String name = raw.substring(1).toLowerCase(); // strip dot, normalise
+        this.pos++; // consume '.'
+        while (this.pos < this.src.length() && isIdentChar(this.src.charAt(this.pos)))
+            this.pos++;
+        final var raw = this.src.substring(start, this.pos);
+        final var name = raw.substring(1).toLowerCase(); // strip dot, normalise
 
         if (DIRECTIVES.contains(name)) {
-            emit(new DirectiveToken(line, start, raw, name));
+            emit(new DirectiveToken(new TextPosition(this.line, start), raw, name));
         } else {
             addError("Unknown directive '" + raw + "'", start, raw.length());
-            emit(new UnknownToken(line, start, raw));
+            emit(new UnknownToken(new TextPosition(this.line, start), raw));
         }
     }
 
     private void scanNumber(final int start) {
         // Consume optional sign
-        if (pos < src.length() && isSign(src.charAt(pos)))
-            pos++;
+        if (this.pos < this.src.length() && isSign(this.src.charAt(this.pos)))
+            this.pos++;
 
         boolean hex = false;
-        if (pos + 1 < src.length()
-                && src.charAt(pos) == '0'
-                && Character.toLowerCase(src.charAt(pos + 1)) == 'x') {
+        if (this.pos + 1 < this.src.length()
+                && this.src.charAt(this.pos) == '0'
+                && Character.toLowerCase(this.src.charAt(this.pos + 1)) == 'x') {
             hex = true;
-            pos += 2;
-            while (pos < src.length() && isHexDigit(src.charAt(pos)))
-                pos++;
+            this.pos += 2;
+            while (this.pos < this.src.length() && isHexDigit(this.src.charAt(this.pos)))
+                this.pos++;
         } else {
-            while (pos < src.length() && Character.isDigit(src.charAt(pos)))
-                pos++;
+            while (this.pos < this.src.length() && Character.isDigit(this.src.charAt(this.pos)))
+                this.pos++;
         }
 
-        final String raw = src.substring(start, pos);
+        final var raw = this.src.substring(start, this.pos);
 
         try {
-            final int value = hex
+            final var value = hex
                     ? Integer.parseInt(raw.substring(2), 16) // strip 0x
                     : Integer.parseInt(raw);
-            emit(new IntLiteralToken(line, start, raw, value));
-        } catch (final NumberFormatException e) {
+            emit(new IntLiteralToken(new TextPosition(this.line, start), raw, value));
+        } catch (final NumberFormatException _) {
             addError("Invalid number '" + raw + "'", start, raw.length());
-            emit(new UnknownToken(line, start, raw));
+            emit(new UnknownToken(new TextPosition(this.line, start), raw));
         }
     }
 
     private void scanString(final int start) {
-        pos++; // consume opening '"'
+        this.pos++; // consume opening '"'
         final var value = new StringBuilder();
         boolean closed = false;
 
-        while (pos < src.length()) {
-            final char c = src.charAt(pos++);
+        while (this.pos < this.src.length()) {
+            final char c = this.src.charAt(this.pos++);
             if (c == '"') {
                 closed = true;
                 break;
             }
             if (c == '\\') {
-                if (pos >= src.length())
+                if (this.pos >= this.src.length())
                     break;
-                final char esc = src.charAt(pos++);
+                final char esc = this.src.charAt(this.pos++);
                 value.append(switch (esc) {
                     case 'n' -> '\n';
                     case 't' -> '\t';
@@ -242,7 +245,7 @@ public final class Lexer {
                     case '"' -> '"';
                     case '0' -> '\0';
                     default -> {
-                        addError("Unknown escape '\\" + esc + "'", pos - 2, 2);
+                        addError("Unknown escape '\\" + esc + "'", this.pos - 2, 2);
                         yield esc;
                     }
                 });
@@ -251,25 +254,25 @@ public final class Lexer {
             }
         }
 
-        final String raw = src.substring(start, pos);
+        final var raw = this.src.substring(start, this.pos);
         if (!closed)
             addError("Unterminated string literal", start, raw.length());
 
-        emit(new StringLiteralToken(line, start, raw, value.toString()));
+        emit(new StringLiteralToken(new TextPosition(this.line, start), raw, value.toString()));
     }
 
     private void scanWord(final int start) {
-        while (pos < src.length() && isIdentChar(src.charAt(pos)))
-            pos++;
+        while (this.pos < this.src.length() && isIdentChar(this.src.charAt(this.pos)))
+            this.pos++;
 
-        final String raw = src.substring(start, pos);
-        final String lower = raw.toLowerCase();
-        final boolean isLabel = pos < src.length() && src.charAt(pos) == ':';
+        final var raw = this.src.substring(start, this.pos);
+        final var lower = raw.toLowerCase();
+        final var isLabel = this.pos < this.src.length() && this.src.charAt(this.pos) == ':';
 
         if (isLabel) {
-            pos++; // consume ':'
-            final String rawWithColon = src.substring(start, pos);
-            emit(new LabelDefinitionToken(line, start, rawWithColon, lower));
+            this.pos++; // consume ':'
+            final var rawWithColon = this.src.substring(start, this.pos);
+            emit(new LabelDefinitionToken(new TextPosition(this.line, start), rawWithColon, lower));
             return;
         }
 
@@ -277,32 +280,32 @@ public final class Lexer {
         if (lower.length() >= 2 && lower.charAt(0) == 'r'
                 && isAllDigits(lower, 1)) {
             try {
-                final int num = Integer.parseInt(lower.substring(1));
+                final var num = Integer.parseInt(lower.substring(1));
                 if (num >= 0 && num <= 31) {
-                    emit(new RegisterToken(line, start, raw, num));
+                    emit(new RegisterToken(new TextPosition(this.line, start), raw, num));
                     return;
                 }
-            } catch (final NumberFormatException ignored) {
+            } catch (final NumberFormatException _) {
+                // Shouldn't happen since we checked isAllDigits, but just in case
             }
         }
 
         // Instruction?
         if (INSTRUCTIONS.contains(lower)) {
-            emit(new InstructionToken(line, start, raw, lower));
+            emit(new InstructionToken(new TextPosition(this.line, start), raw, lower));
             return;
         }
 
         // Otherwise: label reference (branch target, data symbol)
-        emit(new LabelReferenceToken(line, start, raw, lower));
+        emit(new LabelReferenceToken(new TextPosition(this.line, start), raw, lower));
     }
 
     private void emit(final Token t) {
-        tokens.add(t);
+        this.tokens.add(t);
     }
 
     private void addError(final String msg, final int col, final int length) {
-        errors.add("Line " + line + ", col " + col
-                + " (len " + length + "): " + msg);
+        this.errors.add(new Diagnostic(new TextPosition(this.line, col), length, msg));
     }
 
     private static boolean isWhitespace(final char c) {
@@ -334,6 +337,6 @@ public final class Lexer {
 
     /// Returns `true` if `src[pos]` looks like the start of a digit sequence.
     private boolean hasDigitAhead(final int p) {
-        return p < src.length() && Character.isDigit(src.charAt(p));
+        return p < this.src.length() && Character.isDigit(this.src.charAt(p));
     }
 }

@@ -62,7 +62,7 @@ final class MemoryTest {
     @Test
     void loadHalfWordSignExtends() {
         this.mem.storeHalfWord(0, 0x8000); // negative in 16-bit two's complement
-        assertEquals((int) (short) 0x8000, this.mem.loadHalfWord(0)); // -32768
+        assertEquals((short) 0x8000, this.mem.loadHalfWord(0)); // -32768
     }
 
     @Test
