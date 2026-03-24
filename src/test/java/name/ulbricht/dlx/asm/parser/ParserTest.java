@@ -280,10 +280,10 @@ final class ParserTest {
         void swWithIntOffset() {
                 final var program = parse("""
                                 .text
-                                sw r2, 8(r0)""");
+                                sw 8(r0), r2""");
                 assertIterableEquals(
                                 List.of(new ParsedInstruction(pos(1, 0), null, "sw",
-                                                List.of(new RegisterOperand(2), new MemoryOperand(8, 0)))),
+                                                List.of(new MemoryOperand(8, 0), new RegisterOperand(2)))),
                                 program.code());
         }
 
@@ -292,10 +292,10 @@ final class ParserTest {
         void swWithLabelOffset() {
                 final var program = parse("""
                                 .text
-                                sw r2, op(r0)""");
+                                sw op(r0), r2""");
                 assertIterableEquals(
                                 List.of(new ParsedInstruction(pos(1, 0), null, "sw",
-                                                List.of(new RegisterOperand(2), new LabelMemoryOperand("op", 0)))),
+                                                List.of(new LabelMemoryOperand("op", 0), new RegisterOperand(2)))),
                                 program.code());
         }
 
@@ -417,7 +417,7 @@ final class ParserTest {
                                 main:
                                     lw r1, op(r0)
                                     addi r2, r1, 10
-                                    sw r2, op(r0)
+                                    sw op(r0), r2
                                     halt""");
 
                 assertIterableEquals(
@@ -433,8 +433,8 @@ final class ParserTest {
                                                                 List.of(new RegisterOperand(2), new RegisterOperand(1),
                                                                                 new ImmediateOperand(10))),
                                                 new ParsedInstruction(pos(7, 4), null, "sw",
-                                                                List.of(new RegisterOperand(2),
-                                                                                new LabelMemoryOperand("op", 0))),
+                                                                List.of(new LabelMemoryOperand("op", 0),
+                                                                                new RegisterOperand(2))),
                                                 new ParsedInstruction(pos(8, 4), null, "halt", List.of())),
                                 program.code());
         }

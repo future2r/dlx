@@ -61,7 +61,7 @@ public final class EditorController {
         for (var i = 0; i < line; i++)
             this.sourceCodeArea.moveParagraphDown();
 
-        final var column = position.col();
+        final var column = position.column();
         for (var i = 0; i < column; i++)
             this.sourceCodeArea.moveRight();
 

@@ -20,6 +20,7 @@ import name.ulbricht.dlx.asm.lexer.RightParenToken;
 import name.ulbricht.dlx.asm.lexer.StringLiteralToken;
 import name.ulbricht.dlx.asm.lexer.Token;
 import name.ulbricht.dlx.asm.lexer.TokenizedProgram;
+import name.ulbricht.dlx.util.TextPosition;
 
 /// DLX assembler parser.
 ///
@@ -57,7 +58,7 @@ public final class Parser {
     /// Load: Rd, mem(Rs)
     private static final Set<String> FMT_LOAD = Set.of("lb", "lh", "lw", "lbu", "lhu");
 
-    /// Store: Rsrc, mem(Rs)
+    /// Store: mem(Rs), Rsrc
     private static final Set<String> FMT_STORE = Set.of("sb", "sh", "sw");
 
     private List<ParsedDataDeclaration> data;
@@ -264,19 +265,19 @@ public final class Parser {
         return List.of(rd, mem);
     }
 
-    /// Rsrc, mem(Rs)
+    /// mem(Rs), Rsrc
     private List<Operand> parseRsrcMem(final List<Token> tokens, final Token ctx) {
         final var cursor = new Cursor(tokens);
-        final var rsrc = expectRegister(cursor, ctx);
-        if (rsrc == null)
-            return null;
-        if (!expectComma(cursor, ctx))
-            return null;
         final var mem = expectMemory(cursor, ctx);
         if (mem == null)
             return null;
+        if (!expectComma(cursor, ctx))
+            return null;
+        final var rsrc = expectRegister(cursor, ctx);
+        if (rsrc == null)
+            return null;
         expectEnd(cursor);
-        return List.of(rsrc, mem);
+        return List.of(mem, rsrc);
     }
 
     /// Rd, Imm
@@ -521,7 +522,8 @@ public final class Parser {
     }
 
     private void addError(final String msg, final Token token, final int len) {
-        this.errors.add(new Diagnostic(token.pos(), len, msg));
+        this.errors.add(new Diagnostic(Diagnostic.Stage.PARSING,
+                new TextPosition(token.pos().line(), token.pos().column(), len), msg));
     }
 
     private static final class Cursor {

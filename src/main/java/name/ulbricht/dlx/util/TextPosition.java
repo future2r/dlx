@@ -6,19 +6,30 @@ package name.ulbricht.dlx.util;
 /// `List<String>` of source lines; `col` is a direct character offset within
 /// that line string.
 ///
-/// Use [#displayLine()] and [#displayCol()] when showing the position to the
+/// Use [#displayLine()] and [#displayColumn()] when showing the position to the
 /// user (e.g. in error messages) — those return 1-based values.
 ///
-/// @param line 0-based source line index
-/// @param col  0-based character offset within the line
-public record TextPosition(int line, int col) {
+/// @param line   0-based source line index
+/// @param column 0-based character offset within the line
+/// @param length 0-based length of the text span (0 = point position)
+public record TextPosition(int line, int column, int length) {
 
-    /// Validates that line and col are non-negative.
+    /// Validates that line and column are non-negative.
+    /// 
+    /// @param line   0-based source line index
+    /// @param column 0-based character offset within the line
+    public TextPosition(final int line, final int column) {
+        this(line, column, 0);
+    }
+
+    /// Validates that line and column are non-negative.
     public TextPosition {
         if (line < 0)
             throw new IllegalArgumentException("line must be >= 0, got: " + line);
-        if (col < 0)
-            throw new IllegalArgumentException("col must be >= 0, got: " + col);
+        if (column < 0)
+            throw new IllegalArgumentException("column must be >= 0, got: " + column);
+        if (length < 0)
+            throw new IllegalArgumentException("length must be >= 0, got: " + length);
     }
 
     /// {@return 1-based line number for error messages and user-visible output}
@@ -27,13 +38,7 @@ public record TextPosition(int line, int col) {
     }
 
     /// {@return 1-based column number for error messages and user-visible output}
-    public int displayCol() {
-        return this.col + 1;
-    }
-
-    /// Returns a compact display string such as `"3:7"` (1-based line and column).
-    @Override
-    public String toString() {
-        return displayLine() + ":" + displayCol();
+    public int displayColumn() {
+        return this.column + 1;
     }
 }

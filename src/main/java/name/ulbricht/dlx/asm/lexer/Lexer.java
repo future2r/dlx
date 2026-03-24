@@ -305,7 +305,7 @@ public final class Lexer {
     }
 
     private void addError(final String msg, final int col, final int length) {
-        this.errors.add(new Diagnostic(new TextPosition(this.line, col), length, msg));
+        this.errors.add(new Diagnostic(Diagnostic.Stage.LEXING, new TextPosition(this.line, col, length), msg));
     }
 
     private static boolean isWhitespace(final char c) {

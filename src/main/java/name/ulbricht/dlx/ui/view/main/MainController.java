@@ -43,6 +43,7 @@ public final class MainController {
 
     private final MainViewModel viewModel;
 
+    private ProblemsView problemsView;
     private OutlineView outlineView;
 
     /// Creates a new main controller instance.
@@ -205,7 +206,9 @@ public final class MainController {
         openRightView(MemoryView.load());
 
         // Problems View
-        openBottomView(ProblemsView.load());
+        this.problemsView = ProblemsView.load();
+        this.problemsView.setOnTextPosition(this::showTextPosition);
+        openBottomView(this.problemsView);
     }
 
     private void openLeftView(final ViewPart<?> viewPart) {
@@ -265,12 +268,21 @@ public final class MainController {
                 this.outlineView.getViewModel().parsedProgramProperty().unbind();
                 this.outlineView.getViewModel().setParsedProgram(null);
             }
+            if (this.problemsView != null) {
+                this.problemsView.getViewModel().parsedProgramProperty().unbind();
+                this.problemsView.getViewModel().setParsedProgram(null);
+            }
         }
 
         if (newEditorViewModel != null) {
             if (this.outlineView != null) {
                 // Bind the outline view to the new editor's parsed program
                 this.outlineView.getViewModel().parsedProgramProperty()
+                        .bind(newEditorViewModel.parsedProgramProperty());
+            }
+            if (this.problemsView != null) {
+                // Bind the problems view to the new editor's parsed program
+                this.problemsView.getViewModel().parsedProgramProperty()
                         .bind(newEditorViewModel.parsedProgramProperty());
             }
         }

@@ -11,11 +11,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import name.ulbricht.dlx.simulator.Access;
 import name.ulbricht.dlx.simulator.CPU;
-import name.ulbricht.dlx.simulator.MemoryAccessListener;
 import name.ulbricht.dlx.simulator.RegisterAccessListener;
 
-/// View model for the internals view, providing access to the processor state.
-public final class RegistersViewModel implements RegisterAccessListener, MemoryAccessListener {
+/// View model for the registers view.
+public final class RegistersViewModel implements RegisterAccessListener {
 
     private final ObjectProperty<CPU> processor = new SimpleObjectProperty<>();
 
@@ -58,7 +57,6 @@ public final class RegistersViewModel implements RegisterAccessListener, MemoryA
     private void processorChanged(final CPU oldProcessor, final CPU newProcessor) {
         if (oldProcessor != null) {
             oldProcessor.getRegisters().removeAccessListener(this);
-            oldProcessor.getMemory().removeAccessListener(this);
         }
 
         this.modifiableRegisters.clear();
@@ -68,7 +66,6 @@ public final class RegistersViewModel implements RegisterAccessListener, MemoryA
 
         if (newProcessor != null) {
             newProcessor.getRegisters().addAccessListener(this);
-            newProcessor.getMemory().addAccessListener(this);
         }
     }
 
@@ -89,10 +86,5 @@ public final class RegistersViewModel implements RegisterAccessListener, MemoryA
             }
             default -> throw new IllegalStateException(Objects.toString(access.type()));
         }
-    }
-
-    @Override
-    public void memoryAccessed(final MemoryAccess access) {
-        // TODO Auto-generated method stub
     }
 }
