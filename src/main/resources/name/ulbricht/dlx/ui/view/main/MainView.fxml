@@ -17,6 +17,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.stage.FileChooser?>
 <?import name.ulbricht.dlx.ui.view.main.MainViewModel?>
 
 <BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
@@ -28,6 +29,8 @@
     </stylesheets>
 
     <fx:define>
+        <FileChooser fx:id="openFileChooser" title="%main.fileChooser.open.title"/>
+        <FileChooser fx:id="saveFileChooser" title="%main.fileChooser.save.title"/>
         <MainViewModel fx:id="viewModel"/>
     </fx:define>
 
@@ -327,7 +330,7 @@
                 </graphic>
             </Label>
             <Separator orientation="VERTICAL"/>
-            <Label fx:id="editPositionLabel" text="Ln 1, Col 1"/>
+            <Label fx:id="editPositionLabel"/>
         </HBox>
 
     </bottom>

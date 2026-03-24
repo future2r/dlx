@@ -350,7 +350,7 @@ public final class Parser {
         return null;
     }
 
-    private ImmediateOperand expectImmediate(final Cursor cursor, final Token ctx) {
+    private Operand expectImmediate(final Cursor cursor, final Token ctx) {
         if (!cursor.hasNext()) {
             addError("Expected immediate value", ctx, 0);
             return null;
@@ -359,6 +359,10 @@ public final class Parser {
         if (token instanceof final IntLiteralToken il) {
             cursor.advance();
             return new ImmediateOperand(il.value());
+        }
+        if (token instanceof final LabelReferenceToken lrt) {
+            cursor.advance();
+            return new LabelImmediateOperand(lrt.name());
         }
         addError("Expected immediate value, got: " + token.raw(), token, token.raw().length());
         return null;

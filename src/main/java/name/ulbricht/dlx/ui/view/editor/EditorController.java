@@ -2,6 +2,8 @@ package name.ulbricht.dlx.ui.view.editor;
 
 import static java.util.Objects.requireNonNull;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import jfx.incubator.scene.control.richtext.CodeArea;
@@ -24,6 +26,8 @@ public final class EditorController {
     private boolean updatingFromModel;
     private boolean updatingFromView;
 
+    private final ReadOnlyObjectWrapper<TextPosition> editPosition = new ReadOnlyObjectWrapper<>();
+
     /// Creates a new editor controller instance.
     public EditorController() {
         this.codeModel = new CodeTextModel();
@@ -35,6 +39,11 @@ public final class EditorController {
     private void initialize() {
         // Apply the syntax model to the code area
         this.sourceCodeArea.setModel(this.codeModel);
+
+        // Bind the current text position to the caret position of the code area
+        this.editPosition.bind(
+                this.sourceCodeArea.caretPositionProperty().map(pos -> new TextPosition(pos.index(), pos.offset()))
+                        .orElse(new TextPosition(0, 0)));
 
         // React on changes of the view model
         this.viewModel.sourceProperty().subscribe(this::viewModelSourceChanged);
@@ -50,11 +59,23 @@ public final class EditorController {
         return this.editorRoot;
     }
 
-    void showTextPosition(final TextPosition position) {
+    void requestFocus() {
+        this.sourceCodeArea.requestFocus();
+        this.sourceCodeArea.moveDocumentStart();
+    }
+
+    ReadOnlyObjectProperty<TextPosition> editPositionProperty() {
+        return this.editPosition.getReadOnlyProperty();
+    }
+
+    TextPosition getEditPosition() {
+        return editPositionProperty().get();
+    }
+
+    void showEditPosition(final TextPosition position) {
         requireNonNull(position);
 
         this.sourceCodeArea.requestFocus();
-
         this.sourceCodeArea.moveDocumentStart();
 
         final var line = position.line();

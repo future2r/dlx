@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -92,10 +93,25 @@ public final class EditorView implements ViewPart<EditorViewModel> {
         return this.controller.getViewModel();
     }
 
-    /// Shows the specified text position in the editor.
+    /// {@return the current edit position in the editor}
+    public ReadOnlyObjectProperty<TextPosition> editPositionProperty() {
+        return this.controller.editPositionProperty();
+    }
+
+    /// {@return the current edit position in the editor}
+    public TextPosition getEditPosition() {
+        return this.controller.getEditPosition();
+    }
+
+    /// Requests keyboard focus for the editor.
+    public void requestFocus() {
+        this.controller.requestFocus();
+    }
+
+    /// Shows the specified edit position in the editor.
     ///
-    /// @param position the text position to show
-    public void showTextPosition(final TextPosition position) {
-        this.controller.showTextPosition(position);
+    /// @param position the edit position to show
+    public void showEditPosition(final TextPosition position) {
+        this.controller.showEditPosition(position);
     }
 }

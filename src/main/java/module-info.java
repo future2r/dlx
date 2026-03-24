@@ -1,6 +1,9 @@
 /// DLX processor simulator module.
 module name.ulbricht.dlx {
 
+    // Required JDK modules
+    requires java.prefs;
+
     // Required modules
     requires javafx.controls;
     requires javafx.fxml;

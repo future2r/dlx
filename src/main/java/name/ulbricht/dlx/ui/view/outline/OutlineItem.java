@@ -10,6 +10,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import name.ulbricht.dlx.asm.parser.ImmediateOperand;
+import name.ulbricht.dlx.asm.parser.LabelImmediateOperand;
 import name.ulbricht.dlx.asm.parser.LabelMemoryOperand;
 import name.ulbricht.dlx.asm.parser.LabelOperand;
 import name.ulbricht.dlx.asm.parser.MemoryOperand;
@@ -59,6 +60,7 @@ public final class OutlineItem {
                 .map(operand -> switch (operand) {
                     case final RegisterOperand reg -> "R" + reg.number();
                     case final ImmediateOperand imm -> Integer.toString(imm.value());
+                    case final LabelImmediateOperand lbl -> lbl.name();
                     case final LabelOperand lbl -> lbl.name();
                     case final MemoryOperand mem ->
                         "%s(R%s)".formatted(Integer.toString(mem.offset()), Integer.toString(mem.baseReg()));

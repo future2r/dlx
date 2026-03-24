@@ -6,6 +6,6 @@ package name.ulbricht.dlx.asm.parser;
 /// format, an operand can be a register, an integer immediate, a label
 /// reference, or a memory address expressed as an offset plus a base register.
 public sealed interface Operand
-                permits RegisterOperand, ImmediateOperand, LabelOperand, MemoryOperand, LabelMemoryOperand {
+                permits RegisterOperand, ImmediateOperand, LabelImmediateOperand, LabelOperand, MemoryOperand, LabelMemoryOperand {
         // no members
 }

@@ -1,24 +1,29 @@
 package name.ulbricht.dlx.ui.view.main;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.module.ModuleDescriptor.Version;
+import java.nio.file.Path;
 import java.util.Optional;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
+import name.ulbricht.dlx.config.UserPreferences;
 import name.ulbricht.dlx.ui.DlxApplication;
 import name.ulbricht.dlx.ui.controls.Alerts;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.view.ViewPart;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
-import name.ulbricht.dlx.ui.view.editor.EditorViewModel;
 import name.ulbricht.dlx.ui.view.memory.MemoryView;
 import name.ulbricht.dlx.ui.view.outline.OutlineView;
 import name.ulbricht.dlx.ui.view.problems.ProblemsView;
@@ -41,10 +46,15 @@ public final class MainController {
     @FXML
     private TabPane bottomTabPane;
 
-    private final MainViewModel viewModel;
+    @FXML
+    private Label editPositionLabel;
 
-    private ProblemsView problemsView;
-    private OutlineView outlineView;
+    @FXML
+    private FileChooser openFileChooser;
+    @FXML
+    private FileChooser saveFileChooser;
+
+    private final MainViewModel viewModel;
 
     /// Creates a new main controller instance.
     public MainController() {
@@ -53,11 +63,11 @@ public final class MainController {
 
     @FXML
     private void initialize() {
-        // Update the outline with the current editor view model
-        this.viewModel.currentEditorViewModelProperty().subscribe(this::currentEditorViewModelChanged);
-
         // React on changes of the current editor tab.
         this.editorsTabPane.getSelectionModel().selectedItemProperty().subscribe(this::currentEditorTabChanged);
+
+        openDefaultViews();
+        openNewEditor();
     }
 
     /// Handles the window shown event.
@@ -66,11 +76,8 @@ public final class MainController {
     public void windowShown(final WindowEvent event) {
         this.window = (Window) event.getSource();
 
-        // Open the default views
-        Platform.runLater(this::openDefaultViews);
-
-        // Open an empty editor
-        Platform.runLater(this::openNewEditor);
+        // Focus the editor (if there is any)
+        Platform.runLater(() -> getActiveEditorView().ifPresent(EditorView::requestFocus));
     }
 
     /// Handles the window close request event.
@@ -87,7 +94,19 @@ public final class MainController {
 
     @FXML
     private void handleOpen() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
+        final var preferences = UserPreferences.getInstance();
+        this.openFileChooser.setInitialDirectory(preferences.getMostRecentlyUsedDirectory().toFile());
+        Optional.ofNullable(this.openFileChooser.showOpenDialog(this.window))
+                .map(File::toPath)
+                .ifPresent(file -> {
+                    preferences.putMostRecentlyUsedDirectory(file.getParent());
+
+                    try {
+                        openEditor(file);
+                    } catch (final IOException e) {
+                        Alerts.error(this.window, "Failed to open file: " + e.getMessage()).show();
+                    }
+                });
     }
 
     @FXML
@@ -193,9 +212,9 @@ public final class MainController {
 
     private void openDefaultViews() {
         // Outline View
-        this.outlineView = OutlineView.load();
-        this.outlineView.setOnTextPosition(this::showTextPosition);
-        openLeftView(this.outlineView);
+        final var outlineView = OutlineView.load();
+        outlineView.setOnTextPosition(this::showTextPosition);
+        openLeftView(outlineView);
 
         // Registers View
         final var registersView = RegistersView.load();
@@ -206,9 +225,9 @@ public final class MainController {
         openRightView(MemoryView.load());
 
         // Problems View
-        this.problemsView = ProblemsView.load();
-        this.problemsView.setOnTextPosition(this::showTextPosition);
-        openBottomView(this.problemsView);
+        final var problemsView = ProblemsView.load();
+        problemsView.setOnTextPosition(this::showTextPosition);
+        openBottomView(problemsView);
     }
 
     private void openLeftView(final ViewPart<?> viewPart) {
@@ -251,52 +270,86 @@ public final class MainController {
         this.editorsTabPane.getSelectionModel().select(tab);
     }
 
-    private void currentEditorTabChanged(final Tab selectedTab) {
-        if (selectedTab != null &&
-                selectedTab.getUserData() instanceof final EditorView editorView) {
-            this.viewModel.updateCurrentEditorViewModel(editorView.getViewModel());
-        } else {
-            this.viewModel.updateCurrentEditorViewModel(null);
-        }
+    private void openEditor(final Path file) throws IOException {
+        final var view = EditorView.load(file);
+        final var tab = createViewTab(view);
+
+        this.editorsTabPane.getTabs().add(tab);
+        this.editorsTabPane.getSelectionModel().select(tab);
     }
 
-    private void currentEditorViewModelChanged(final EditorViewModel oldEditorViewModel,
-            final EditorViewModel newEditorViewModel) {
-        // Unbind from the old editor
-        if (oldEditorViewModel != null) {
-            if (this.outlineView != null) {
-                this.outlineView.getViewModel().parsedProgramProperty().unbind();
-                this.outlineView.getViewModel().setParsedProgram(null);
-            }
-            if (this.problemsView != null) {
-                this.problemsView.getViewModel().parsedProgramProperty().unbind();
-                this.problemsView.getViewModel().setParsedProgram(null);
-            }
-        }
+    private void currentEditorTabChanged(final Tab newEditorTab) {
+        final var newEditorView = getEditorView(newEditorTab).orElse(null);
 
-        if (newEditorViewModel != null) {
-            if (this.outlineView != null) {
-                // Bind the outline view to the new editor's parsed program
-                this.outlineView.getViewModel().parsedProgramProperty()
-                        .bind(newEditorViewModel.parsedProgramProperty());
-            }
-            if (this.problemsView != null) {
-                // Bind the problems view to the new editor's parsed program
-                this.problemsView.getViewModel().parsedProgramProperty()
-                        .bind(newEditorViewModel.parsedProgramProperty());
-            }
-        }
+        updateOutlineBinding(newEditorView);
+        updateProblemsBinding(newEditorView);
+        updateEditPositionBinding(newEditorView);
+    }
+
+    private void updateOutlineBinding(final EditorView newEditorView) {
+        getOutlineView().ifPresent(outlineView -> {
+            // Unbind from the old editor
+            outlineView.getViewModel().parsedProgramProperty().unbind();
+            outlineView.getViewModel().setParsedProgram(null);
+            // Bind to new editor
+            if (newEditorView != null)
+                outlineView.getViewModel().parsedProgramProperty()
+                        .bind(newEditorView.getViewModel().parsedProgramProperty());
+        });
+    }
+
+    private void updateProblemsBinding(final EditorView newEditorView) {
+        getProblemsView().ifPresent(problemsView -> {
+            // Unbind from the old editor
+            problemsView.getViewModel().parsedProgramProperty().unbind();
+            problemsView.getViewModel().setParsedProgram(null);
+            // Bind to new editor
+            if (newEditorView != null)
+                problemsView.getViewModel().parsedProgramProperty()
+                        .bind(newEditorView.getViewModel().parsedProgramProperty());
+        });
+    }
+
+    private void updateEditPositionBinding(final EditorView newEditorView) {
+        // Unbind from the old editor
+        this.editPositionLabel.textProperty().unbind();
+        this.editPositionLabel.setText("");
+        // Bind to new editor
+        if (newEditorView != null)
+            this.editPositionLabel.textProperty().bind(newEditorView.editPositionProperty()
+                    .map(pos -> Messages.getString("main.editPosition.pattern").formatted(
+                            Integer.valueOf(pos.displayLine()),
+                            Integer.valueOf(pos.displayColumn()))));
+    }
+
+    private static Optional<EditorView> getEditorView(final Tab tab) {
+        if (tab != null && tab.getUserData() instanceof final EditorView editorView)
+            return Optional.of(editorView);
+        return Optional.empty();
+    }
+
+    private Optional<EditorView> getActiveEditorView() {
+        return getEditorView(this.editorsTabPane.getSelectionModel().getSelectedItem());
+    }
+
+    private Optional<OutlineView> getOutlineView() {
+        return this.leftTabPane.getTabs().stream()
+                .map(Tab::getUserData)
+                .filter(OutlineView.class::isInstance)
+                .map(OutlineView.class::cast)
+                .findFirst();
+    }
+
+    private Optional<ProblemsView> getProblemsView() {
+        return this.bottomTabPane.getTabs().stream()
+                .map(Tab::getUserData)
+                .filter(ProblemsView.class::isInstance)
+                .map(ProblemsView.class::cast)
+                .findFirst();
     }
 
     private void showTextPosition(final TextPositionEvent event) {
-        getCurrentEditorView().ifPresent(editorView -> editorView.showTextPosition(event.getTextPosition()));
-    }
-
-    private Optional<EditorView> getCurrentEditorView() {
-        final var selectedTab = this.editorsTabPane.getSelectionModel().getSelectedItem();
-        if (selectedTab != null && selectedTab.getUserData() instanceof final EditorView editorView)
-            return Optional.of(editorView);
-        return Optional.empty();
+        getActiveEditorView().ifPresent(editorView -> editorView.showEditPosition(event.getTextPosition()));
     }
 
     private void showAbout() {

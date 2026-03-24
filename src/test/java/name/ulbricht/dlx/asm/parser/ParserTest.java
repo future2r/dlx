@@ -227,6 +227,19 @@ final class ParserTest {
         }
 
         @Test
+        @DisplayName("addi with label immediate — address load")
+        void addiLabelImmediate() {
+                final var program = parse("""
+                                .text
+                                addi r1, r0, str""");
+                assertIterableEquals(
+                                List.of(new ParsedInstruction(pos(1, 0), null, "addi",
+                                                List.of(new RegisterOperand(1), new RegisterOperand(0),
+                                                                new LabelImmediateOperand("str")))),
+                                program.code());
+        }
+
+        @Test
         @DisplayName("addi with negative immediate")
         void addiNegativeImmediate() {
                 final var program = parse("""
@@ -308,6 +321,31 @@ final class ParserTest {
                 assertIterableEquals(
                                 List.of(new ParsedInstruction(pos(1, 0), null, "lhi",
                                                 List.of(new RegisterOperand(1), new ImmediateOperand(0x1234)))),
+                                program.code());
+        }
+
+        @Test
+        @DisplayName("lhi with label immediate — upper address half")
+        void lhiLabelImmediate() {
+                final var program = parse("""
+                                .text
+                                lhi r1, str""");
+                assertIterableEquals(
+                                List.of(new ParsedInstruction(pos(1, 0), null, "lhi",
+                                                List.of(new RegisterOperand(1), new LabelImmediateOperand("str")))),
+                                program.code());
+        }
+
+        @Test
+        @DisplayName("ori with label immediate — lower address half")
+        void oriLabelImmediate() {
+                final var program = parse("""
+                                .text
+                                ori r1, r1, str""");
+                assertIterableEquals(
+                                List.of(new ParsedInstruction(pos(1, 0), null, "ori",
+                                                List.of(new RegisterOperand(1), new RegisterOperand(1),
+                                                                new LabelImmediateOperand("str")))),
                                 program.code());
         }
 
