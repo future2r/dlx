@@ -2,6 +2,47 @@
 
 This project is about simulating that processor using Java and JavaFX.
 
+## Development
+
+### Prerequisites
+
+- **Any JDK** installed and `JAVA_HOME` pointing to it. The Maven wrapper uses this JDK to bootstrap Maven itself.
+- **JDK 25** (OpenJDK) registered in a [Maven toolchain](https://maven.apache.org/guides/mini/guide-using-toolchains.html). The build selects the correct JDK via the `maven-toolchains-plugin`, so your `JAVA_HOME` JDK does not need to be version 25. Add the following to your `~/.m2/toolchains.xml`:
+
+```xml
+<toolchains>
+  <toolchain>
+    <type>jdk</type>
+    <provides>
+      <version>25</version>
+      <vendor>openjdk</vendor>
+    </provides>
+    <configuration>
+      <jdkHome>C:\path\to\jdk-25</jdkHome>
+    </configuration>
+  </toolchain>
+</toolchains>
+```
+
+### Build
+
+The project uses the [Maven Wrapper](https://maven.apache.org/wrapper/), so you do **not** need Maven installed. The wrapper automatically downloads the required Maven version on first use.
+
+```powershell
+.\mvnw compile       # compile sources and generate Javadoc
+.\mvnw test          # run unit tests
+.\mvnw package       # build JAR in target/lib/
+.\mvnw clean         # remove build artifacts
+```
+
+### Editing
+
+The recommended editor is [Visual Studio Code](https://code.visualstudio.com/) with the Java extensions.
+
+1. Open the workspace file `dlx.code-workspace` in VS Code.
+2. Install the recommended extensions when prompted
+3. Use the pre-configured launch configuration to run the application.
+
 ## DLX Processor
 
 The DLX microprocessor (pronounced: *Deluxe*) is a hypothetical processor architecture. The DLX processor uses a RISC instruction set and has 32 registers.
