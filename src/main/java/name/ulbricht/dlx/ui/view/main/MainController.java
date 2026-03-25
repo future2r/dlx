@@ -199,8 +199,9 @@ public final class MainController {
         chooseOpenFile().ifPresent(file -> {
             try {
                 openEditor(file);
-            } catch (final IOException e) {
-                Alerts.error(this.window, "Failed to open file: " + e.getMessage()).show();
+            } catch (final IOException ex) {
+                Alerts.error(this.window, Messages.getString("main.open.error").formatted(ex.getMessage()))
+                        .showAndWait();
             }
         });
     }

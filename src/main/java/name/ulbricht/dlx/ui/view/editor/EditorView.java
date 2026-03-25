@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -84,24 +85,24 @@ public final class EditorView implements ViewPart<EditorViewModel> {
 
     /// {@return a read-only property representing the plain name of the editor
     /// (file name or "Untitled"), without any dirty indicator}
-    public ReadOnlyStringWrapper nameProperty() {
-        return this.name;
+    public ReadOnlyStringProperty nameProperty() {
+        return this.name.getReadOnlyProperty();
     }
 
     /// {@return the plain name of the editor (file name or "Untitled"), without any
     /// dirty indicator}
     public String getName() {
-        return this.name.get();
+        return nameProperty().get();
     }
 
     @Override
-    public ReadOnlyStringWrapper titleProperty() {
-        return this.title;
+    public ReadOnlyStringProperty titleProperty() {
+        return this.title.getReadOnlyProperty();
     }
 
     @Override
-    public ReadOnlyStringWrapper descriptionProperty() {
-        return this.description;
+    public ReadOnlyStringProperty descriptionProperty() {
+        return this.description.getReadOnlyProperty();
     }
 
     @Override
@@ -134,8 +135,8 @@ public final class EditorView implements ViewPart<EditorViewModel> {
         return this.controller.redoableProperty();
     }
 
-    /// {@return a read-only property indicating whether the editor has a non-empty
-    /// selection}
+    /// {@return a read-only property indicating whether the editor has a
+    /// non-empty selection}
     public ReadOnlyBooleanProperty hasSelectionProperty() {
         return this.controller.hasSelectionProperty();
     }

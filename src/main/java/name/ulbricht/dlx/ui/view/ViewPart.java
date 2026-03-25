@@ -19,7 +19,7 @@ public interface ViewPart<V> {
     }
 
     /// {@return the read-only property for the description} This description is
-    /// usually used in some kind of tooltip. The default impleementation returns the
+    /// usually used in some kind of tooltip. The default implementation returns the
     /// same property as [#titleProperty()], so the description is the same as the
     /// title by default.
     default ReadOnlyStringProperty descriptionProperty() {

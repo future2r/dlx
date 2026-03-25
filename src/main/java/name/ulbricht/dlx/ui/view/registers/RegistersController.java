@@ -24,7 +24,7 @@ public final class RegistersController {
     @FXML
     private void initialize() {
         // Bind the registers table to the view model's registers list.
-        // The property types ar not quite compatible, so we have to use a binding here
+        // The property types are not quite compatible, so we have to use a binding here
         // instead of just setting the items property in the FXML file.
         Bindings.bindContent(this.registersTable.getItems(), this.viewModel.getRegisters());
     }
