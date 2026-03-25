@@ -122,7 +122,7 @@
 
                 <!-- run menu -->
                 <Menu fx:id="runMenu" text="%main.menu.run.text">
-                    <MenuItem fx:id="runMenuItem" text="%main.menu.run.run.text" accelerator="F5" onAction="#handleRun">
+                    <MenuItem fx:id="runMenuItem" text="%main.menu.run.run.text" accelerator="F9" onAction="#handleRun">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/play_16_regular.fxml" styleClass="fluent-icon-green"/>
                         </graphic>
@@ -132,19 +132,19 @@
                             <fx:include source="/name/ulbricht/dlx/ui/icon/pause_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="stopMenuItem" text="%main.menu.run.stop.text" accelerator="Shift+F5" onAction="#handleStop">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/stop_16_regular.fxml" styleClass="fluent-icon-red"/>
-                        </graphic>
-                    </MenuItem>
                     <MenuItem fx:id="stepMenuItem" text="%main.menu.run.step.text" accelerator="F10" onAction="#handleStep">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/next_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="resetMenuItem" text="%main.menu.run.reset.text" accelerator="Ctrl+F5" onAction="#handleReset">
+                    <MenuItem fx:id="resetMenuItem" text="%main.menu.run.reset.text" accelerator="Ctrl+Shift+F5" onAction="#handleReset">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_counterclockwise_16_regular.fxml" styleClass="fluent-icon-green"/>
+                        </graphic>
+                    </MenuItem>
+                    <MenuItem fx:id="stopMenuItem" text="%main.menu.run.stop.text" accelerator="Shift+F5" onAction="#handleStop">
+                        <graphic>
+                            <fx:include source="/name/ulbricht/dlx/ui/icon/stop_16_regular.fxml" styleClass="fluent-icon-red"/>
                         </graphic>
                     </MenuItem>
                 </Menu>
@@ -269,14 +269,6 @@
                         <Tooltip text="%main.toolbar.pause.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="stopButton" onAction="#handleStop">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/stop_20_regular.fxml" styleClass="fluent-icon-red"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.stop.tooltip"/>
-                    </tooltip>
-                </Button>
                 <Button fx:id="stepButton" onAction="#handleStep">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/next_20_regular.fxml" styleClass="fluent-icon-blue"/>
@@ -291,6 +283,14 @@
                     </graphic>
                     <tooltip>
                         <Tooltip text="%main.toolbar.reset.tooltip"/>
+                    </tooltip>
+                </Button>
+                <Button fx:id="stopButton" onAction="#handleStop">
+                    <graphic>
+                        <fx:include source="/name/ulbricht/dlx/ui/icon/stop_20_regular.fxml" styleClass="fluent-icon-red"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%main.toolbar.stop.tooltip"/>
                     </tooltip>
                 </Button>
 
