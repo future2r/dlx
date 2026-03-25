@@ -67,6 +67,11 @@ public final class MainController {
     private Window window;
 
     private final ReadOnlyBooleanWrapper canSave = new ReadOnlyBooleanWrapper();
+    private final ReadOnlyBooleanWrapper canUndo = new ReadOnlyBooleanWrapper();
+    private final ReadOnlyBooleanWrapper canRedo = new ReadOnlyBooleanWrapper();
+    private final ReadOnlyBooleanWrapper canCut = new ReadOnlyBooleanWrapper();
+    private final ReadOnlyBooleanWrapper canCopy = new ReadOnlyBooleanWrapper();
+    private final ReadOnlyBooleanWrapper canPaste = new ReadOnlyBooleanWrapper();
 
     /// Creates a new main controller instance.
     public MainController() {
@@ -134,6 +139,56 @@ public final class MainController {
         return this.canSave.get();
     }
 
+    /// {@return a read-only property indicating whether undo is available}
+    public ReadOnlyBooleanProperty canUndoProperty() {
+        return this.canUndo.getReadOnlyProperty();
+    }
+
+    /// {@return whether undo is available}
+    public boolean isCanUndo() {
+        return this.canUndo.get();
+    }
+
+    /// {@return a read-only property indicating whether redo is available}
+    public ReadOnlyBooleanProperty canRedoProperty() {
+        return this.canRedo.getReadOnlyProperty();
+    }
+
+    /// {@return whether redo is available}
+    public boolean isCanRedo() {
+        return this.canRedo.get();
+    }
+
+    /// {@return a read-only property indicating whether cut is available}
+    public ReadOnlyBooleanProperty canCutProperty() {
+        return this.canCut.getReadOnlyProperty();
+    }
+
+    /// {@return whether cut is available}
+    public boolean isCanCut() {
+        return this.canCut.get();
+    }
+
+    /// {@return a read-only property indicating whether copy is available}
+    public ReadOnlyBooleanProperty canCopyProperty() {
+        return this.canCopy.getReadOnlyProperty();
+    }
+
+    /// {@return whether copy is available}
+    public boolean isCanCopy() {
+        return this.canCopy.get();
+    }
+
+    /// {@return a read-only property indicating whether paste is available}
+    public ReadOnlyBooleanProperty canPasteProperty() {
+        return this.canPaste.getReadOnlyProperty();
+    }
+
+    /// {@return whether paste is available}
+    public boolean isCanPaste() {
+        return this.canPaste.get();
+    }
+
     @FXML
     private void handleNew() {
         openNewEditor();
@@ -173,27 +228,27 @@ public final class MainController {
 
     @FXML
     private void handleUndo() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
+        getActiveEditorView().ifPresent(EditorView::undo);
     }
 
     @FXML
     private void handleRedo() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
+        getActiveEditorView().ifPresent(EditorView::redo);
     }
 
     @FXML
     private void handleCut() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
+        getActiveEditorView().ifPresent(EditorView::cut);
     }
 
     @FXML
     private void handleCopy() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
+        getActiveEditorView().ifPresent(EditorView::copy);
     }
 
     @FXML
     private void handlePaste() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
+        getActiveEditorView().ifPresent(EditorView::paste);
     }
 
     @FXML
@@ -343,6 +398,7 @@ public final class MainController {
         final var newEditorView = getEditorView(newEditorTab).orElse(null);
 
         updateCanSaveBinding(newEditorView);
+        updateEditBindings(newEditorView);
         updateOutlineBinding(newEditorView);
         updateProblemsBinding(newEditorView);
         updateEditPositionBinding(newEditorView);
@@ -353,6 +409,25 @@ public final class MainController {
         this.canSave.set(false);
         if (newEditorView != null)
             this.canSave.bind(newEditorView.getViewModel().dirtyProperty());
+    }
+
+    private void updateEditBindings(final EditorView newEditorView) {
+        this.canUndo.unbind();
+        this.canUndo.set(false);
+        this.canRedo.unbind();
+        this.canRedo.set(false);
+        this.canCut.unbind();
+        this.canCut.set(false);
+        this.canCopy.unbind();
+        this.canCopy.set(false);
+        this.canPaste.set(newEditorView != null);
+
+        if (newEditorView != null) {
+            this.canUndo.bind(newEditorView.undoableProperty());
+            this.canRedo.bind(newEditorView.redoableProperty());
+            this.canCut.bind(newEditorView.hasSelectionProperty());
+            this.canCopy.bind(newEditorView.hasSelectionProperty());
+        }
     }
 
     private void updateOutlineBinding(final EditorView newEditorView) {

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXMLLoader;
@@ -121,6 +122,47 @@ public final class EditorView implements ViewPart<EditorViewModel> {
     /// {@return the current edit position in the editor}
     public TextPosition getEditPosition() {
         return this.controller.getEditPosition();
+    }
+
+    /// {@return a read-only property indicating whether undo is available}
+    public ReadOnlyBooleanProperty undoableProperty() {
+        return this.controller.undoableProperty();
+    }
+
+    /// {@return a read-only property indicating whether redo is available}
+    public ReadOnlyBooleanProperty redoableProperty() {
+        return this.controller.redoableProperty();
+    }
+
+    /// {@return a read-only property indicating whether the editor has a non-empty
+    /// selection}
+    public ReadOnlyBooleanProperty hasSelectionProperty() {
+        return this.controller.hasSelectionProperty();
+    }
+
+    /// Undoes the last edit operation.
+    public void undo() {
+        this.controller.undo();
+    }
+
+    /// Redoes the last undone edit operation.
+    public void redo() {
+        this.controller.redo();
+    }
+
+    /// Cuts the current selection to the clipboard.
+    public void cut() {
+        this.controller.cut();
+    }
+
+    /// Copies the current selection to the clipboard.
+    public void copy() {
+        this.controller.copy();
+    }
+
+    /// Pastes the clipboard content at the current caret position.
+    public void paste() {
+        this.controller.paste();
     }
 
     /// Requests keyboard focus for the editor.

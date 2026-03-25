@@ -78,28 +78,28 @@
 
                 <!-- edit menu -->
                 <Menu fx:id="editMenu" text="%main.menu.edit.text">
-                    <MenuItem fx:id="undoMenuItem" text="%main.menu.edit.undo.text" accelerator="Ctrl+Z" onAction="#handleUndo">
+                    <MenuItem disable="${!controller.canUndo}" text="%main.menu.edit.undo.text" accelerator="Ctrl+Z" onAction="#handleUndo">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_16_regular.fxml" styleClass="fluent-icon-green"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="redoMenuItem" text="%main.menu.edit.redo.text" accelerator="Ctrl+Y" onAction="#handleRedo">
+                    <MenuItem disable="${!controller.canRedo}" text="%main.menu.edit.redo.text" accelerator="Ctrl+Y" onAction="#handleRedo">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_16_regular.fxml" styleClass="fluent-icon-green"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
-                    <MenuItem fx:id="cutMenuItem" text="%main.menu.edit.cut.text" accelerator="Ctrl+X" onAction="#handleCut">
+                    <MenuItem disable="${!controller.canCut}" text="%main.menu.edit.cut.text" accelerator="Ctrl+X" onAction="#handleCut">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/cut_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="copyMenuItem" text="%main.menu.edit.copy.text" accelerator="Ctrl+C" onAction="#handleCopy">
+                    <MenuItem disable="${!controller.canCopy}" text="%main.menu.edit.copy.text" accelerator="Ctrl+C" onAction="#handleCopy">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/copy_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="pasteMenuItem" text="%main.menu.edit.paste.text" accelerator="Ctrl+V" onAction="#handlePaste">
+                    <MenuItem disable="${!controller.canPaste}" text="%main.menu.edit.paste.text" accelerator="Ctrl+V" onAction="#handlePaste">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_16_regular.fxml" styleClass="fluent-icon-orange"/>
                         </graphic>
@@ -191,7 +191,7 @@
                 <Separator/>
 
                 <!-- edit section -->
-                <Button fx:id="undoButton" onAction="#handleUndo">
+                <Button disable="${!controller.canUndo}" onAction="#handleUndo">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_20_regular.fxml" styleClass="fluent-icon-green"/>
                     </graphic>
@@ -199,7 +199,7 @@
                         <Tooltip text="%main.toolbar.undo.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="redoButton" onAction="#handleRedo">
+                <Button disable="${!controller.canRedo}" onAction="#handleRedo">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_20_regular.fxml" styleClass="fluent-icon-green"/>
                     </graphic>
@@ -207,7 +207,7 @@
                         <Tooltip text="%main.toolbar.redo.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="cutButton" onAction="#handleCut">
+                <Button disable="${!controller.canCut}" onAction="#handleCut">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/cut_20_regular.fxml" styleClass="fluent-icon-blue"/>
                     </graphic>
@@ -215,7 +215,7 @@
                         <Tooltip text="%main.toolbar.cut.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="copyButton" onAction="#handleCopy">
+                <Button disable="${!controller.canCopy}" onAction="#handleCopy">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/copy_20_regular.fxml" styleClass="fluent-icon-blue"/>
                     </graphic>
@@ -223,7 +223,7 @@
                         <Tooltip text="%main.toolbar.copy.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="pasteButton" onAction="#handlePaste">
+                <Button disable="${!controller.canPaste}" onAction="#handlePaste">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_20_regular.fxml" styleClass="fluent-icon-orange"/>
                     </graphic>

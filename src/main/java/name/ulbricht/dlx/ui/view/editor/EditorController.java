@@ -2,6 +2,9 @@ package name.ulbricht.dlx.ui.view.editor;
 
 import static java.util.Objects.requireNonNull;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.fxml.FXML;
@@ -27,6 +30,7 @@ public final class EditorController {
     private boolean updatingFromView;
 
     private final ReadOnlyObjectWrapper<TextPosition> editPosition = new ReadOnlyObjectWrapper<>();
+    private final ReadOnlyBooleanWrapper hasSelection = new ReadOnlyBooleanWrapper();
 
     /// Creates a new editor controller instance.
     public EditorController() {
@@ -44,6 +48,11 @@ public final class EditorController {
         this.editPosition.bind(
                 this.sourceCodeArea.caretPositionProperty().map(pos -> new TextPosition(pos.index(), pos.offset()))
                         .orElse(new TextPosition(0, 0)));
+
+        // Track whether the editor has a non-empty selection
+        this.hasSelection.bind(Bindings.createBooleanBinding(
+                this.sourceCodeArea::hasNonEmptySelection,
+                this.sourceCodeArea.selectionProperty()));
 
         // React on changes of the view model
         this.viewModel.sourceProperty().subscribe(this::viewModelSourceChanged);
@@ -70,6 +79,38 @@ public final class EditorController {
 
     TextPosition getEditPosition() {
         return editPositionProperty().get();
+    }
+
+    ReadOnlyBooleanProperty undoableProperty() {
+        return this.sourceCodeArea.undoableProperty();
+    }
+
+    ReadOnlyBooleanProperty redoableProperty() {
+        return this.sourceCodeArea.redoableProperty();
+    }
+
+    ReadOnlyBooleanProperty hasSelectionProperty() {
+        return this.hasSelection.getReadOnlyProperty();
+    }
+
+    void undo() {
+        this.sourceCodeArea.undo();
+    }
+
+    void redo() {
+        this.sourceCodeArea.redo();
+    }
+
+    void cut() {
+        this.sourceCodeArea.cut();
+    }
+
+    void copy() {
+        this.sourceCodeArea.copy();
+    }
+
+    void paste() {
+        this.sourceCodeArea.paste();
     }
 
     void showEditPosition(final TextPosition position) {
