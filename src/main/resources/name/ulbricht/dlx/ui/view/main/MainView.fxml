@@ -18,6 +18,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.stage.FileChooser?>
+<?import name.ulbricht.dlx.ui.view.main.MainView?>
 <?import name.ulbricht.dlx.ui.view.main.MainViewModel?>
 
 <BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
@@ -29,6 +30,7 @@
     </stylesheets>
 
     <fx:define>
+        <MainView fx:id="userPreferences" fx:factory="userPreferences"/>
         <FileChooser fx:id="openFileChooser" title="%main.fileChooser.open.title"/>
         <FileChooser fx:id="saveFileChooser" title="%main.fileChooser.save.title"/>
         <MainViewModel fx:id="viewModel"/>
@@ -60,6 +62,12 @@
                         </graphic>
                     </MenuItem>
                     <MenuItem fx:id="saveAsMenuItem" text="%main.menu.file.saveAs.text" accelerator="Ctrl+Shift+S" onAction="#handleSaveAs"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem fx:id="preferencesMenuItem" text="%main.menu.file.preferences.text" onAction="#handlePreferences">
+                        <graphic>
+                            <fx:include source="/name/ulbricht/dlx/ui/icon/settings_16_regular.fxml"/>
+                        </graphic>
+                    </MenuItem>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="exitMenuItem" text="%main.menu.file.exit.text" onAction="#handleExit">
                         <graphic>

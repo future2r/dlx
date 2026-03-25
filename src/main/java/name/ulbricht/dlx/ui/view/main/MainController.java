@@ -19,13 +19,15 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import name.ulbricht.dlx.config.UserPreferences;
 import name.ulbricht.dlx.ui.DlxApplication;
-import name.ulbricht.dlx.ui.controls.Alerts;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
+import name.ulbricht.dlx.ui.scene.Scenes;
+import name.ulbricht.dlx.ui.scene.control.Alerts;
 import name.ulbricht.dlx.ui.view.ViewPart;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
 import name.ulbricht.dlx.ui.view.memory.MemoryView;
 import name.ulbricht.dlx.ui.view.outline.OutlineView;
+import name.ulbricht.dlx.ui.view.preferences.PreferencesView;
 import name.ulbricht.dlx.ui.view.problems.ProblemsView;
 import name.ulbricht.dlx.ui.view.registers.RegistersView;
 
@@ -33,9 +35,16 @@ import name.ulbricht.dlx.ui.view.registers.RegistersView;
 public final class MainController {
 
     @FXML
-    private Window window;
-    @FXML
     private Parent mainRoot;
+
+    @FXML
+    private UserPreferences userPreferences;
+    @FXML
+    private FileChooser openFileChooser;
+    @FXML
+    private FileChooser saveFileChooser;
+    @FXML
+    private MainViewModel viewModel;
 
     @FXML
     private TabPane leftTabPane;
@@ -50,19 +59,19 @@ public final class MainController {
     private Label editPositionLabel;
 
     @FXML
-    private FileChooser openFileChooser;
-    @FXML
-    private FileChooser saveFileChooser;
-
-    private final MainViewModel viewModel;
+    private Window window;
 
     /// Creates a new main controller instance.
     public MainController() {
-        this.viewModel = new MainViewModel();
     }
 
     @FXML
     private void initialize() {
+        this.openFileChooser.initialDirectoryProperty()
+                .bind(this.userPreferences.mostRecentlyUsedDirectoryProperty().map(Path::toFile));
+        this.saveFileChooser.initialDirectoryProperty()
+                .bind(this.userPreferences.mostRecentlyUsedDirectoryProperty().map(Path::toFile));
+
         // React on changes of the current editor tab.
         this.editorsTabPane.getSelectionModel().selectedItemProperty().subscribe(this::currentEditorTabChanged);
 
@@ -75,6 +84,10 @@ public final class MainController {
     /// @param event the window event
     public void windowShown(final WindowEvent event) {
         this.window = (Window) event.getSource();
+
+        // React on changes of the theme preferences
+        this.userPreferences.themeProperty()
+                .subscribe(theme -> Platform.runLater(() -> Scenes.applyTheme(this.window.getScene(), theme)));
 
         // Focus the editor (if there is any)
         Platform.runLater(() -> getActiveEditorView().ifPresent(EditorView::requestFocus));
@@ -94,12 +107,10 @@ public final class MainController {
 
     @FXML
     private void handleOpen() {
-        final var preferences = UserPreferences.getInstance();
-        this.openFileChooser.setInitialDirectory(preferences.getMostRecentlyUsedDirectory().toFile());
         Optional.ofNullable(this.openFileChooser.showOpenDialog(this.window))
                 .map(File::toPath)
                 .ifPresent(file -> {
-                    preferences.putMostRecentlyUsedDirectory(file.getParent());
+                    this.userPreferences.putMostRecentlyUsedDirectory(file.getParent());
 
                     try {
                         openEditor(file);
@@ -117,6 +128,11 @@ public final class MainController {
     @FXML
     private void handleSaveAs() {
         Alerts.info(this.window, "No implemented yet.").showAndWait();
+    }
+
+    @FXML
+    private void handlePreferences() {
+        PreferencesView.dialog(this.window).showAndWait();
     }
 
     @FXML
@@ -207,7 +223,19 @@ public final class MainController {
 
     @FXML
     private void handleAbout() {
-        showAbout();
+        final var applicationVersion = DlxApplication.class.getModule().getDescriptor().version().map(Version::toString)
+                .orElse("");
+        final var javaVersion = System.getProperty("java.version");
+        final var javafxVersion = System.getProperty("javafx.runtime.version");
+        final var os = System.getProperty("os.name") + " " + System.getProperty("os.version");
+
+        final var msg = Messages.getString("main.about.message").formatted(applicationVersion,
+                javaVersion, javafxVersion, os);
+
+        final var alert = Alerts.info(this.window, msg);
+        alert.setTitle(Messages.getString("main.about.title"));
+        alert.setHeaderText(Messages.getString("main.about.header"));
+        alert.showAndWait();
     }
 
     private void openDefaultViews() {
@@ -350,21 +378,5 @@ public final class MainController {
 
     private void showTextPosition(final TextPositionEvent event) {
         getActiveEditorView().ifPresent(editorView -> editorView.showEditPosition(event.getTextPosition()));
-    }
-
-    private void showAbout() {
-        final var applicationVersion = DlxApplication.class.getModule().getDescriptor().version().map(Version::toString)
-                .orElse("");
-        final var javaVersion = System.getProperty("java.version");
-        final var javafxVersion = System.getProperty("javafx.runtime.version");
-        final var os = System.getProperty("os.name") + " " + System.getProperty("os.version");
-
-        final var msg = Messages.getString("main.about.message").formatted(applicationVersion,
-                javaVersion, javafxVersion, os);
-
-        final var alert = Alerts.info(this.window, msg);
-        alert.setTitle(Messages.getString("main.about.title"));
-        alert.setHeaderText(Messages.getString("main.about.header"));
-        alert.showAndWait();
     }
 }

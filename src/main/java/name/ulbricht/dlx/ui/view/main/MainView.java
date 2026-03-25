@@ -3,6 +3,7 @@ package name.ulbricht.dlx.ui.view.main;
 import java.io.IOException;
 
 import javafx.fxml.FXMLLoader;
+import name.ulbricht.dlx.config.UserPreferences;
 import name.ulbricht.dlx.ui.i18n.Messages;
 
 /// The main view of the application, defined in an FXML file.
@@ -30,5 +31,10 @@ public final class MainView {
 
         // Return the configured FXML loader with the loaded content
         return fxmlLoader;
+    }
+
+    /// {@return the user preferences}
+    public static UserPreferences userPreferences() {
+        return UserPreferences.getInstance();
     }
 }

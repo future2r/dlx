@@ -1,4 +1,4 @@
-package name.ulbricht.dlx.ui.controls;
+package name.ulbricht.dlx.ui.scene.control;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -22,8 +22,8 @@ public final class Alerts {
 
     /// Creates an error alert with the specified owner and message.
     ///
-    /// @param  owner the owner window of the alert
-    /// @param  msg   the message to display in the alert
+    /// @param owner the owner window of the alert
+    /// @param msg   the message to display in the alert
     /// @return the configured alert, ready to be shown
     public static Alert error(final Window owner, final String msg) {
         final var alert = new Alert(AlertType.ERROR);

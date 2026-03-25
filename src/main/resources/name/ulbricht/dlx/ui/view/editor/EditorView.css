@@ -5,49 +5,49 @@
 }
 
 .code-default {
-    -fx-fill: black;
+    -fx-fill: -mpx-code-default;
 }
 
 .code-instruction {
     -fx-font-weight: bold;
-    -fx-fill: #1d4ed8;
+    -fx-fill: -mpx-code-instruction;
 }
 
 .code-register {
-    -fx-fill: #0f6e56;
+    -fx-fill: -mpx-code-register;
 }
 
 .code-int {
-    -fx-fill: #854f0b;
+    -fx-fill: -mpx-code-number;
 }
 
 .code-string {
-    -fx-fill: #3b6d11;
+    -fx-fill: -mpx-code-string;
 }
 
 .code-directive {
-    -fx-fill: #6d28d9;
+    -fx-fill: -mpx-code-directive;
 }
 
 .code-label-definition {
     -fx-font-weight: bold;
-    -fx-fill: #9f1239;
+    -fx-fill: -mpx-code-label-definition;
 }
 
 .code-label-reference {
-    -fx-fill: #be185d;
+    -fx-fill: -mpx-code-label-reference;
 }
 
 .code-comment {
     -fx-font-style: italic;
-    -fx-fill: #888780;
+    -fx-fill: -mpx-code-comment;
 }
 
 .code-comma,
 .code-paren {
-    -fx-fill: #888780;
+    -fx-fill: -mpx-code-punctuation;
 }
 
 .code-unknown {
-    -fx-fill: #dc2626;
+    -fx-fill: -mpx-code-unknown;
 }

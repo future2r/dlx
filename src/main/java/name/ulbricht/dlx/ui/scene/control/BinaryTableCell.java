@@ -1,4 +1,4 @@
-package name.ulbricht.dlx.ui.controls;
+package name.ulbricht.dlx.ui.scene.control;
 
 import javafx.scene.control.TableCell;
 import name.ulbricht.dlx.ui.util.FormatUtil;

@@ -2,7 +2,7 @@
 
 /* default icon color */
 .fluent-icon {
-    -fx-fill: -dlx-black;
+    -fx-fill: -fx-text-inner-color;
 }
 
 /* red icons */

@@ -1,16 +1,16 @@
-package name.ulbricht.dlx.ui.controls;
+package name.ulbricht.dlx.ui.scene.control;
 
 import javafx.scene.control.TableCell;
 import name.ulbricht.dlx.ui.util.FormatUtil;
 
-/// Table cells that displays a hexadecimal value.
+/// Table cells that displays a decimal value.
 /// 
 /// @param <S> the type of the row item
-public class HexadecimalTableCell<S> extends TableCell<S, Integer> {
+public final class DecimalTableCell<S> extends TableCell<S, Integer> {
 
-    /// Creates a new hexadecimal table cell.
-    public HexadecimalTableCell() {
-        getStyleClass().add("hexadecimal-table-cell");
+    /// Creates a new decimal table cell.
+    public DecimalTableCell() {
+        getStyleClass().add("decimal-table-cell");
     }
 
     @Override
@@ -20,7 +20,7 @@ public class HexadecimalTableCell<S> extends TableCell<S, Integer> {
         if (empty || item == null) {
             this.setText(null);
         } else {
-            this.setText(FormatUtil.hexadecimal(item.intValue()));
+            this.setText(FormatUtil.decimal(item.intValue()));
         }
     }
 }

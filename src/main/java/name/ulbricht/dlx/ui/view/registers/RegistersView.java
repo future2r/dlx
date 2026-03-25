@@ -12,10 +12,10 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
-import name.ulbricht.dlx.ui.controls.BinaryTableCell;
-import name.ulbricht.dlx.ui.controls.DecimalTableCell;
-import name.ulbricht.dlx.ui.controls.HexadecimalTableCell;
 import name.ulbricht.dlx.ui.i18n.Messages;
+import name.ulbricht.dlx.ui.scene.control.BinaryTableCell;
+import name.ulbricht.dlx.ui.scene.control.DecimalTableCell;
+import name.ulbricht.dlx.ui.scene.control.HexadecimalTableCell;
 import name.ulbricht.dlx.ui.view.ViewPart;
 
 /// View for the internals of the processor.

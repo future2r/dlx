@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.ButtonType?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.DialogPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+<?import name.ulbricht.dlx.ui.scene.layout.Index?>
+<?import name.ulbricht.dlx.ui.view.preferences.PreferencesView?>
+<?import name.ulbricht.dlx.ui.view.preferences.PreferencesViewModel?>
+
+<DialogPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+    fx:id="preferencesRoot" fx:controller="name.ulbricht.dlx.ui.view.preferences.PreferencesController">
+
+    <stylesheets>
+        <URL value="@PreferencesView.css"/>
+    </stylesheets>
+
+    <fx:define>
+        <PreferencesView fx:id="userPreferences" fx:factory="userPreferences"/>
+        <PreferencesViewModel fx:id="viewModel">
+            <userPreferences>
+                <fx:reference source="userPreferences"/>
+            </userPreferences>
+        </PreferencesViewModel>
+    </fx:define>
+
+    <content>
+
+        <VBox>
+
+            <TitledPane text="%preferences.design.text" expanded="true" collapsible="false">
+
+                <GridPane fx:id="designPane">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="never"/>
+                        <ColumnConstraints hgrow="always"/>
+                    </columnConstraints>
+
+                    <fx:define>
+                        <Index fx:id="row"/>
+                    </fx:define>
+
+                    <Label text="%preferences.theme.text" GridPane.rowIndex="$row.curr" GridPane.columnIndex="0"/>
+                    <ChoiceBox fx:id="themeChoiceBox" maxWidth="Infinity" GridPane.rowIndex="$row.curr" GridPane.columnIndex="1">
+                        <converter>
+                            <PreferencesView fx:factory="themeConverter"/>
+                        </converter>
+                    </ChoiceBox>
+
+                </GridPane>
+
+            </TitledPane>
+
+        </VBox>
+
+    </content>
+
+    <buttonTypes>
+        <ButtonType fx:constant="OK"/>
+        <ButtonType fx:constant="CANCEL"/>
+    </buttonTypes>
+
+</DialogPane>
