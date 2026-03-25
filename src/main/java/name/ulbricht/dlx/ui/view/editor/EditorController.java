@@ -95,6 +95,7 @@ public final class EditorController {
             try {
                 final var source = this.sourceCodeArea.getText();
                 this.viewModel.setSource(source);
+                this.viewModel.markDirty();
             } finally {
                 this.updatingFromView = false;
             }

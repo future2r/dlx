@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXMLLoader;
@@ -58,19 +59,38 @@ public final class EditorView implements ViewPart<EditorViewModel> {
     }
 
     private final EditorController controller;
+    private final ReadOnlyStringWrapper name = new ReadOnlyStringWrapper();
     private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper();
     private final ReadOnlyStringWrapper description = new ReadOnlyStringWrapper();
 
     private EditorView(final EditorController controller) {
         this.controller = requireNonNull(controller);
 
-        // Use the file name as the title
-        this.title.bind(this.controller.getViewModel().fileProperty().map(file -> file.getFileName().toString())
+        final var vm = this.controller.getViewModel();
+
+        // The plain name: file name or "Untitled"
+        this.name.bind(vm.fileProperty().map(file -> file.getFileName().toString())
                 .orElse(Messages.getString("editor.title.untitled")));
 
+        // The tab title: name prefixed with a dot when dirty
+        this.title.bind(Bindings.createStringBinding(() -> vm.isDirty() ? "\u25CF " + this.name.get() : this.name.get(),
+                this.name, vm.dirtyProperty()));
+
         // Use the full file path as the description
-        this.description.bind(this.controller.getViewModel().fileProperty().map(Path::toString)
+        this.description.bind(vm.fileProperty().map(Path::toString)
                 .orElse(Messages.getString("editor.title.untitled")));
+    }
+
+    /// {@return a read-only property representing the plain name of the editor
+    /// (file name or "Untitled"), without any dirty indicator}
+    public ReadOnlyStringWrapper nameProperty() {
+        return this.name;
+    }
+
+    /// {@return the plain name of the editor (file name or "Untitled"), without any
+    /// dirty indicator}
+    public String getName() {
+        return this.name.get();
     }
 
     @Override

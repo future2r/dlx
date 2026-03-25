@@ -53,15 +53,15 @@
                     </MenuItem>
                     <MenuItem fx:id="openMenuItem" text="%main.menu.file.open.text" accelerator="Ctrl+O" onAction="#handleOpen">
                         <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_16_regular.fxml"/>
+                            <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_16_regular.fxml" styleClass="fluent-icon-orange"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="saveMenuItem" text="%main.menu.file.save.text" accelerator="Ctrl+S" onAction="#handleSave">
+                    <MenuItem disable="${!controller.canSave}" text="%main.menu.file.save.text" accelerator="Ctrl+S" onAction="#handleSave">
                         <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/save_16_regular.fxml"/>
+                            <fx:include source="/name/ulbricht/dlx/ui/icon/save_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="saveAsMenuItem" text="%main.menu.file.saveAs.text" accelerator="Ctrl+Shift+S" onAction="#handleSaveAs"/>
+                    <MenuItem disable="${!controller.canSave}" text="%main.menu.file.saveAs.text" accelerator="Ctrl+Shift+S" onAction="#handleSaveAs"/>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="preferencesMenuItem" text="%main.menu.file.preferences.text" onAction="#handlePreferences">
                         <graphic>
@@ -80,28 +80,28 @@
                 <Menu fx:id="editMenu" text="%main.menu.edit.text">
                     <MenuItem fx:id="undoMenuItem" text="%main.menu.edit.undo.text" accelerator="Ctrl+Z" onAction="#handleUndo">
                         <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_16_regular.fxml"/>
+                            <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_16_regular.fxml" styleClass="fluent-icon-green"/>
                         </graphic>
                     </MenuItem>
                     <MenuItem fx:id="redoMenuItem" text="%main.menu.edit.redo.text" accelerator="Ctrl+Y" onAction="#handleRedo">
                         <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_16_regular.fxml"/>
+                            <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_16_regular.fxml" styleClass="fluent-icon-green"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="cutMenuItem" text="%main.menu.edit.cut.text" accelerator="Ctrl+X" onAction="#handleCut">
                         <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/cut_16_regular.fxml"/>
+                            <fx:include source="/name/ulbricht/dlx/ui/icon/cut_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
                     <MenuItem fx:id="copyMenuItem" text="%main.menu.edit.copy.text" accelerator="Ctrl+C" onAction="#handleCopy">
                         <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/copy_16_regular.fxml"/>
+                            <fx:include source="/name/ulbricht/dlx/ui/icon/copy_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
                     <MenuItem fx:id="pasteMenuItem" text="%main.menu.edit.paste.text" accelerator="Ctrl+V" onAction="#handlePaste">
                         <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_16_regular.fxml"/>
+                            <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_16_regular.fxml" styleClass="fluent-icon-orange"/>
                         </graphic>
                     </MenuItem>
                 </Menu>
@@ -174,15 +174,15 @@
                 </Button>
                 <Button fx:id="openButton" onAction="#handleOpen">
                     <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_20_regular.fxml"/>
+                        <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_20_regular.fxml" styleClass="fluent-icon-orange"/>
                     </graphic>
                     <tooltip>
                         <Tooltip text="%main.toolbar.open.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="saveButton" onAction="#handleSave">
+                <Button disable="${!controller.canSave}" onAction="#handleSave">
                     <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/save_20_regular.fxml"/>
+                        <fx:include source="/name/ulbricht/dlx/ui/icon/save_20_regular.fxml" styleClass="fluent-icon-blue"/>
                     </graphic>
                     <tooltip>
                         <Tooltip text="%main.toolbar.save.tooltip"/>
@@ -193,7 +193,7 @@
                 <!-- edit section -->
                 <Button fx:id="undoButton" onAction="#handleUndo">
                     <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_20_regular.fxml"/>
+                        <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_20_regular.fxml" styleClass="fluent-icon-green"/>
                     </graphic>
                     <tooltip>
                         <Tooltip text="%main.toolbar.undo.tooltip"/>
@@ -201,7 +201,7 @@
                 </Button>
                 <Button fx:id="redoButton" onAction="#handleRedo">
                     <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_20_regular.fxml"/>
+                        <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_20_regular.fxml" styleClass="fluent-icon-green"/>
                     </graphic>
                     <tooltip>
                         <Tooltip text="%main.toolbar.redo.tooltip"/>
@@ -209,7 +209,7 @@
                 </Button>
                 <Button fx:id="cutButton" onAction="#handleCut">
                     <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/cut_20_regular.fxml"/>
+                        <fx:include source="/name/ulbricht/dlx/ui/icon/cut_20_regular.fxml" styleClass="fluent-icon-blue"/>
                     </graphic>
                     <tooltip>
                         <Tooltip text="%main.toolbar.cut.tooltip"/>
@@ -217,7 +217,7 @@
                 </Button>
                 <Button fx:id="copyButton" onAction="#handleCopy">
                     <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/copy_20_regular.fxml"/>
+                        <fx:include source="/name/ulbricht/dlx/ui/icon/copy_20_regular.fxml" styleClass="fluent-icon-blue"/>
                     </graphic>
                     <tooltip>
                         <Tooltip text="%main.toolbar.copy.tooltip"/>
@@ -225,7 +225,7 @@
                 </Button>
                 <Button fx:id="pasteButton" onAction="#handlePaste">
                     <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_20_regular.fxml"/>
+                        <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_20_regular.fxml" styleClass="fluent-icon-orange"/>
                     </graphic>
                     <tooltip>
                         <Tooltip text="%main.toolbar.paste.tooltip"/>

@@ -128,12 +128,12 @@ public final class EditorViewModel {
         }
 
         this.setSource(example);
-        this.dirty.set(false);
+        this.dirty.set(true);
         this.file.set(null);
     }
 
     /// Loads the content of the specified file into the editor.
-    /// 
+    ///
     /// @param fileToLoad the file to load
     void loadFile(final Path fileToLoad) throws IOException {
         requireNonNull(fileToLoad);
@@ -141,5 +141,23 @@ public final class EditorViewModel {
         this.setSource(SourceFile.read(fileToLoad));
         this.dirty.set(false);
         this.file.set(fileToLoad);
+    }
+
+    /// Saves the current source code to the specified file. After saving, the dirty
+    /// flag is cleared and the file path is updated.
+    ///
+    /// @param fileToSave the file to save to
+    /// @throws IOException if an I/O error occurs
+    public void saveFile(final Path fileToSave) throws IOException {
+        requireNonNull(fileToSave);
+
+        SourceFile.write(fileToSave, getSource());
+        this.dirty.set(false);
+        this.file.set(fileToSave);
+    }
+
+    /// Marks the editor content as modified.
+    void markDirty() {
+        this.dirty.set(true);
     }
 }

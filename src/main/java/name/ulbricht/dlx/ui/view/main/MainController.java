@@ -4,11 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.module.ModuleDescriptor.Version;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -18,6 +22,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import name.ulbricht.dlx.config.UserPreferences;
+import name.ulbricht.dlx.io.SourceFile;
 import name.ulbricht.dlx.ui.DlxApplication;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
@@ -61,16 +66,28 @@ public final class MainController {
     @FXML
     private Window window;
 
+    private final ReadOnlyBooleanWrapper canSave = new ReadOnlyBooleanWrapper();
+
     /// Creates a new main controller instance.
     public MainController() {
     }
 
     @FXML
     private void initialize() {
+        // Bind the file chooser to the most recently used directory preference
         this.openFileChooser.initialDirectoryProperty()
                 .bind(this.userPreferences.mostRecentlyUsedDirectoryProperty().map(Path::toFile));
         this.saveFileChooser.initialDirectoryProperty()
                 .bind(this.userPreferences.mostRecentlyUsedDirectoryProperty().map(Path::toFile));
+
+        // Set the extension filters for the file choosers
+        final var extensionFilters = List.of(
+                new FileChooser.ExtensionFilter(
+                        Messages.getString("main.fileChooser.extension.dlx").formatted(SourceFile.FILE_EXTENSION),
+                        "*" + SourceFile.FILE_EXTENSION),
+                new FileChooser.ExtensionFilter(Messages.getString("main.fileChooser.extension.all"), "*.*"));
+        this.openFileChooser.getExtensionFilters().addAll(extensionFilters);
+        this.saveFileChooser.getExtensionFilters().addAll(extensionFilters);
 
         // React on changes of the current editor tab.
         this.editorsTabPane.getSelectionModel().selectedItemProperty().subscribe(this::currentEditorTabChanged);
@@ -97,7 +114,24 @@ public final class MainController {
     /// 
     /// @param event the window event
     public void windowCloseRequest(final WindowEvent event) {
-        // TODO Check if we can close now
+        for (final var tab : this.editorsTabPane.getTabs()) {
+            final var editor = getEditorView(tab);
+            if (editor.isPresent() && !confirmSaveIfDirty(editor.get())) {
+                event.consume();
+                return;
+            }
+        }
+    }
+
+    /// {@return a read-only property indicating whether the active editor can
+    /// be saved}
+    public ReadOnlyBooleanProperty canSaveProperty() {
+        return this.canSave.getReadOnlyProperty();
+    }
+
+    /// {@return whether the active editor can be saved}
+    public boolean isCanSave() {
+        return this.canSave.get();
     }
 
     @FXML
@@ -107,27 +141,23 @@ public final class MainController {
 
     @FXML
     private void handleOpen() {
-        Optional.ofNullable(this.openFileChooser.showOpenDialog(this.window))
-                .map(File::toPath)
-                .ifPresent(file -> {
-                    this.userPreferences.putMostRecentlyUsedDirectory(file.getParent());
-
-                    try {
-                        openEditor(file);
-                    } catch (final IOException e) {
-                        Alerts.error(this.window, "Failed to open file: " + e.getMessage()).show();
-                    }
-                });
+        chooseOpenFile().ifPresent(file -> {
+            try {
+                openEditor(file);
+            } catch (final IOException e) {
+                Alerts.error(this.window, "Failed to open file: " + e.getMessage()).show();
+            }
+        });
     }
 
     @FXML
     private void handleSave() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
+        getActiveEditorView().ifPresent(this::saveEditor);
     }
 
     @FXML
     private void handleSaveAs() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
+        getActiveEditorView().ifPresent(this::saveEditorAs);
     }
 
     @FXML
@@ -291,16 +321,19 @@ public final class MainController {
     }
 
     private void openNewEditor() {
-        final var view = EditorView.load();
-        final var tab = createViewTab(view);
-
-        this.editorsTabPane.getTabs().add(tab);
-        this.editorsTabPane.getSelectionModel().select(tab);
+        addEditorTab(EditorView.load());
     }
 
     private void openEditor(final Path file) throws IOException {
-        final var view = EditorView.load(file);
-        final var tab = createViewTab(view);
+        addEditorTab(EditorView.load(file));
+    }
+
+    private void addEditorTab(final EditorView editorView) {
+        final var tab = createViewTab(editorView);
+        tab.setOnCloseRequest(event -> {
+            if (!confirmSaveIfDirty(editorView))
+                event.consume();
+        });
 
         this.editorsTabPane.getTabs().add(tab);
         this.editorsTabPane.getSelectionModel().select(tab);
@@ -309,9 +342,17 @@ public final class MainController {
     private void currentEditorTabChanged(final Tab newEditorTab) {
         final var newEditorView = getEditorView(newEditorTab).orElse(null);
 
+        updateCanSaveBinding(newEditorView);
         updateOutlineBinding(newEditorView);
         updateProblemsBinding(newEditorView);
         updateEditPositionBinding(newEditorView);
+    }
+
+    private void updateCanSaveBinding(final EditorView newEditorView) {
+        this.canSave.unbind();
+        this.canSave.set(false);
+        if (newEditorView != null)
+            this.canSave.bind(newEditorView.getViewModel().dirtyProperty());
     }
 
     private void updateOutlineBinding(final EditorView newEditorView) {
@@ -378,5 +419,72 @@ public final class MainController {
 
     private void showTextPosition(final TextPositionEvent event) {
         getActiveEditorView().ifPresent(editorView -> editorView.showEditPosition(event.getTextPosition()));
+    }
+
+    /// Checks if the editor is dirty and, if so, asks the user whether to save.
+    /// Returns `true` if the caller may proceed (saved or discarded), `false` if the
+    /// user cancelled.
+    private boolean confirmSaveIfDirty(final EditorView editor) {
+        if (!editor.getViewModel().isDirty())
+            return true;
+
+        final var message = Messages.getString("main.save.confirm").formatted(editor.getName());
+
+        final var result = Alerts.confirmation(this.window, message).showAndWait().orElse(ButtonType.CANCEL);
+        if (result == ButtonType.CANCEL)
+            return false;
+        if (result == ButtonType.NO)
+            return true;
+        return saveEditor(editor);
+    }
+
+    /// Saves the editor. If the editor has no file yet, prompts for a file name.
+    ///
+    /// @return `true` if the file was saved, `false` if the user cancelled or an
+    ///         error occurred
+    private boolean saveEditor(final EditorView editor) {
+        final var file = editor.getViewModel().getFile();
+        if (file == null)
+            return saveEditorAs(editor);
+        return saveEditorToFile(editor, file);
+    }
+
+    /// Prompts for a file name and saves the editor.
+    ///
+    /// @return `true` if the file was saved, `false` if the user cancelled or an
+    ///         error occurred
+    private boolean saveEditorAs(final EditorView editor) {
+        final var chosen = chooseSaveFile();
+        if (chosen.isEmpty())
+            return false;
+        return saveEditorToFile(editor, chosen.get());
+    }
+
+    private boolean saveEditorToFile(final EditorView editor, final Path file) {
+        try {
+            editor.getViewModel().saveFile(file);
+            return true;
+        } catch (final IOException ex) {
+            Alerts.error(this.window, Messages.getString("main.save.error").formatted(ex.getMessage())).showAndWait();
+            return false;
+        }
+    }
+
+    private Optional<Path> chooseOpenFile() {
+        final var selectedFile = Optional.ofNullable(this.openFileChooser.showOpenDialog(this.window))
+                .map(File::toPath);
+
+        selectedFile.ifPresent(file -> this.userPreferences.putMostRecentlyUsedDirectory(file.getParent()));
+
+        return selectedFile;
+    }
+
+    private Optional<Path> chooseSaveFile() {
+        final var selectedFile = Optional.ofNullable(this.saveFileChooser.showSaveDialog(this.window))
+                .map(File::toPath);
+
+        selectedFile.ifPresent(file -> this.userPreferences.putMostRecentlyUsedDirectory(file.getParent()));
+
+        return selectedFile;
     }
 }
