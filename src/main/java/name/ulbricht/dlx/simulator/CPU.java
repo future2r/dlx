@@ -198,10 +198,11 @@ public final class CPU {
 
         // -----------------------------------------------------------------
         // EX stage: apply forwarding, run the ALU, evaluate branch/jump.
-        // newMemWb is passed as the MEM/WB forwarding source so that
-        // load-to-ALU forwarding across two cycles works correctly.
+        // this.memWb is the pre-commit snapshot representing the instruction
+        // currently in WB (2 cycles ahead of the consumer in EX). It is
+        // used as the MEM/WB forwarding source.
         // -----------------------------------------------------------------
-        final var exResult = ExecuteStage.execute(this.idEx, this.exMem, newMemWb, this.alu);
+        final var exResult = ExecuteStage.execute(this.idEx, this.exMem, this.memWb, this.alu);
         final var newExMem = exResult.exMem();
 
         // -----------------------------------------------------------------
