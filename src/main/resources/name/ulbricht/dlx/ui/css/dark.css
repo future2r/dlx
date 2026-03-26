@@ -1,43 +1,38 @@
-/*
-Manual dark theme.
-These colors are the exact copy from "auto.css"
-*/
-
 .root {
     /* Adjust the Modena colors */
-    -fx-base: #222222 !important;
-    -fx-background: #181818 !important;
-    -fx-control-inner-background: #383838 !important;
-    -fx-text-base-color: #e8e8e8 !important;
-    -fx-text-background-color: #e8e8e8 !important;
-    -fx-prompt-text-fill: #666666 !important;
-    -fx-accent: #4d9de0 !important;
-    -fx-focus-color: #4d9de0 !important;
-    -fx-faint-focus-color: #4d9de040 !important;
-    -fx-outer-border: #505050 !important;
-    -fx-inner-border: #333333 !important;
-    -fx-body-color: #2e2e2e !important;
+    -fx-base: #222222;
+    -fx-background: #181818;
+    -fx-control-inner-background: #383838;
+    -fx-text-base-color: #e8e8e8;
+    -fx-text-background-color: #e8e8e8;
+    -fx-prompt-text-fill: #666666;
+    -fx-accent: #4d9de0;
+    -fx-focus-color: #4d9de0;
+    -fx-faint-focus-color: #4d9de040;
+    -fx-outer-border: #505050;
+    -fx-inner-border: #333333;
+    -fx-body-color: #2e2e2e;
 
     /* common colors */
-    -dlx-red: #F48771 !important;
-    -dlx-green: #88D084 !important;
-    -dlx-blue: #6FB3EF !important;
-    -dlx-orange: #F3A600 !important;
+    -dlx-red: #F48771;
+    -dlx-green: #88D084;
+    -dlx-blue: #6FB3EF;
+    -dlx-orange: #F3A600;
 
     /* background colors */
-    -dlx-red-background: derive(-dlx-red, 100%) !important;
-    -dlx-green-background: derive(-dlx-green, 100%) !important;
+    -dlx-red-background: derive(-dlx-red, 100%);
+    -dlx-green-background: derive(-dlx-green, 100%);
 
     /* syntax highlighting colors */
-    -mpx-code-default: #D4D4D4 !important;
-    -mpx-code-instruction: #569CD6 !important;
-    -mpx-code-register: #4EC9B0 !important;
-    -mpx-code-number: #B5CEA8 !important;
-    -mpx-code-string: #CE9178 !important;
-    -mpx-code-directive: #68CDFE !important;
-    -mpx-code-label-definition: #DCDCAA !important;
-    -mpx-code-label-reference: #DCDCAA !important;
-    -mpx-code-comment: #6A9955 !important;
-    -mpx-code-punctuation: #C586C0 !important;
-    -mpx-code-unknown: #FF5C5C !important;
+    -dlx-code-default: #D4D4D4;
+    -dlx-code-instruction: #569CD6;
+    -dlx-code-register: #4EC9B0;
+    -dlx-code-number: #B5CEA8;
+    -dlx-code-string: #CE9178;
+    -dlx-code-directive: #68CDFE;
+    -dlx-code-label-definition: #DCDCAA;
+    -dlx-code-label-reference: #DCDCAA;
+    -dlx-code-comment: #6A9955;
+    -dlx-code-punctuation: #C586C0;
+    -dlx-code-unknown: #FF5C5C;
 }

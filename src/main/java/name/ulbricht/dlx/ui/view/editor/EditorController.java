@@ -155,4 +155,9 @@ public final class EditorController {
             }
         }
     }
+
+    void refreshSyntaxHighlighting() {
+        // This is a dummy operation but refreshes the syntax highlighting
+        this.sourceCodeArea.appendText("");
+    }
 }

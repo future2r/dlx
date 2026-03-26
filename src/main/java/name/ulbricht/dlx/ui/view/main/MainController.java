@@ -26,7 +26,8 @@ import name.ulbricht.dlx.io.SourceFile;
 import name.ulbricht.dlx.ui.DlxApplication;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
-import name.ulbricht.dlx.ui.scene.Scenes;
+import name.ulbricht.dlx.ui.scene.Theme;
+import name.ulbricht.dlx.ui.scene.ThemeManager;
 import name.ulbricht.dlx.ui.scene.control.Alerts;
 import name.ulbricht.dlx.ui.view.ViewPart;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
@@ -109,19 +110,25 @@ public final class MainController {
 
         // React on changes of the theme preferences
         this.userPreferences.themeProperty()
-                .subscribe(theme -> Platform.runLater(() -> Scenes.applyTheme(this.window.getScene(), theme)));
+                .subscribe(this::themeUpdated);
 
         // Focus the editor (if there is any)
         Platform.runLater(() -> getActiveEditorView().ifPresent(EditorView::requestFocus));
+    }
+
+    private void themeUpdated(final Theme theme) {
+        Platform.runLater(() -> {
+            ThemeManager.applyTheme(this.window.getScene(), theme);
+            getAllEditorViews().forEach(EditorView::refreshSyntaxHighlighting);
+        });
     }
 
     /// Handles the window close request event.
     /// 
     /// @param event the window event
     public void windowCloseRequest(final WindowEvent event) {
-        for (final var tab : this.editorsTabPane.getTabs()) {
-            final var editor = getEditorView(tab);
-            if (editor.isPresent() && !confirmSaveIfDirty(editor.get())) {
+        for (final var editorView : getAllEditorViews()) {
+            if (!confirmSaveIfDirty(editorView)) {
                 event.consume();
                 return;
             }
@@ -468,6 +475,14 @@ public final class MainController {
                     .map(pos -> Messages.getString("main.editPosition.pattern").formatted(
                             Integer.valueOf(pos.displayLine()),
                             Integer.valueOf(pos.displayColumn()))));
+    }
+
+    private List<EditorView> getAllEditorViews() {
+        return this.editorsTabPane.getTabs().stream()
+                .map(MainController::getEditorView)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
     }
 
     private static Optional<EditorView> getEditorView(final Tab tab) {

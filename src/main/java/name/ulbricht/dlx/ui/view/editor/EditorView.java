@@ -177,4 +177,9 @@ public final class EditorView implements ViewPart<EditorViewModel> {
     public void showEditPosition(final TextPosition position) {
         this.controller.showEditPosition(position);
     }
+
+    /// Refreshes the syntax highlighting in the editor.
+    public void refreshSyntaxHighlighting() {
+        this.controller.refreshSyntaxHighlighting();
+    }
 }

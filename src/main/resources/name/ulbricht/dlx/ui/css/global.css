@@ -1,29 +1,3 @@
-/* Remember to sync with light.css */
-.root {
-    /* common colors */
-    -dlx-red: #A1260D;
-    -dlx-green: #3A8B36;
-    -dlx-blue: #1E89D1;
-    -dlx-orange: #F3A600;
-
-    /* background colors */
-    -dlx-red-background: derive(-dlx-red, 100%);
-    -dlx-green-background: derive(-dlx-green, 100%);
-
-    /* syntax highlighting colors */
-    -mpx-code-default: #000000;
-    -mpx-code-instruction: #0000FF;
-    -mpx-code-register: #267F99;
-    -mpx-code-number: #098658;
-    -mpx-code-string: #A31515;
-    -mpx-code-directive: #001080;
-    -mpx-code-label-definition: #795E26;
-    -mpx-code-label-reference: #795E26;
-    -mpx-code-comment: #008000;
-    -mpx-code-punctuation: #AF00DB;
-    -mpx-code-unknown: #D73A49;
-}
-
 /* Some table cells shall be right aligned. */
 .decimal-table-cell,
 .hexadecimal-table-cell,

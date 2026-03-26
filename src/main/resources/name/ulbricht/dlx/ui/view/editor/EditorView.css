@@ -5,49 +5,49 @@
 }
 
 .code-default {
-    -fx-fill: -mpx-code-default;
+    -fx-fill: -dlx-code-default;
 }
 
 .code-instruction {
     -fx-font-weight: bold;
-    -fx-fill: -mpx-code-instruction;
+    -fx-fill: -dlx-code-instruction;
 }
 
 .code-register {
-    -fx-fill: -mpx-code-register;
+    -fx-fill: -dlx-code-register;
 }
 
 .code-int {
-    -fx-fill: -mpx-code-number;
+    -fx-fill: -dlx-code-number;
 }
 
 .code-string {
-    -fx-fill: -mpx-code-string;
+    -fx-fill: -dlx-code-string;
 }
 
 .code-directive {
-    -fx-fill: -mpx-code-directive;
+    -fx-fill: -dlx-code-directive;
 }
 
 .code-label-definition {
     -fx-font-weight: bold;
-    -fx-fill: -mpx-code-label-definition;
+    -fx-fill: -dlx-code-label-definition;
 }
 
 .code-label-reference {
-    -fx-fill: -mpx-code-label-reference;
+    -fx-fill: -dlx-code-label-reference;
 }
 
 .code-comment {
     -fx-font-style: italic;
-    -fx-fill: -mpx-code-comment;
+    -fx-fill: -dlx-code-comment;
 }
 
 .code-comma,
 .code-paren {
-    -fx-fill: -mpx-code-punctuation;
+    -fx-fill: -dlx-code-punctuation;
 }
 
 .code-unknown {
-    -fx-fill: -mpx-code-unknown;
+    -fx-fill: -dlx-code-unknown;
 }

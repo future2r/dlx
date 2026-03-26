@@ -1,4 +1,24 @@
-/*
-Manual light theme.
-This file is empty because "globals.css" defines the light colors.
-*/
+.root {
+    /* common colors */
+    -dlx-red: #A1260D;
+    -dlx-green: #3A8B36;
+    -dlx-blue: #1E89D1;
+    -dlx-orange: #F3A600;
+
+    /* background colors */
+    -dlx-red-background: derive(-dlx-red, 100%);
+    -dlx-green-background: derive(-dlx-green, 100%);
+
+    /* syntax highlighting colors */
+    -dlx-code-default: #000000;
+    -dlx-code-instruction: #0000FF;
+    -dlx-code-register: #267F99;
+    -dlx-code-number: #098658;
+    -dlx-code-string: #A31515;
+    -dlx-code-directive: #001080;
+    -dlx-code-label-definition: #795E26;
+    -dlx-code-label-reference: #795E26;
+    -dlx-code-comment: #008000;
+    -dlx-code-punctuation: #AF00DB;
+    -dlx-code-unknown: #D73A49;
+}

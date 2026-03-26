@@ -26,6 +26,7 @@
     prefWidth="1000" prefHeight="650">
 
     <stylesheets>
+        <URL value="@/name/ulbricht/dlx/ui/css/light.css"/> <!-- avoid warnings while loading -->
         <URL value="@MainView.css"/>
     </stylesheets>
 
