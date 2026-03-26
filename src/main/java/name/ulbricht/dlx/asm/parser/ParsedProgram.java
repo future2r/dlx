@@ -3,6 +3,7 @@ package name.ulbricht.dlx.asm.parser;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.UUID;
 
 import name.ulbricht.dlx.asm.Diagnostic;
 
@@ -12,31 +13,25 @@ import name.ulbricht.dlx.asm.Diagnostic;
 /// the parser merges all data declarations into `data` and all instructions into
 /// `code`, preserving their relative order within each section.
 ///
-/// The `errors` list collects all problems found during both lexing and parsing.
-/// An empty list means the source was accepted without any errors.
+/// The `diagnostics` list collects all problems found during both lexing and
+/// parsing.
 ///
-/// @param data   the list of data declarations, in source order
-/// @param code   the list of instructions, in source order
-/// @param errors the combined list of lexer and parser diagnostics; empty when
-///               the source was error-free
-public record ParsedProgram(
-        List<ParsedDataDeclaration> data,
-        List<ParsedInstruction> code,
-        List<Diagnostic> errors) {
+/// @param id          a unique identifier for the parsed program
+/// @param data        the list of data declarations, in source order
+/// @param code        the list of instructions, in source order
+/// @param diagnostics the list of diagnostics produced during parsing
+public record ParsedProgram(UUID id, List<ParsedDataDeclaration> data, List<ParsedInstruction> code,
+        List<Diagnostic> diagnostics) {
 
     /// Validates and defensively copies all lists.
     public ParsedProgram {
+        requireNonNull(id);
         requireNonNull(data, "data must not be null");
         requireNonNull(code, "code must not be null");
-        requireNonNull(errors, "errors must not be null");
+        requireNonNull(diagnostics, "diagnostics must not be null");
 
         data = List.copyOf(data);
         code = List.copyOf(code);
-        errors = List.copyOf(errors);
-    }
-
-    /// {@return true if the source contained any errors, false otherwise}
-    public boolean hasErrors() {
-        return !this.errors.isEmpty();
+        diagnostics = List.copyOf(diagnostics);
     }
 }

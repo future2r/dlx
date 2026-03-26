@@ -3,6 +3,7 @@ package name.ulbricht.dlx.asm.lexer;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -327,13 +328,13 @@ final class LexerTest {
 
         // first, use the highlighting lexer, that uses all tokens
         final var highlightingLexer = new Lexer(LexerMode.HIGHLIGHTING);
-        final var highlightingTokens = highlightingLexer.tokenize(lines).tokens();
+        final var highlightingTokens = highlightingLexer.tokenize(UUID.randomUUID(), lines).tokens();
 
         assertIterableEquals(tokens, highlightingTokens);
 
         // second, use the assembler lexer, that uses only assembler tokens
         final var assemblerLexer = new Lexer(LexerMode.ASSEMBLER);
-        final var assemblerTokens = assemblerLexer.tokenize(lines).tokens();
+        final var assemblerTokens = assemblerLexer.tokenize(UUID.randomUUID(), lines).tokens();
 
         // filter out non-assembler tokens from the expected list
         final var filteredTokens = tokens.stream()

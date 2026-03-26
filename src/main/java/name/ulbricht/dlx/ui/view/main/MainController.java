@@ -254,11 +254,14 @@ public final class MainController {
 
     @FXML
     private void handleCompile() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
+        getActiveEditorView().ifPresent(editorView -> {
+            if (!editorView.getViewModel().compile())
+                Alerts.error(this.window, Messages.getString("main.compile.error")).showAndWait();
+        });
     }
 
     @FXML
-    private void handleCompileAndRun() {
+    private void handleCompileAndLoad() {
         Alerts.info(this.window, "No implemented yet.").showAndWait();
     }
 
@@ -446,12 +449,12 @@ public final class MainController {
     private void updateProblemsBinding(final EditorView newEditorView) {
         getProblemsView().ifPresent(problemsView -> {
             // Unbind from the old editor
-            problemsView.getViewModel().parsedProgramProperty().unbind();
-            problemsView.getViewModel().setParsedProgram(null);
+            problemsView.getViewModel().diagnosticsProperty().unbind();
+            problemsView.getViewModel().setDiagnostics(null);
             // Bind to new editor
             if (newEditorView != null)
-                problemsView.getViewModel().parsedProgramProperty()
-                        .bind(newEditorView.getViewModel().parsedProgramProperty());
+                problemsView.getViewModel().diagnosticsProperty()
+                        .bind(newEditorView.getViewModel().diagnosticsProperty());
         });
     }
 

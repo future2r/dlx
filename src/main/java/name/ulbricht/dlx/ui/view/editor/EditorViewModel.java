@@ -7,13 +7,21 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyListProperty;
+import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import name.ulbricht.dlx.asm.Diagnostic;
+import name.ulbricht.dlx.asm.compiler.CompiledProgram;
+import name.ulbricht.dlx.asm.compiler.Compiler;
 import name.ulbricht.dlx.asm.lexer.Lexer;
 import name.ulbricht.dlx.asm.lexer.LexerMode;
 import name.ulbricht.dlx.asm.lexer.TokenizedProgram;
@@ -24,13 +32,20 @@ import name.ulbricht.dlx.io.SourceFile;
 /// View model for the editor view.
 public final class EditorViewModel {
 
+    private final UUID id = UUID.randomUUID();
+
     private final ReadOnlyObjectWrapper<Path> file = new ReadOnlyObjectWrapper<>();
 
     private final StringProperty source = new SimpleStringProperty();
     private final ReadOnlyBooleanWrapper dirty = new ReadOnlyBooleanWrapper();
 
+    private final ObservableList<Diagnostic> modifiableDiagnostics = FXCollections.observableArrayList();
+    private final ReadOnlyListWrapper<Diagnostic> diagnostics = new ReadOnlyListWrapper<>(
+            FXCollections.unmodifiableObservableList(this.modifiableDiagnostics));
+
     private final ReadOnlyObjectWrapper<TokenizedProgram> tokenizedProgram = new ReadOnlyObjectWrapper<>();
     private final ReadOnlyObjectWrapper<ParsedProgram> parsedProgram = new ReadOnlyObjectWrapper<>();
+    private final ReadOnlyObjectWrapper<CompiledProgram> compiledProgram = new ReadOnlyObjectWrapper<>();
 
     /// Creates a new editor view model instance.
     public EditorViewModel() {
@@ -77,6 +92,18 @@ public final class EditorViewModel {
         return dirtyProperty().get();
     }
 
+    /// {@return a read-only property representing the list of diagnostics produced
+    /// during lexing, parsing, and compilation}
+    public ReadOnlyListProperty<Diagnostic> diagnosticsProperty() {
+        return this.diagnostics.getReadOnlyProperty();
+    }
+
+    /// {@return the list of diagnostics produced during lexing, parsing,
+    /// and compilation}
+    public ObservableList<Diagnostic> getDiagnostics() {
+        return diagnosticsProperty().get();
+    }
+
     /// {@return a read-only property representing the tokenized program, or `null`
     /// if the source code has not been tokenized}
     public ReadOnlyObjectProperty<TokenizedProgram> tokenizedProgramProperty() {
@@ -100,11 +127,29 @@ public final class EditorViewModel {
         return parsedProgramProperty().get();
     }
 
+    /// {@return a read-only property representing the compiled program, or `null`
+    /// if there is none}
+    public ReadOnlyObjectProperty<CompiledProgram> compiledProgramProperty() {
+        return this.compiledProgram.getReadOnlyProperty();
+    }
+
+    /// {@return the compiled program, or `null` if there is none}
+    public CompiledProgram getCompiledProgram() {
+        return compiledProgramProperty().get();
+    }
+
     private TokenizedProgram tokenize(final String src) {
+        // Clear the diagnostics before starting a new tokenization
+        this.modifiableDiagnostics.clear();
+
         if (src != null) {
             final var lines = List.of(src.split("\\R", -1));
             final var lexer = new Lexer(LexerMode.ASSEMBLER);
-            return lexer.tokenize(lines);
+            final var tokenized = lexer.tokenize(this.id, lines);
+
+            this.modifiableDiagnostics.addAll(tokenized.diagnostics());
+
+            return tokenized;
         }
         return null;
     }
@@ -112,7 +157,11 @@ public final class EditorViewModel {
     private ParsedProgram parse(final TokenizedProgram tokenized) {
         if (tokenized != null) {
             final var parser = new Parser();
-            return parser.parse(tokenized);
+            final var parsed = parser.parse(tokenized);
+
+            this.modifiableDiagnostics.addAll(parsed.diagnostics());
+
+            return parsed;
         }
         return null;
     }
@@ -154,6 +203,34 @@ public final class EditorViewModel {
         SourceFile.write(fileToSave, getSource());
         this.dirty.set(false);
         this.file.set(fileToSave);
+    }
+
+    /// Compiles the current parsed program. If compilation produces diagnostics,
+    /// they are added to the view model's diagnostics list. If the diagnostics
+    /// contain errors, the compiled program is set to `null`. If compilation is
+    /// successful, the compiled program is stored in the view model.
+    /// 
+    /// @return `true` if compilation succeeded without errors, `false` otherwise
+    public boolean compile() {
+        // Remove all compiler problems
+        this.modifiableDiagnostics.removeIf(d -> d.stage() == Diagnostic.Stage.COMPILING);
+
+        final var parsed = getParsedProgram();
+        if (parsed == null)
+            return false;
+
+        final var compiler = new Compiler();
+        final var compiled = compiler.compile(parsed);
+
+        this.modifiableDiagnostics.addAll(compiled.diagnostics());
+
+        if (compiled.hasErrors()) {
+            this.compiledProgram.set(null);
+            return false;
+        }
+
+        this.compiledProgram.set(compiled);
+        return true;
     }
 
     /// Marks the editor content as modified.

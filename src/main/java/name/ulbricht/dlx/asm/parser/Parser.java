@@ -63,7 +63,7 @@ public final class Parser {
 
     private List<ParsedDataDeclaration> data;
     private List<ParsedInstruction> code;
-    private List<Diagnostic> errors;
+    private List<Diagnostic> diagnostics;
     private String pendingLabel;
 
     /// Parses the token stream into a [ParsedProgram].
@@ -72,17 +72,14 @@ public final class Parser {
     /// [name.ulbricht.dlx.asm.lexer.LexerMode#ASSEMBLER] mode (whitespace and
     /// comments already stripped). [EOLToken]s act as line boundaries.
     ///
-    /// Lexer errors carried in `tokenized` are prepended to the parser's own errors;
-    /// the combined list is returned in [ParsedProgram#errors()].
-    ///
     /// @param tokenized the lexer output to parse
-    /// @return the parsed program with merged data and code sections and all errors
+    /// @return the parsed program with merged data and code sections and diagnostics
     public ParsedProgram parse(final TokenizedProgram tokenized) {
         requireNonNull(tokenized);
 
         this.data = new ArrayList<>();
         this.code = new ArrayList<>();
-        this.errors = new ArrayList<>(tokenized.errors()); // start with lexer errors
+        this.diagnostics = new ArrayList<>();
         this.pendingLabel = null;
 
         for (final var line : splitLines(tokenized.tokens())) {
@@ -91,7 +88,8 @@ public final class Parser {
             }
         }
 
-        return new ParsedProgram(List.copyOf(this.data), List.copyOf(this.code), List.copyOf(this.errors));
+        return new ParsedProgram(tokenized.id(), List.copyOf(this.data), List.copyOf(this.code),
+                List.copyOf(this.diagnostics));
     }
 
     private static List<List<Token>> splitLines(final List<Token> tokens) {
@@ -526,7 +524,7 @@ public final class Parser {
     }
 
     private void addError(final String msg, final Token token, final int len) {
-        this.errors.add(new Diagnostic(Diagnostic.Stage.PARSING,
+        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.PARSING, Diagnostic.Severity.ERROR,
                 new TextPosition(token.pos().line(), token.pos().column(), len), msg));
     }
 

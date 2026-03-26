@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import name.ulbricht.dlx.asm.Diagnostic;
 import name.ulbricht.dlx.util.TextPosition;
@@ -37,7 +38,7 @@ public final class Lexer {
 
     private final LexerMode mode;
     private final List<Token> tokens = new ArrayList<>();
-    private final List<Diagnostic> errors = new ArrayList<>();
+    private final List<Diagnostic> diagnostics = new ArrayList<>();
 
     private String src; // current line text
     private int line; // 0-based line index
@@ -61,7 +62,7 @@ public final class Lexer {
         this.line = lineNumber;
         this.pos = 0;
         this.tokens.clear();
-        this.errors.clear();
+        this.diagnostics.clear();
 
         scanLine();
         return List.copyOf(this.tokens);
@@ -69,23 +70,24 @@ public final class Lexer {
 
     /// Tokenizes an entire source file split into lines.
     ///
-    /// Errors from all lines are accumulated and returned in
-    /// [TokenizedProgram#errors()].
+    /// Diagnostics from all lines are accumulated and returned in
+    /// [TokenizedProgram#diagnostics()].
     ///
+    /// @param id    Unique identifier for the tokenized program.
     /// @param lines List of source lines.
-    /// @return [TokenizedProgram] containing the flat token list and any errors. In
-    ///         [LexerMode#ASSEMBLER] mode, whitespace and comments are excluded from
-    ///         the token list.
-    public TokenizedProgram tokenize(final List<String> lines) {
+    /// @return [TokenizedProgram] containing the flat token list and any
+    ///         diagnostics. In [LexerMode#ASSEMBLER] mode, whitespace and comments
+    ///         are excluded from the token list.
+    public TokenizedProgram tokenize(final UUID id, final List<String> lines) {
         requireNonNull(lines);
 
         final var allTokens = new ArrayList<Token>();
-        final var allErrors = new ArrayList<Diagnostic>();
+        final var allDiagnostics = new ArrayList<Diagnostic>();
         for (int i = 0; i < lines.size(); i++) {
             allTokens.addAll(tokenizeLine(lines.get(i), i));
-            allErrors.addAll(this.errors); // collect before next call clears them
+            allDiagnostics.addAll(this.diagnostics); // collect before next call clears them
         }
-        return new TokenizedProgram(List.copyOf(allTokens), List.copyOf(allErrors));
+        return new TokenizedProgram(id, List.copyOf(allTokens), List.copyOf(allDiagnostics));
     }
 
     private void scanLine() {
@@ -305,7 +307,8 @@ public final class Lexer {
     }
 
     private void addError(final String msg, final int col, final int length) {
-        this.errors.add(new Diagnostic(Diagnostic.Stage.LEXING, new TextPosition(this.line, col, length), msg));
+        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.LEXING, Diagnostic.Severity.ERROR,
+                new TextPosition(this.line, col, length), msg));
     }
 
     private static boolean isWhitespace(final char c) {

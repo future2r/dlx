@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -484,9 +485,8 @@ final class ParserTest {
 
                 assertTrue(program.data().isEmpty());
                 assertTrue(program.code().isEmpty());
-                // lexer error: ".0" is an unknown directive; parser error: ".float" not
-                // supported
-                assertEquals(2, program.errors().size());
+                // parser error: ".float" not supported
+                assertEquals(1, program.diagnostics().size());
         }
 
         @Test
@@ -497,7 +497,7 @@ final class ParserTest {
                                 42
                                 halt"""));
 
-                assertEquals(1, program.errors().size());
+                assertEquals(1, program.diagnostics().size());
                 assertEquals(1, program.code().size());
                 assertEquals("halt", program.code().get(0).opcode());
         }
@@ -508,7 +508,7 @@ final class ParserTest {
                 final var program = new Parser().parse(lex("""
                                 .text
                                 add r1, r2"""));
-                assertEquals(1, program.errors().size());
+                assertEquals(1, program.diagnostics().size());
         }
 
         private static TextPosition pos(final int line, final int col) {
@@ -517,12 +517,13 @@ final class ParserTest {
 
         private static ParsedProgram parse(final String source) {
                 final var program = new Parser().parse(lex(source));
-                assertTrue(program.errors().isEmpty(), "Expected no errors but got: " + program.errors());
+                assertTrue(program.diagnostics().isEmpty(),
+                                "Expected no diagnostics but got: " + program.diagnostics());
                 return program;
         }
 
         private static TokenizedProgram lex(final String source) {
                 final var lines = List.of(source.split("\\R", -1));
-                return new Lexer(LexerMode.ASSEMBLER).tokenize(lines);
+                return new Lexer(LexerMode.ASSEMBLER).tokenize(UUID.randomUUID(), lines);
         }
 }

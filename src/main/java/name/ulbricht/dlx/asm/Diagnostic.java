@@ -8,9 +8,24 @@ import name.ulbricht.dlx.util.TextPosition;
 ///
 /// @param stage   the stage of the compilation process where the diagnostic was
 ///                produced
+/// @param severity the severity level of the diagnostic
 /// @param pos     0-based source position of the problematic token
 /// @param message human-readable description of the problem
-public record Diagnostic(Stage stage, TextPosition pos, String message) {
+public record Diagnostic(Stage stage, Severity severity, TextPosition pos, String message) {
+
+    /// The severity level of a diagnostic.
+    public enum Severity{
+
+        /// Diagnostic produced for informational purposes, not indicating any problem.
+        INFO,
+
+        /// Diagnostic produced for a potential issue that may not necessarily be a problem.
+        WARNING,
+
+        /// Diagnostic produced for an error that prevents successful compilation.
+        ERROR
+    }
+
 
     /// The stage of the compilation process where the diagnostic was produced.
     public enum Stage {
@@ -19,12 +34,16 @@ public record Diagnostic(Stage stage, TextPosition pos, String message) {
         LEXING,
 
         /// Diagnostic produced during parsing.
-        PARSING
+        PARSING,
+
+        /// Diagnostic produced during compiling.
+        COMPILING
     }
 
     /// Validates the record components.
     public Diagnostic {
         requireNonNull(stage, "stage must not be null");
+        requireNonNull(severity, "severity must not be null");
         requireNonNull(pos, "pos must not be null");
         requireNonNull(message, "message must not be null");
     }

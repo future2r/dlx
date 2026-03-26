@@ -12,6 +12,8 @@ import name.ulbricht.dlx.util.TextPosition;
 /// Represents a problem in the problem list.
 public final class ProblemItem {
 
+    private final Diagnostic diagnostic;
+
     private final ReadOnlyObjectWrapper<Diagnostic.Stage> source = new ReadOnlyObjectWrapper<>();
     private final ReadOnlyObjectWrapper<TextPosition> textPosition = new ReadOnlyObjectWrapper<>();
     private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper();
@@ -20,11 +22,16 @@ public final class ProblemItem {
     /// 
     /// @param diagnostic the diagnostic to create the problem item from
     public ProblemItem(final Diagnostic diagnostic) {
-        requireNonNull(diagnostic);
+        this.diagnostic = requireNonNull(diagnostic);
 
         this.source.set(diagnostic.stage());
         this.textPosition.set(diagnostic.pos());
         this.message.set(diagnostic.message());
+    }
+
+    /// {@return the diagnostic associated with this problem item}
+    public Diagnostic getDiagnostic() {
+        return this.diagnostic;
     }
 
     /// {@return a read-only property representing the source of the problem}

@@ -17,7 +17,8 @@ import name.ulbricht.dlx.util.TextPosition;
 /// @param directive the directive keyword without the leading dot, lowercase
 ///                  (e.g. `word`, `ascii`)
 /// @param values    the directive's operand values
-public record ParsedDataDeclaration(TextPosition pos, String label, String directive, List<Object> values) {
+public record ParsedDataDeclaration(TextPosition pos, String label, String directive, List<Object> values)
+        implements ParsedElement {
 
     /// Validates and defensively copies the record components.
     public ParsedDataDeclaration {
