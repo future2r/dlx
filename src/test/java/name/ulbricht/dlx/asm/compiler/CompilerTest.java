@@ -14,14 +14,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import name.ulbricht.dlx.asm.Diagnostic;
 import name.ulbricht.dlx.asm.lexer.Lexer;
 import name.ulbricht.dlx.asm.lexer.LexerMode;
-import name.ulbricht.dlx.asm.parser.Parser;
 import name.ulbricht.dlx.asm.parser.ParsedProgram;
+import name.ulbricht.dlx.asm.parser.Parser;
 import name.ulbricht.dlx.simulator.CPU;
 
-@SuppressWarnings({ "static-method", "boxing" })
 final class CompilerTest {
 
         // =====================================================================
@@ -125,8 +123,8 @@ final class CompilerTest {
                 @Test
                 @DisplayName("Data labels resolve to correct addresses")
                 void dataLabels() {
-                        // a: .word 10  (addr 0)
-                        // b: .word 20  (addr 4)
+                        // a: .word 10 (addr 0)
+                        // b: .word 20 (addr 4)
                         // lw r1, a(r0) should encode offset=0
                         // lw r2, b(r0) should encode offset=4
                         final var compiled = compile("""

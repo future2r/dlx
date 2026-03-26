@@ -92,7 +92,7 @@ public final class Compiler {
             if (this.symbols.containsKey(label)) {
                 addError("Duplicate label '" + label + "'", element);
             } else {
-                this.symbols.put(label, address);
+                this.symbols.put(label, Integer.valueOf(address));
             }
         }
     }
@@ -124,17 +124,19 @@ public final class Compiler {
     // Pass 2 — data emission
     // -------------------------------------------------------------------------
 
-    private int emitData(final byte[] program, int offset, final ParsedDataDeclaration decl) {
+    private int emitData(final byte[] program, final int startOffset, final ParsedDataDeclaration decl) {
+        var offset = startOffset;
+
         switch (decl.directive()) {
             case "word" -> {
                 for (final var val : decl.values()) {
-                    emitWord(program, offset, ((Integer) val));
+                    emitWord(program, offset, ((Integer) val).intValue());
                     offset += 4;
                 }
             }
             case "half" -> {
                 for (final var val : decl.values()) {
-                    emitHalf(program, offset, ((Integer) val));
+                    emitHalf(program, offset, ((Integer) val).intValue());
                     offset += 2;
                 }
             }
@@ -255,52 +257,62 @@ public final class Compiler {
     // --- R-format: rd, rs1, rs2 ---
 
     private int encodeRFormat(final ParsedInstruction instr, final FunctionCode func) {
-        if (!checkOperandCount(instr, 3)) return 0;
+        if (!checkOperandCount(instr, 3))
+            return 0;
         final var rd = expectRegister(instr, 0);
         final var rs1 = expectRegister(instr, 1);
         final var rs2 = expectRegister(instr, 2);
-        if (rd < 0 || rs1 < 0 || rs2 < 0) return 0;
+        if (rd < 0 || rs1 < 0 || rs2 < 0)
+            return 0;
         return encodeR(rs1, rs2, rd, func.code);
     }
 
     // --- I-format arithmetic: rd, rs1, imm|label ---
 
     private int encodeIArith(final ParsedInstruction instr, final OperationCode opcode) {
-        if (!checkOperandCount(instr, 3)) return 0;
+        if (!checkOperandCount(instr, 3))
+            return 0;
         final var rd = expectRegister(instr, 0);
         final var rs1 = expectRegister(instr, 1);
         final var imm = resolveImmediate(instr, 2);
-        if (rd < 0 || rs1 < 0) return 0;
+        if (rd < 0 || rs1 < 0)
+            return 0;
         return encodeI(opcode.code, rs1, rd, imm);
     }
 
     // --- I-format load: rd, offset(base)|label(base) ---
 
     private int encodeILoad(final ParsedInstruction instr, final OperationCode opcode) {
-        if (!checkOperandCount(instr, 2)) return 0;
+        if (!checkOperandCount(instr, 2))
+            return 0;
         final var rd = expectRegister(instr, 0);
         final var mem = resolveMemory(instr, 1);
-        if (rd < 0 || mem == null) return 0;
+        if (rd < 0 || mem == null)
+            return 0;
         return encodeI(opcode.code, mem[1], rd, mem[0]);
     }
 
     // --- I-format store: offset(base)|label(base), dataReg ---
 
     private int encodeIStore(final ParsedInstruction instr, final OperationCode opcode) {
-        if (!checkOperandCount(instr, 2)) return 0;
+        if (!checkOperandCount(instr, 2))
+            return 0;
         final var mem = resolveMemory(instr, 0);
         final var dataReg = expectRegister(instr, 1);
-        if (mem == null || dataReg < 0) return 0;
+        if (mem == null || dataReg < 0)
+            return 0;
         return encodeI(opcode.code, mem[1], dataReg, mem[0]);
     }
 
     // --- I-format branch: rs1, label ---
 
     private int encodeIBranch(final ParsedInstruction instr, final OperationCode opcode, final int addr) {
-        if (!checkOperandCount(instr, 2)) return 0;
+        if (!checkOperandCount(instr, 2))
+            return 0;
         final var rs1 = expectRegister(instr, 0);
         final var offset = resolveBranchTarget(instr, 1, addr);
-        if (rs1 < 0) return 0;
+        if (rs1 < 0)
+            return 0;
         if (offset < Short.MIN_VALUE || offset > Short.MAX_VALUE) {
             addError("Branch offset out of 16-bit signed range", instr);
         }
@@ -310,24 +322,29 @@ public final class Compiler {
     // --- I-format jump register: rs1 ---
 
     private int encodeIJumpReg(final ParsedInstruction instr, final OperationCode opcode) {
-        if (!checkOperandCount(instr, 1)) return 0;
+        if (!checkOperandCount(instr, 1))
+            return 0;
         final var rs1 = expectRegister(instr, 0);
-        if (rs1 < 0) return 0;
+        if (rs1 < 0)
+            return 0;
         return encodeI(opcode.code, rs1, 0, 0);
     }
 
     // --- I-format LHI: rd, imm|label ---
 
     private int encodeILhi(final ParsedInstruction instr) {
-        if (!checkOperandCount(instr, 2)) return 0;
+        if (!checkOperandCount(instr, 2))
+            return 0;
         final var rd = expectRegister(instr, 0);
         final var imm = resolveImmediate(instr, 1);
-        if (rd < 0) return 0;
+        if (rd < 0)
+            return 0;
         return encodeI(OperationCode.LHI.code, 0, rd, imm);
     }
 
     // --- I-format HALT ---
 
+    @SuppressWarnings("static-method")
     private int encodeIHalt() {
         return encodeI(OperationCode.HALT.code, 0, 0, 0);
     }
@@ -335,7 +352,8 @@ public final class Compiler {
     // --- J-format: label ---
 
     private int encodeJFormat(final ParsedInstruction instr, final OperationCode opcode, final int addr) {
-        if (!checkOperandCount(instr, 1)) return 0;
+        if (!checkOperandCount(instr, 1))
+            return 0;
         final var distance = resolveBranchTarget(instr, 0, addr);
         final var minDist = -(1 << 25);
         final var maxDist = (1 << 25) - 1;
@@ -367,7 +385,7 @@ public final class Compiler {
 
     private int expectRegister(final ParsedInstruction instr, final int index) {
         final var op = instr.operands().get(index);
-        if (op instanceof RegisterOperand reg) {
+        if (op instanceof final RegisterOperand reg) {
             return reg.number();
         }
         addError("Expected register operand", instr);
@@ -376,24 +394,24 @@ public final class Compiler {
 
     private int resolveImmediate(final ParsedInstruction instr, final int index) {
         final var op = instr.operands().get(index);
-        if (op instanceof ImmediateOperand imm) {
+        if (op instanceof final ImmediateOperand imm) {
             return imm.value();
         }
-        if (op instanceof LabelImmediateOperand labelImm) {
+        if (op instanceof final LabelImmediateOperand labelImm) {
             return resolveLabel(instr, labelImm.name());
         }
         addError("Expected immediate or label operand", instr);
         return 0;
     }
 
-    /// Resolves a memory operand at the given index.
-    /// Returns `[offset, baseReg]` or `null` on error.
+    /// Resolves a memory operand at the given index. Returns `[offset, baseReg]` or
+    /// `null` on error.
     private int[] resolveMemory(final ParsedInstruction instr, final int index) {
         final var op = instr.operands().get(index);
-        if (op instanceof MemoryOperand mem) {
+        if (op instanceof final MemoryOperand mem) {
             return new int[] { mem.offset(), mem.baseReg() };
         }
-        if (op instanceof LabelMemoryOperand labelMem) {
+        if (op instanceof final LabelMemoryOperand labelMem) {
             final var addr = resolveLabel(instr, labelMem.offsetLabel());
             return new int[] { addr, labelMem.baseReg() };
         }
@@ -403,7 +421,7 @@ public final class Compiler {
 
     private int resolveBranchTarget(final ParsedInstruction instr, final int index, final int instrAddr) {
         final var op = instr.operands().get(index);
-        if (op instanceof LabelOperand label) {
+        if (op instanceof final LabelOperand label) {
             final var targetAddr = resolveLabel(instr, label.name());
             return targetAddr - instrAddr;
         }
@@ -417,7 +435,7 @@ public final class Compiler {
             addError("Undefined label '" + name + "'", instr);
             return 0;
         }
-        return addr;
+        return addr.intValue();
     }
 
     // -------------------------------------------------------------------------
@@ -458,7 +476,7 @@ public final class Compiler {
     }
 
     private static int intValue(final ParsedDataDeclaration decl, final int index) {
-        return (Integer) decl.values().get(index);
+        return ((Integer) decl.values().get(index)).intValue();
     }
 
     // -------------------------------------------------------------------------
