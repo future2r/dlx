@@ -1,0 +1,40 @@
+/* -------------------------------------------------------------------------- */
+/* Memory hex viewer cell styles                                              */
+/* -------------------------------------------------------------------------- */
+
+/* Monospaced font for all memory table cells */
+.memory-table .table-cell {
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 12px;
+}
+
+/* Right-align the address and byte value cells */
+.hex-address-cell,
+.memory-byte-cell {
+    -fx-alignment: CENTER;
+}
+
+/* ASCII column: left-aligned */
+.ascii-cell {
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Per-byte access highlighting (cell-level pseudo-classes)                    */
+/* -------------------------------------------------------------------------- */
+
+.memory-byte-cell:read {
+    -fx-background-color: -dlx-green-background;
+}
+
+.memory-byte-cell:write {
+    -fx-background-color: -dlx-red-background;
+}
+
+.memory-byte-cell:read:selected {
+    -fx-background-color: derive(-dlx-green-background, -25%);
+}
+
+.memory-byte-cell:write:selected {
+    -fx-background-color: derive(-dlx-red-background, -25%);
+}

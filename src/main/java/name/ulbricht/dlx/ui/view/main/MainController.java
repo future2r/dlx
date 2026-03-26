@@ -21,6 +21,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
+import name.ulbricht.dlx.asm.compiler.CompiledProgram;
 import name.ulbricht.dlx.config.UserPreferences;
 import name.ulbricht.dlx.io.SourceFile;
 import name.ulbricht.dlx.ui.DlxApplication;
@@ -261,39 +262,20 @@ public final class MainController {
 
     @FXML
     private void handleCompile() {
-        getActiveEditorView().ifPresent(editorView -> {
-            if (!editorView.getViewModel().compile())
-                Alerts.error(this.window, Messages.getString("main.compile.error")).showAndWait();
-        });
+        compile();
     }
 
     @FXML
     private void handleCompileAndLoad() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
+        // TODO Check if we can load now
+        compile().ifPresent(compiledProgram -> this.viewModel.loadProgram(compiledProgram));
     }
 
     @FXML
     private void handleRun() {
         // TODO Check if we can run now
 
-        // For now, get a dummy program
-        final var data = new byte[] {
-                0, 0, 0, 10, // op1 .word 10
-                0, 0, 0, 32, // op2 .word 32
-                0, 0, 0, 0, // res .word 0
-                42, // b .byte 42
-                16, 104, // h .half 4200
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // .buffer 20
-                72, 101, 108, 108, 111, // msg .ascii "Hello"
-                87, 111, 114, 108, 100, 0, // name .asciiz "World"
-                -116, 1, 0, 0, // main : lw r1, op1(r0)
-                -116, 2, 0, 4, // lw r2, op2(r0)
-                0, 34, 24, 32, // add r3, r1, r2
-                -84, 3, 0, 8, // sw res(r0), r3
-                -4, 0, 0, 0 // halt
-        };
-
-        this.viewModel.run(data, 46);
+        this.viewModel.run();
     }
 
     @FXML
@@ -346,7 +328,9 @@ public final class MainController {
         openRightView(registersView);
 
         // Memory View
-        openRightView(MemoryView.load());
+        final var memoryView = MemoryView.load();
+        memoryView.getViewModel().processorProperty().bind(this.viewModel.processorProperty());
+        openRightView(memoryView);
 
         // Problems View
         final var problemsView = ProblemsView.load();
@@ -580,5 +564,15 @@ public final class MainController {
         selectedFile.ifPresent(file -> this.userPreferences.putMostRecentlyUsedDirectory(file.getParent()));
 
         return selectedFile;
+    }
+
+    public Optional<CompiledProgram> compile() {
+        return getActiveEditorView().map(editorView -> {
+            if (editorView.getViewModel().compile())
+                return editorView.getViewModel().getCompiledProgram();
+
+            Alerts.error(this.window, Messages.getString("main.compile.error")).showAndWait();
+            return null;
+        });
     }
 }

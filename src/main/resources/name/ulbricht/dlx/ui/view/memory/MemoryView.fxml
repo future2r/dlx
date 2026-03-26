@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
-<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.StackPane?>
 <?import name.ulbricht.dlx.ui.view.memory.MemoryViewModel?>
 
@@ -16,6 +16,9 @@
         <MemoryViewModel fx:id="viewModel"/>
     </fx:define>
 
-    <Label text="Not implemented yet."/>
+    <!-- The 18 columns (1 address + 16 byte + 1 ASCII) are created
+         programmatically in MemoryController.initialize() because FXML
+         does not support loops for the 16 repeating byte columns. -->
+    <TableView fx:id="memoryTable" styleClass="memory-table"/>
 
 </StackPane>
