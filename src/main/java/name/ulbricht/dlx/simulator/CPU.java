@@ -49,6 +49,12 @@ import static java.util.Objects.requireNonNull;
 /// All other RAW hazards are resolved transparently by [Forwarding] inside
 /// [ExecuteStage]. No stall is needed.
 ///
+/// ### HALT flush
+/// When HALT reaches the EX stage, the IF/ID and ID/EX latches are flushed
+/// with bubbles. This prevents instructions fetched from beyond the program
+/// end from advancing into MEM, where a spurious load or store (decoded from
+/// uninitialised memory) could cause out-of-bounds access or data corruption.
+///
 /// ### Control hazards (branch / jump)
 /// Branch conditions and jump targets are resolved at the end of EX. When a
 /// redirect is required:
@@ -206,14 +212,22 @@ public final class CPU {
         final var newExMem = exResult.exMem();
 
         // -----------------------------------------------------------------
-        // ID stage: decode and read registers - suppressed during a stall.
-        // A stall injects a bubble instead of advancing the next instruction.
+        // Halt / flush flag: when HALT is in EX or a branch/jump redirects
+        // the PC, the younger instructions in IF and ID must be discarded.
+        // This flag is checked before ID and IF run so that the decoder
+        // never sees garbage bytes and IF never issues a spurious fetch.
+        // -----------------------------------------------------------------
+        final var haltFlush = this.idEx.ctrl().halt();
+
+        // -----------------------------------------------------------------
+        // ID stage: decode and read registers.
+        // Suppressed (bubble injected) during a stall, a HALT flush, or a
+        // branch/jump redirect.
         // -----------------------------------------------------------------
         // newIdEx cannot use 'var' here because it is assigned in a branch.
         // It cannot be 'final' because it may be reassigned in the IF block.
         IdExLatch newIdEx;
-        if (stall) {
-            // Hold the current instruction in ID; inject a NOP into EX.
+        if (stall || haltFlush) {
             newIdEx = IdExLatch.BUBBLE;
         } else {
             newIdEx = InstructionDecodeStage.execute(this.ifId, this.registers);
@@ -233,6 +247,11 @@ public final class CPU {
             newIfId = IfIdLatch.BUBBLE;
             newIdEx = IdExLatch.BUBBLE; // also flush the instruction in ID
             newPc = exResult.newPc();
+        } else if (haltFlush) {
+            // HALT detected in EX: suppress IF so no spurious memory fetch
+            // occurs past the program end.
+            newIfId = IfIdLatch.BUBBLE;
+            newPc = this.pc;
         } else if (stall) {
             // Load-use stall: freeze the PC and the IF/ID latch so that the
             // same instruction is presented to ID again next cycle.
