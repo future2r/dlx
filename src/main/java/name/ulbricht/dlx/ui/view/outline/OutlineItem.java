@@ -25,11 +25,11 @@ import name.ulbricht.dlx.util.TextPosition;
 public final class OutlineItem {
 
     static OutlineItem dataSection() {
-        return new OutlineItem(null, Messages.getString("outline.data_section"), null, null);
+        return new OutlineItem(null, Messages.getString("outline.dataSection"), null, null);
     }
 
     static OutlineItem codeSection() {
-        return new OutlineItem(null, Messages.getString("outline.code_section"), null, null);
+        return new OutlineItem(null, Messages.getString("outline.codeSection"), null, null);
     }
 
     static OutlineItem data(final ParsedDataDeclaration data) {
