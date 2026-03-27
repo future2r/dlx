@@ -12,6 +12,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
+import name.ulbricht.dlx.simulator.CPU;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.scene.control.BinaryTableCell;
 import name.ulbricht.dlx.ui.scene.control.DecimalTableCell;
@@ -69,6 +70,18 @@ public final class RegistersView implements ViewPart<RegistersViewModel> {
 
     private RegistersView(final RegistersController controller) {
         this.controller = requireNonNull(controller);
+
+        // Update the title when the processor changes to show the register count.
+        this.controller.getViewModel().processorProperty().subscribe(this::updateTitle);
+    }
+
+    private void updateTitle(final CPU processor) {
+        if (processor != null) {
+            this.title.set(Messages.getString("registers.title.pattern")
+                    .formatted(Integer.valueOf(processor.getRegisters().size())));
+        } else {
+            this.title.set(Messages.getString("registers.title"));
+        }
     }
 
     @Override

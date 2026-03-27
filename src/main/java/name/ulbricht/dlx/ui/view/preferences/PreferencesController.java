@@ -5,6 +5,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.DialogPane;
+import name.ulbricht.dlx.config.MemorySize;
+import name.ulbricht.dlx.config.ProcessorSpeed;
 import name.ulbricht.dlx.ui.scene.Theme;
 
 /// Controller for the application preferences.
@@ -17,6 +19,10 @@ public final class PreferencesController {
     private PreferencesViewModel viewModel;
 
     @FXML
+    private ChoiceBox<ProcessorSpeed> processorSpeedChoiceBox;
+    @FXML
+    private ChoiceBox<MemorySize> memorySizeChoiceBox;
+    @FXML
     private ChoiceBox<Theme> themeChoiceBox;
 
     /// Creates a new instance.
@@ -26,6 +32,12 @@ public final class PreferencesController {
     @FXML
     private void initialize() {
         this.preferencesRoot.lookupButton(ButtonType.OK).addEventFilter(ActionEvent.ACTION, this::onOk);
+
+        this.processorSpeedChoiceBox.itemsProperty().bind(this.viewModel.processorSpeedsProperty());
+        this.processorSpeedChoiceBox.valueProperty().bindBidirectional(this.viewModel.selectedProcessorSpeedProperty());
+
+        this.memorySizeChoiceBox.itemsProperty().bind(this.viewModel.memorySizesProperty());
+        this.memorySizeChoiceBox.valueProperty().bindBidirectional(this.viewModel.selectedMemorySizeProperty());
 
         this.themeChoiceBox.itemsProperty().bind(this.viewModel.themesProperty());
         this.themeChoiceBox.valueProperty().bindBidirectional(this.viewModel.selectedThemeProperty());

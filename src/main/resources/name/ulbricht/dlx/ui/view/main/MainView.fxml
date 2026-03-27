@@ -35,7 +35,11 @@
         <MainView fx:id="userPreferences" fx:factory="userPreferences"/>
         <FileChooser fx:id="openFileChooser" title="%main.fileChooser.open.title"/>
         <FileChooser fx:id="saveFileChooser" title="%main.fileChooser.save.title"/>
-        <MainViewModel fx:id="viewModel"/>
+        <MainViewModel fx:id="viewModel">
+            <userPreferences>
+                <fx:reference source="userPreferences"/>
+            </userPreferences>
+        </MainViewModel>
         <RunService fx:id="runService" processor="${viewModel.processor}"/>
     </fx:define>
 

@@ -61,6 +61,18 @@ public final class ProblemsView implements ViewPart<ProblemsViewModel> {
 
     private ProblemsView(final ProblemsController controller) {
         this.controller = requireNonNull(controller);
+
+        // Update the title when the problem count changes.
+        this.controller.getViewModel().problemsProperty().sizeProperty().subscribe(this::updateTitle);
+    }
+
+    private void updateTitle(final Number size) {
+        final var count = size.intValue();
+        if (count > 0) {
+            this.title.set(Messages.getString("problems.title.pattern").formatted(count));
+        } else {
+            this.title.set(Messages.getString("problems.title"));
+        }
     }
 
     @Override

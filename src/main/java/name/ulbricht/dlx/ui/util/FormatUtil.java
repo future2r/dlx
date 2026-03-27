@@ -60,6 +60,17 @@ public final class FormatUtil {
                 "%8s".formatted(Integer.toBinaryString(value & 0xFF)).replace(' ', '0'));
     }
 
+    /// Formats a byte count as a human-readable string (e.g., "1 KB" or "512 Bytes").
+    ///
+    /// @param bytes the byte count to format
+    /// @return the formatted string
+    public static String formatBytes(final int bytes) {
+        if (bytes >= 1024 && bytes % 1024 == 0) {
+            return (bytes / 1024) + " KB";
+        }
+        return bytes + " Bytes";
+    }
+
     /// Private constructor to prevent instantiation.
     private FormatUtil() {
     }

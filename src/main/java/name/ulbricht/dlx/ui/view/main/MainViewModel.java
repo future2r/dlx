@@ -2,7 +2,6 @@ package name.ulbricht.dlx.ui.view.main;
 
 import static java.util.Objects.requireNonNull;
 
-import java.time.Duration;
 import java.util.UUID;
 
 import javafx.application.Platform;
@@ -12,9 +11,11 @@ import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyLongProperty;
 import javafx.beans.property.ReadOnlyLongWrapper;
+import javafx.beans.NamedArg;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import name.ulbricht.dlx.asm.compiler.CompiledProgram;
+import name.ulbricht.dlx.config.UserPreferences;
 import name.ulbricht.dlx.simulator.CPU;
 import name.ulbricht.dlx.simulator.ProcessingListener;
 
@@ -27,8 +28,13 @@ public final class MainViewModel implements ProcessingListener {
     private final ReadOnlyIntegerWrapper programCounter = new ReadOnlyIntegerWrapper();
     private final ReadOnlyBooleanWrapper halted = new ReadOnlyBooleanWrapper();
 
+    private final UserPreferences userPreferences;
+
     /// Creates a new main view model instance.
-    public MainViewModel() {
+    ///
+    /// @param userPreferences the user preferences, must not be `null`
+    public MainViewModel(@NamedArg("userPreferences") final UserPreferences userPreferences) {
+        this.userPreferences = requireNonNull(userPreferences);
         this.processor.subscribe(this::processorChanged);
         this.processor.set(createProcessor());
     }
@@ -106,9 +112,8 @@ public final class MainViewModel implements ProcessingListener {
     }
 
     private CPU createProcessor() {
-        // TODO get from preferences
-        final CPU cpu = new CPU();
-        cpu.setStageDuration(Duration.ofSeconds(1));
+        final var cpu = new CPU(this.userPreferences.getMemorySize().sizeInBytes());
+        cpu.setStageDuration(this.userPreferences.getProcessorSpeed().duration());
         cpu.addProcessingListener(this);
         return cpu;
     }

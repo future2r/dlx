@@ -8,10 +8,13 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.stage.Window;
 import javafx.util.StringConverter;
+import name.ulbricht.dlx.config.MemorySize;
+import name.ulbricht.dlx.config.ProcessorSpeed;
 import name.ulbricht.dlx.config.UserPreferences;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.scene.Theme;
 import name.ulbricht.dlx.ui.stage.Stages;
+import name.ulbricht.dlx.ui.util.FormatUtil;
 
 /// View for the application preferences.
 public final class PreferencesView {
@@ -48,6 +51,46 @@ public final class PreferencesView {
     /// {@return the user preferences}
     public static UserPreferences userPreferences() {
         return UserPreferences.getInstance();
+    }
+
+    /// {@return a string converter for processor speed presets}
+    public static StringConverter<ProcessorSpeed> processorSpeedConverter() {
+        return new StringConverter<>() {
+            @Override
+            public String toString(final ProcessorSpeed speed) {
+                final var pattern = Messages.getString("processorSpeed." + speed.name().toLowerCase());
+                return pattern.formatted(formatDuration(speed));
+            }
+
+            @Override
+            public ProcessorSpeed fromString(final String string) {
+                throw new UnsupportedOperationException();
+            }
+
+            private static String formatDuration(final ProcessorSpeed speed) {
+                final var millis = speed.duration().toMillis();
+                if (millis >= 1000 && millis % 1000 == 0) {
+                    return (millis / 1000) + " s";
+                }
+                return millis + " ms";
+            }
+        };
+    }
+
+    /// {@return a string converter for memory size presets}
+    public static StringConverter<MemorySize> memorySizeConverter() {
+        return new StringConverter<>() {
+            @Override
+            public String toString(final MemorySize size) {
+                final var pattern = Messages.getString("memorySize." + size.name().toLowerCase());
+                return pattern.formatted(FormatUtil.formatBytes(size.sizeInBytes()));
+            }
+
+            @Override
+            public MemorySize fromString(final String string) {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     /// {@return a string converter for themes}

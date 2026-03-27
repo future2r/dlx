@@ -69,6 +69,11 @@ final class Registers {
         }
     }
 
+    /// {@return the number of registers in this bank}
+    int size() {
+        return this.regs.length;
+    }
+
     /// {@return a copy of all 32 register values}
     ///
     /// Modifying the array does not affect the registers. Use this method when the

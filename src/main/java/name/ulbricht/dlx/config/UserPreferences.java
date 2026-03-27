@@ -31,11 +31,15 @@ public final class UserPreferences {
 
     private static final String ROOT_NODE = "name.ulbricht.dlx";
     private static final String MOST_RECENTLY_USED_DIRECTORY_KEY = "mostRecentlyUsedDirectory";
+    private static final String MEMORY_SIZE_KEY = "memorySize";
+    private static final String PROCESSOR_SPEED_KEY = "processorSpeed";
     private static final String THEME_KEY = "theme";
 
     private final Preferences preferences;
 
     private final ReadOnlyObjectWrapper<Path> mostRecentlyUsedDirectory = new ReadOnlyObjectWrapper<>();
+    private final ReadOnlyObjectWrapper<MemorySize> memorySize = new ReadOnlyObjectWrapper<>();
+    private final ReadOnlyObjectWrapper<ProcessorSpeed> processorSpeed = new ReadOnlyObjectWrapper<>();
     private final ReadOnlyObjectWrapper<Theme> theme = new ReadOnlyObjectWrapper<>();
 
     private UserPreferences() {
@@ -43,12 +47,16 @@ public final class UserPreferences {
         this.preferences.addPreferenceChangeListener(this::preferenceChanged);
 
         updateMostRecentlyUsedDirectory();
+        updateMemorySize();
+        updateProcessorSpeed();
         updateTheme();
     }
 
     private void preferenceChanged(final PreferenceChangeEvent event) {
         switch (event.getKey()) {
             case MOST_RECENTLY_USED_DIRECTORY_KEY -> updateMostRecentlyUsedDirectory();
+            case MEMORY_SIZE_KEY -> updateMemorySize();
+            case PROCESSOR_SPEED_KEY -> updateProcessorSpeed();
             case THEME_KEY -> updateTheme();
             default -> {
                 // Ignore other preferences
@@ -78,16 +86,60 @@ public final class UserPreferences {
         putPath(MOST_RECENTLY_USED_DIRECTORY_KEY, directory);
     }
 
+    /// {@return a read-only property for the memory size}
+    public ReadOnlyObjectProperty<MemorySize> memorySizeProperty() {
+        return this.memorySize.getReadOnlyProperty();
+    }
+
+    private void updateMemorySize() {
+        this.memorySize.set(getEnumValue(MEMORY_SIZE_KEY, MemorySize.class, () -> MemorySize.SMALL));
+    }
+
+    /// {@return the memory size, or [MemorySize#SMALL] if not set or invalid}
+    public MemorySize getMemorySize() {
+        return memorySizeProperty().get();
+    }
+
+    /// Set the memory size.
+    ///
+    /// @param newMemorySize the memory size to set, or null to remove the preference
+    public void putMemorySize(final MemorySize newMemorySize) {
+        putEnum(MEMORY_SIZE_KEY, newMemorySize);
+    }
+
+    /// {@return a read-only property for the processor speed}
+    public ReadOnlyObjectProperty<ProcessorSpeed> processorSpeedProperty() {
+        return this.processorSpeed.getReadOnlyProperty();
+    }
+
+    private void updateProcessorSpeed() {
+        this.processorSpeed.set(getEnumValue(PROCESSOR_SPEED_KEY, ProcessorSpeed.class, () -> ProcessorSpeed.MEDIUM));
+    }
+
+    /// {@return the processor speed, or [ProcessorSpeed#MEDIUM] if not set
+    /// or invalid}
+    public ProcessorSpeed getProcessorSpeed() {
+        return processorSpeedProperty().get();
+    }
+
+    /// Set the processor speed.
+    ///
+    /// @param newProcessorSpeed the processor speed to set, or null to remove
+    ///                          the preference
+    public void putProcessorSpeed(final ProcessorSpeed newProcessorSpeed) {
+        putEnum(PROCESSOR_SPEED_KEY, newProcessorSpeed);
+    }
+
     /// {@return a read-only property for the theme}
     public ReadOnlyObjectProperty<Theme> themeProperty() {
         return this.theme.getReadOnlyProperty();
     }
 
     private void updateTheme() {
-        this.theme.set(getEnumValue(THEME_KEY, Theme.class, () -> Theme.AUTO));
+        this.theme.set(getEnumValue(THEME_KEY, Theme.class, () -> Theme.LIGHT));
     }
 
-    /// {@return the theme, or Theme.AUTO if not set or invalid.}
+    /// {@return the theme, or [Theme#LIGHT] if not set or invalid.}
     public Theme getTheme() {
         return themeProperty().get();
     }

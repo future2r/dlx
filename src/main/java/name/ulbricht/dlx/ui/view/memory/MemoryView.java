@@ -13,7 +13,9 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.util.Callback;
+import name.ulbricht.dlx.simulator.CPU;
 import name.ulbricht.dlx.ui.i18n.Messages;
+import name.ulbricht.dlx.ui.util.FormatUtil;
 import name.ulbricht.dlx.ui.view.ViewPart;
 
 /// View for displaying the memory state of the DLX simulator as a hex viewer.
@@ -94,6 +96,18 @@ public final class MemoryView implements ViewPart<MemoryViewModel> {
 
     private MemoryView(final MemoryController controller) {
         this.controller = requireNonNull(controller);
+
+        // Update the title when the processor changes to show the memory size.
+        this.controller.getViewModel().processorProperty().subscribe(this::updateTitle);
+    }
+
+    private void updateTitle(final CPU processor) {
+        if (processor != null) {
+            this.title.set(Messages.getString("memory.title.pattern")
+                    .formatted(FormatUtil.formatBytes(processor.getMemory().size())));
+        } else {
+            this.title.set(Messages.getString("memory.title"));
+        }
     }
 
     @Override

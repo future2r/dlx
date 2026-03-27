@@ -1,4 +1,16 @@
+#contentPane {
+    -fx-spacing: 0.5em;
+}
+
+#processorPane,
 #designPane {
     -fx-hgap: 0.5em;
     -fx-vgap: 0.5em;
+}
+
+.hint-label {
+    -fx-font-size: 0.85em;
+    -fx-text-fill: -fx-mid-text-color;
+    -fx-padding: 4 0 0 0;
+    -fx-text-wrap: true;
 }

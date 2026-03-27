@@ -31,7 +31,41 @@
 
     <content>
 
-        <VBox>
+        <VBox fx:id="contentPane">
+
+            <TitledPane text="%preferences.processor.text" expanded="true" collapsible="false">
+
+                <GridPane fx:id="processorPane">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="never"/>
+                        <ColumnConstraints hgrow="always"/>
+                    </columnConstraints>
+
+                    <fx:define>
+                        <Index fx:id="row"/>
+                    </fx:define>
+
+                    <Label text="%preferences.processorSpeed.text" GridPane.rowIndex="$row.curr" GridPane.columnIndex="0"/>
+                    <ChoiceBox fx:id="processorSpeedChoiceBox" maxWidth="Infinity" GridPane.rowIndex="$row.curr" GridPane.columnIndex="1">
+                        <converter>
+                            <PreferencesView fx:factory="processorSpeedConverter"/>
+                        </converter>
+                    </ChoiceBox>
+
+                    <Label text="%preferences.memorySize.text" GridPane.rowIndex="$row.next" GridPane.columnIndex="0"/>
+                    <ChoiceBox fx:id="memorySizeChoiceBox" maxWidth="Infinity" GridPane.rowIndex="$row.curr" GridPane.columnIndex="1">
+                        <converter>
+                            <PreferencesView fx:factory="memorySizeConverter"/>
+                        </converter>
+                    </ChoiceBox>
+
+                    <Label text="%preferences.processor.hint" styleClass="hint-label"
+                        GridPane.rowIndex="$row.next" GridPane.columnIndex="0"
+                        GridPane.columnSpan="2"/>
+
+                </GridPane>
+
+            </TitledPane>
 
             <TitledPane text="%preferences.design.text" expanded="true" collapsible="false">
 

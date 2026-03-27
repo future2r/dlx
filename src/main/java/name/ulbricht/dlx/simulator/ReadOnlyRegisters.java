@@ -16,6 +16,11 @@ public interface ReadOnlyRegisters {
             }
 
             @Override
+            public int size() {
+                return registers.size();
+            }
+
+            @Override
             public int[] snapshot() {
                 return registers.snapshot();
             }
@@ -33,9 +38,12 @@ public interface ReadOnlyRegisters {
     }
 
     /// {@return the current 32-bit value of the register at `index`}
-    /// 
+    ///
     /// @param index the register number (0–31; higher bits are masked away)
     int read(final int index);
+
+    /// {@return the number of registers in this bank}
+    int size();
 
     /// {@return a copy of all 32 register values}
     int[] snapshot();
