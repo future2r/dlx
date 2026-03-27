@@ -344,7 +344,7 @@
                                         <argument>--no-man-pages</argument>
                                         <argument>--launcher</argument>
                                         <argument>dlx=name.ulbricht.dlx/name.ulbricht.dlx.Main</argument>
-                                        <argument>--add-options="--enable-native-access=javafx.graphics"</argument>
+                                        <argument>--add-options=--enable-native-access=javafx.graphics -Djavafx.preloader=name.ulbricht.dlx.ui.SplashPreLoader</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -419,6 +419,8 @@
                                         <argument>${project.basedir}/src/design/application.ico</argument>
                                         <argument>--java-options</argument>
                                         <argument>--enable-native-access=javafx.graphics</argument>
+                                        <argument>--java-options</argument>
+                                        <argument>-Djavafx.preloader=name.ulbricht.dlx.ui.SplashPreLoader</argument>
                                     </arguments>
                                 </configuration>
                             </execution>

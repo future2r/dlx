@@ -1,14 +1,12 @@
 package name.ulbricht.dlx.ui;
 
-import java.net.URL;
-import java.util.stream.IntStream;
-
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
+import name.ulbricht.dlx.ui.stage.Stages;
 import name.ulbricht.dlx.ui.view.main.MainController;
 import name.ulbricht.dlx.ui.view.main.MainView;
 
@@ -33,13 +31,7 @@ public final class DlxApplication extends Application {
         // Configure the primary stage
         primaryStage.setScene(scene);
         primaryStage.setTitle(Messages.getString("primaryStage.title"));
-        primaryStage.getIcons().addAll(
-                IntStream.of(16, 32, 48, 64, 128, 256)
-                        .mapToObj("/name/ulbricht/dlx/ui/image/application_%d.png"::formatted)
-                        .map(getClass()::getResource)
-                        .map(URL::toString)
-                        .map(Image::new)
-                        .toList());
+        Stages.initStageIcons(primaryStage);
 
         // Forward window events to the controller
         final var controller = fxmlLoader.<MainController>getController();
@@ -48,5 +40,8 @@ public final class DlxApplication extends Application {
 
         // Show the primary stage
         primaryStage.show();
+
+        // Notify the preloader that the application is shown
+        Platform.runLater(() -> notifyPreloader(new AppShownNotification()));
     }
 }

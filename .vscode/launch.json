@@ -9,7 +9,8 @@
             "projectName": "dlx",
             "mainClass": "name.ulbricht.dlx/name.ulbricht.dlx.Main",
             "vmArgs": [
-                "--enable-native-access=javafx.graphics"
+                "--enable-native-access=javafx.graphics",
+                "-Djavafx.preloader=name.ulbricht.dlx.ui.SplashPreLoader"
             ]
         },
         {
@@ -21,6 +22,7 @@
             "mainClass": "name.ulbricht.dlx/name.ulbricht.dlx.Main",
             "vmArgs": [
                 "--enable-native-access=javafx.graphics",
+                "-Djavafx.preloader=name.ulbricht.dlx.ui.SplashPreLoader",
                 "-Duser.language=de",
                 "-Duser.country=DE"
             ]
@@ -34,6 +36,7 @@
             "mainClass": "name.ulbricht.dlx/name.ulbricht.dlx.Main",
             "vmArgs": [
                 "--enable-native-access=javafx.graphics",
+                "-Djavafx.preloader=name.ulbricht.dlx.ui.SplashPreLoader",
                 "-Duser.language=en",
                 "-Duser.country=US"
             ]
