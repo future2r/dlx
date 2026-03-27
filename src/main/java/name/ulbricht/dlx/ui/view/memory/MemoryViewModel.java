@@ -15,14 +15,10 @@ import javafx.collections.ObservableList;
 import name.ulbricht.dlx.simulator.Access;
 import name.ulbricht.dlx.simulator.CPU;
 import name.ulbricht.dlx.simulator.MemoryAccessListener;
+import name.ulbricht.dlx.simulator.ProcessingListener;
 
 /// View model for the memory hex viewer.
-///
-/// This class exposes observable data only — it has no knowledge of any UI
-/// controls. The Controller (View layer) listens to property changes and
-/// translates them into `TableView` operations such as `refresh()` and
-/// `scrollTo()`.
-public final class MemoryViewModel implements MemoryAccessListener {
+public final class MemoryViewModel implements ProcessingListener, MemoryAccessListener {
 
     private final ObjectProperty<CPU> processor = new SimpleObjectProperty<>();
 
@@ -30,9 +26,6 @@ public final class MemoryViewModel implements MemoryAccessListener {
     private final ReadOnlyListWrapper<MemoryRow> rows = new ReadOnlyListWrapper<>(
             FXCollections.unmodifiableObservableList(this.modifiableRows));
 
-    /// Boolean flip-flop. Every toggle signals the View that visible cells
-    /// should be repainted. The Controller listens to this property and calls
-    /// `tableView.refresh()`.
     private final BooleanProperty refreshFlag = new SimpleBooleanProperty();
 
     /// Shadow copy of the memory contents, updated only on the FX thread.
@@ -77,23 +70,29 @@ public final class MemoryViewModel implements MemoryAccessListener {
         return rowsProperty().get();
     }
 
-    /// A boolean that toggles every time visible cells need to be repainted.
-    /// The Controller should listen to this property and call
-    /// `tableView.refresh()` whenever it changes.
+    /// A boolean that toggles every time visible cells need to be repainted. The
+    /// Controller should listen to this property and call `tableView.refresh()`
+    /// whenever it changes.
     ///
-    /// {@return a read-only property that toggles on each data change}
+    /// @return a read-only property that toggles on each data change
     public ReadOnlyBooleanProperty refreshFlagProperty() {
         return this.refreshFlag;
     }
 
-    /// Toggles the refresh flag, signalling the View that visible cells need
-    /// repainting.
+    /// {@return the current value of the refresh flag}
+    public boolean getRefreshFlag() {
+        return refreshFlagProperty().get();
+    }
+
+    /// Toggles the refresh flag, signalling the View that visible cells
+    /// need repainting.
     private void signalRefresh() {
         this.refreshFlag.set(!this.refreshFlag.get());
     }
 
     private void processorChanged(final CPU oldProcessor, final CPU newProcessor) {
         if (oldProcessor != null) {
+            oldProcessor.removeProcessingListener(this);
             oldProcessor.getMemory().removeAccessListener(this);
         }
 
@@ -110,6 +109,7 @@ public final class MemoryViewModel implements MemoryAccessListener {
                 this.modifiableRows.add(new MemoryRow(i * MemoryRow.BYTES_PER_ROW, this.shadow, this.accessState));
             }
 
+            newProcessor.addProcessingListener(this);
             newProcessor.getMemory().addAccessListener(this);
         } else {
             this.shadow = new byte[0];
@@ -120,10 +120,10 @@ public final class MemoryViewModel implements MemoryAccessListener {
     @Override
     public void memoryAccessed(final MemoryAccess access) {
         // Events may originate from the CPU's virtual thread.
-        Platform.runLater(() -> handleMemoryAccess(access));
+        Platform.runLater(() -> updateMemoryAccess(access));
     }
 
-    private void handleMemoryAccess(final MemoryAccess access) {
+    private void updateMemoryAccess(final MemoryAccess access) {
         final var addr = access.address();
         final var bytes = access.value();
         final var type = access.type();
@@ -143,9 +143,15 @@ public final class MemoryViewModel implements MemoryAccessListener {
         signalRefresh();
     }
 
+    @Override
+    public void processing(final ProcessStep step) {
+        // Events may originate from the CPU's virtual thread.
+        Platform.runLater(this::clearMemoryAccess);
+    }
+
     /// Clears all per-byte access highlights without changing the shadow data.
     /// Called before each simulation step to reset the previous cycle's highlights.
-    void clearAccessHighlights() {
+    void clearMemoryAccess() {
         Arrays.fill(this.accessState, null);
         signalRefresh();
     }

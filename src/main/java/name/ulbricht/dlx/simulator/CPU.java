@@ -2,6 +2,10 @@ package name.ulbricht.dlx.simulator;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+
 /// DLX CPU with a classic 5-stage in-order pipeline: **IF → ID → EX → MEM →
 /// WB**.
 ///
@@ -50,9 +54,9 @@ import static java.util.Objects.requireNonNull;
 /// [ExecuteStage]. No stall is needed.
 ///
 /// ### HALT flush
-/// When HALT reaches the EX stage, the IF/ID and ID/EX latches are flushed
-/// with bubbles. This prevents instructions fetched from beyond the program
-/// end from advancing into MEM, where a spurious load or store (decoded from
+/// When HALT reaches the EX stage, the IF/ID and ID/EX latches are flushed with
+/// bubbles. This prevents instructions fetched from beyond the program end from
+/// advancing into MEM, where a spurious load or store (decoded from
 /// uninitialised memory) could cause out-of-bounds access or data corruption.
 ///
 /// ### Control hazards (branch / jump)
@@ -84,9 +88,17 @@ public final class CPU {
     /// The ALU used by the EX stage.
     private final ALU alu = new ALU();
 
+    /// The time a stage will take. Usually, a stage is very fast. For testing and
+    /// demonstration purposes, this will slow down the simulation in order to
+    /// observe the pipeline behaviour more clearly.
+    private Duration stageDuration = Duration.ZERO;
+
+    /// Listeners for processing steps.
+    private final List<ProcessingListener> processingListeners = new ArrayList<>();
+
     /// The program counter - the byte address of the **next** instruction to be
     /// fetched by the IF stage. Updated at the end of every `step()`.
-    private int pc = 0;
+    private int programCounter = 0;
 
     /// Set to `true` once a HALT instruction retires through WB. [#step()] becomes
     /// a no-op after this point.
@@ -113,7 +125,7 @@ public final class CPU {
     /// Creates a new CPU with a freshly allocated zero-initialised memory of a
     /// default size.
     public CPU() {
-        this.memory = new Memory(1024 * 2); // Default memory size: 2 KB
+        this(1024); // Default memory size: 1 KB
     }
 
     /// Creates a new CPU with a freshly allocated zero-initialised memory.
@@ -123,6 +135,23 @@ public final class CPU {
     ///                        it accesses
     public CPU(final int memorySizeBytes) {
         this.memory = new Memory(memorySizeBytes);
+    }
+
+    /// Returns the delay inserted after each pipeline cycle. Defaults to
+    /// [Duration#ZERO] (no delay). A non-zero value slows down the simulation for
+    /// better observability in a UI.
+    ///
+    /// @return the current stage duration
+    public Duration getStageDuration() {
+        return this.stageDuration;
+    }
+
+    /// Sets the delay inserted after each pipeline cycle.
+    ///
+    /// @param stageDuration the duration to sleep after each cycle; must not
+    ///                      be `null`
+    public void setStageDuration(final Duration stageDuration) {
+        this.stageDuration = requireNonNull(stageDuration, "stageDuration must not be null");
     }
 
     /// Returns the registers, which can be read by callers but not modified
@@ -152,11 +181,9 @@ public final class CPU {
     /// @param entryPoint the initial PC value
     public void loadProgram(final byte[] program, final int entryPoint) {
         requireNonNull(program, "program must not be null");
-        // Write the program bytes into memory.
-        this.memory.loadProgram(program, 0);
 
         // Reset all mutable CPU state.
-        this.pc = entryPoint;
+        this.programCounter = entryPoint;
         this.halted = false;
         this.cycles = 0;
 
@@ -165,11 +192,12 @@ public final class CPU {
         this.idEx = IdExLatch.BUBBLE;
         this.exMem = ExMemLatch.BUBBLE;
         this.memWb = MemWbLatch.BUBBLE;
-    }
 
-    // -------------------------------------------------------------------------
-    // Execution
-    // -------------------------------------------------------------------------
+        notifyProcessingListeners();
+
+        // Write the program bytes into memory.
+        this.memory.loadProgram(program, 0);
+    }
 
     /// Advances the simulation by exactly one clock cycle.
     ///
@@ -179,7 +207,13 @@ public final class CPU {
     /// The five stages are evaluated in reverse pipeline order (WB first, IF last)
     /// so that each stage's output is available as a forwarding source for earlier
     /// stages within the same cycle.
-    public void step() {
+    /// 
+    /// @throws InterruptedException if the thread is interrupted while sleeping to
+    ///                              simulate stage processing time
+    public void step() throws InterruptedException {
+
+        notifyProcessingListeners();
+
         // A halted CPU does nothing.
         if (this.halted)
             return;
@@ -251,16 +285,16 @@ public final class CPU {
             // HALT detected in EX: suppress IF so no spurious memory fetch
             // occurs past the program end.
             newIfId = IfIdLatch.BUBBLE;
-            newPc = this.pc;
+            newPc = this.programCounter;
         } else if (stall) {
             // Load-use stall: freeze the PC and the IF/ID latch so that the
             // same instruction is presented to ID again next cycle.
             newIfId = this.ifId;
-            newPc = this.pc;
+            newPc = this.programCounter;
         } else {
             // Normal operation: fetch the next word and advance the PC.
-            newIfId = InstructionFetchStage.execute(this.pc, this.memory);
-            newPc = this.pc + 4;
+            newIfId = InstructionFetchStage.execute(this.programCounter, this.memory);
+            newPc = this.programCounter + 4;
         }
 
         // -----------------------------------------------------------------
@@ -270,7 +304,7 @@ public final class CPU {
         this.idEx = newIdEx;
         this.exMem = newExMem;
         this.memWb = newMemWb;
-        this.pc = newPc;
+        this.programCounter = newPc;
         this.cycles++;
 
         // -----------------------------------------------------------------
@@ -279,6 +313,9 @@ public final class CPU {
         if (newMemWb.ctrl().halt()) {
             this.halted = true;
         }
+
+        // Wait to simulate processing time
+        Thread.sleep(this.stageDuration);
     }
 
     /// Runs the simulation until a HALT instruction retires or `maxCycles` clock
@@ -291,7 +328,9 @@ public final class CPU {
     ///                  must be positive
     /// @throws IllegalStateException if the cycle limit is reached before a HALT
     ///                               instruction retires
-    public void run(final long maxCycles) {
+    /// @throws InterruptedException  if the thread is interrupted while sleeping to
+    ///                               simulate stage processing time
+    public void run(final long maxCycles) throws InterruptedException {
         while (!this.halted && this.cycles < maxCycles) {
             step();
         }
@@ -305,7 +344,10 @@ public final class CPU {
     ///
     /// Equivalent to `run(Long.MAX_VALUE)`. A program that never executes a HALT
     /// instruction will cause this method to loop indefinitely.
-    public void run() {
+    /// 
+    /// @throws InterruptedException if the thread is interrupted while sleeping to
+    ///                              simulate stage processing time
+    public void run() throws InterruptedException {
         run(Long.MAX_VALUE);
     }
 
@@ -328,8 +370,8 @@ public final class CPU {
     /// following the HALT.
     ///
     /// @return the PC as a byte address
-    public int getPc() {
-        return this.pc;
+    public int getProgramCounter() {
+        return this.programCounter;
     }
 
     /// Returns the total number of clock cycles that have been executed since the
@@ -341,6 +383,28 @@ public final class CPU {
     /// @return the cycle count
     public long getCycles() {
         return this.cycles;
+    }
+
+    /// Registers a listener to be notified after every processing step.
+    /// 
+    /// @param listener the listener to register; must not be `null`
+    public void addProcessingListener(final ProcessingListener listener) {
+        this.processingListeners.add(listener);
+    }
+
+    /// Unregisters a previously registered processing listener.
+    /// 
+    /// @param listener the listener to unregister; must not be `null`
+    public void removeProcessingListener(final ProcessingListener listener) {
+        this.processingListeners.remove(listener);
+    }
+
+    private void notifyProcessingListeners() {
+        if (this.processingListeners.isEmpty())
+            return;
+
+        final var step = new ProcessingListener.ProcessStep(this.cycles, this.programCounter, this.halted);
+        List.copyOf(this.processingListeners).forEach(listener -> listener.processing(step));
     }
 
     /// Returns an immutable snapshot of all four pipeline latches at the current

@@ -20,6 +20,7 @@
 <?import javafx.stage.FileChooser?>
 <?import name.ulbricht.dlx.ui.view.main.MainView?>
 <?import name.ulbricht.dlx.ui.view.main.MainViewModel?>
+<?import name.ulbricht.dlx.ui.view.main.RunService?>
 
 <BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
     fx:id="mainRoot" fx:controller="name.ulbricht.dlx.ui.view.main.MainController"
@@ -35,6 +36,7 @@
         <FileChooser fx:id="openFileChooser" title="%main.fileChooser.open.title"/>
         <FileChooser fx:id="saveFileChooser" title="%main.fileChooser.save.title"/>
         <MainViewModel fx:id="viewModel"/>
+        <RunService fx:id="runService" processor="${viewModel.processor}"/>
     </fx:define>
 
     <top>
@@ -43,34 +45,34 @@
         <VBox>
 
             <!-- main menu bar -->
-            <MenuBar fx:id="menuBar">
+            <MenuBar>
 
                 <!-- file menu -->
-                <Menu fx:id="fileMenu" text="%main.menu.file.text">
-                    <MenuItem fx:id="newMenuItem" text="%main.menu.file.new.text" accelerator="Ctrl+N" onAction="#handleNew">
+                <Menu text="%main.menu.file.text">
+                    <MenuItem text="%main.menu.file.new.text" accelerator="Ctrl+N" onAction="#handleNew">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/document_16_regular.fxml"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="openMenuItem" text="%main.menu.file.open.text" accelerator="Ctrl+O" onAction="#handleOpen">
+                    <MenuItem text="%main.menu.file.open.text" accelerator="Ctrl+O" onAction="#handleOpen">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_16_regular.fxml" styleClass="fluent-icon-orange"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem disable="${!controller.canSave}" text="%main.menu.file.save.text" accelerator="Ctrl+S" onAction="#handleSave">
+                    <MenuItem text="%main.menu.file.save.text" accelerator="Ctrl+S" onAction="#handleSave" disable="${!controller.canSave}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/save_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem disable="${!controller.canSave}" text="%main.menu.file.saveAs.text" accelerator="Ctrl+Shift+S" onAction="#handleSaveAs"/>
+                    <MenuItem text="%main.menu.file.saveAs.text" accelerator="Ctrl+Shift+S" onAction="#handleSaveAs" disable="${!controller.canSave}"/>
                     <SeparatorMenuItem/>
-                    <MenuItem fx:id="preferencesMenuItem" text="%main.menu.file.preferences.text" onAction="#handlePreferences">
+                    <MenuItem text="%main.menu.file.preferences.text" onAction="#handlePreferences">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/settings_16_regular.fxml"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
-                    <MenuItem fx:id="exitMenuItem" text="%main.menu.file.exit.text" onAction="#handleExit">
+                    <MenuItem text="%main.menu.file.exit.text" onAction="#handleExit">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_exit_16_regular.fxml"/>
                         </graphic>
@@ -78,29 +80,29 @@
                 </Menu>
 
                 <!-- edit menu -->
-                <Menu fx:id="editMenu" text="%main.menu.edit.text">
-                    <MenuItem disable="${!controller.canUndo}" text="%main.menu.edit.undo.text" accelerator="Ctrl+Z" onAction="#handleUndo">
+                <Menu text="%main.menu.edit.text">
+                    <MenuItem text="%main.menu.edit.undo.text" accelerator="Ctrl+Z" onAction="#handleUndo" disable="${!controller.canUndo}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_16_regular.fxml" styleClass="fluent-icon-green"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem disable="${!controller.canRedo}" text="%main.menu.edit.redo.text" accelerator="Ctrl+Y" onAction="#handleRedo">
+                    <MenuItem text="%main.menu.edit.redo.text" accelerator="Ctrl+Y" onAction="#handleRedo" disable="${!controller.canRedo}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_16_regular.fxml" styleClass="fluent-icon-green"/>
                         </graphic>
                     </MenuItem>
                     <SeparatorMenuItem/>
-                    <MenuItem disable="${!controller.canCut}" text="%main.menu.edit.cut.text" accelerator="Ctrl+X" onAction="#handleCut">
+                    <MenuItem text="%main.menu.edit.cut.text" accelerator="Ctrl+X" onAction="#handleCut" disable="${!controller.canCut}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/cut_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem disable="${!controller.canCopy}" text="%main.menu.edit.copy.text" accelerator="Ctrl+C" onAction="#handleCopy">
+                    <MenuItem text="%main.menu.edit.copy.text" accelerator="Ctrl+C" onAction="#handleCopy" disable="${!controller.canCopy}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/copy_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem disable="${!controller.canPaste}" text="%main.menu.edit.paste.text" accelerator="Ctrl+V" onAction="#handlePaste">
+                    <MenuItem text="%main.menu.edit.paste.text" accelerator="Ctrl+V" onAction="#handlePaste" disable="${!controller.canPaste}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_16_regular.fxml" styleClass="fluent-icon-orange"/>
                         </graphic>
@@ -108,13 +110,13 @@
                 </Menu>
 
                 <!-- build menu -->
-                <Menu fx:id="buildMenu" text="%main.menu.build.text">
-                    <MenuItem fx:id="compileMenuItem" text="%main.menu.build.compile.text" accelerator="F7" onAction="#handleCompile">
+                <Menu text="%main.menu.build.text">
+                    <MenuItem fx:id="compileMenuItem" text="%main.menu.build.compile.text" accelerator="F7" onAction="#handleCompile" disable="${!controller.canCompile}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/flash_16_regular.fxml" styleClass="fluent-icon-orange"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="compileAndLoadMenuItem" text="%main.menu.build.compile_and_load.text" accelerator="F5" onAction="#handleCompileAndLoad">
+                    <MenuItem fx:id="compileAndLoadMenuItem" text="%main.menu.build.compile_and_load.text" accelerator="F5" onAction="#handleCompileAndLoad" disable="${!controller.canLoad}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/flash_play_16_regular.fxml" styleClass="fluent-icon-orange"/>
                         </graphic>
@@ -122,28 +124,28 @@
                 </Menu>
 
                 <!-- run menu -->
-                <Menu fx:id="runMenu" text="%main.menu.run.text">
-                    <MenuItem fx:id="runMenuItem" text="%main.menu.run.run.text" accelerator="F9" onAction="#handleRun">
+                <Menu text="%main.menu.run.text">
+                    <MenuItem text="%main.menu.run.run.text" accelerator="F9" onAction="#handleRun" disable="${!controller.canRun}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/play_16_regular.fxml" styleClass="fluent-icon-green"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="pauseMenuItem" text="%main.menu.run.pause.text" accelerator="F6" onAction="#handlePause">
+                    <MenuItem text="%main.menu.run.pause.text" accelerator="F6" onAction="#handlePause" disable="${!controller.canPause}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/pause_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="stepMenuItem" text="%main.menu.run.step.text" accelerator="F10" onAction="#handleStep">
+                    <MenuItem text="%main.menu.run.step.text" accelerator="F10" onAction="#handleStep" disable="${!controller.canRun}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/next_16_regular.fxml" styleClass="fluent-icon-blue"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="resetMenuItem" text="%main.menu.run.reset.text" accelerator="Ctrl+Shift+F5" onAction="#handleReset">
+                    <MenuItem text="%main.menu.run.reset.text" accelerator="Ctrl+Shift+F5" onAction="#handleReset" disable="${!controller.canReset}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_counterclockwise_16_regular.fxml" styleClass="fluent-icon-green"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="stopMenuItem" text="%main.menu.run.stop.text" accelerator="Shift+F5" onAction="#handleStop">
+                    <MenuItem text="%main.menu.run.stop.text" accelerator="Shift+F5" onAction="#handleStop" disable="${!controller.canStop}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/stop_16_regular.fxml" styleClass="fluent-icon-red"/>
                         </graphic>
@@ -151,8 +153,8 @@
                 </Menu>
 
                 <!-- help menu -->
-                <Menu fx:id="helpMenu" text="%main.menu.help.text">
-                    <MenuItem fx:id="aboutMenuItem" text="%main.menu.help.about.text" onAction="#handleAbout">
+                <Menu text="%main.menu.help.text">
+                    <MenuItem text="%main.menu.help.about.text" onAction="#handleAbout">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/info_16_regular.fxml"/>
                         </graphic>
@@ -165,7 +167,7 @@
             <ToolBar fx:id="toolBar">
 
                 <!-- file section -->
-                <Button fx:id="newButton" onAction="#handleNew">
+                <Button onAction="#handleNew">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/document_20_regular.fxml"/>
                     </graphic>
@@ -173,7 +175,7 @@
                         <Tooltip text="%main.toolbar.new.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="openButton" onAction="#handleOpen">
+                <Button onAction="#handleOpen">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_20_regular.fxml" styleClass="fluent-icon-orange"/>
                     </graphic>
@@ -181,7 +183,7 @@
                         <Tooltip text="%main.toolbar.open.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button disable="${!controller.canSave}" onAction="#handleSave">
+                <Button onAction="#handleSave" disable="${!controller.canSave}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/save_20_regular.fxml" styleClass="fluent-icon-blue"/>
                     </graphic>
@@ -192,7 +194,7 @@
                 <Separator/>
 
                 <!-- edit section -->
-                <Button disable="${!controller.canUndo}" onAction="#handleUndo">
+                <Button onAction="#handleUndo" disable="${!controller.canUndo}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_20_regular.fxml" styleClass="fluent-icon-green"/>
                     </graphic>
@@ -200,7 +202,7 @@
                         <Tooltip text="%main.toolbar.undo.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button disable="${!controller.canRedo}" onAction="#handleRedo">
+                <Button onAction="#handleRedo" disable="${!controller.canRedo}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_20_regular.fxml" styleClass="fluent-icon-green"/>
                     </graphic>
@@ -208,7 +210,7 @@
                         <Tooltip text="%main.toolbar.redo.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button disable="${!controller.canCut}" onAction="#handleCut">
+                <Button onAction="#handleCut" disable="${!controller.canCut}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/cut_20_regular.fxml" styleClass="fluent-icon-blue"/>
                     </graphic>
@@ -216,7 +218,7 @@
                         <Tooltip text="%main.toolbar.cut.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button disable="${!controller.canCopy}" onAction="#handleCopy">
+                <Button onAction="#handleCopy" disable="${!controller.canCopy}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/copy_20_regular.fxml" styleClass="fluent-icon-blue"/>
                     </graphic>
@@ -224,7 +226,7 @@
                         <Tooltip text="%main.toolbar.copy.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button disable="${!controller.canPaste}" onAction="#handlePaste">
+                <Button onAction="#handlePaste" disable="${!controller.canPaste}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_20_regular.fxml" styleClass="fluent-icon-orange"/>
                     </graphic>
@@ -235,7 +237,7 @@
                 <Separator/>
 
                 <!-- build section -->
-                <Button fx:id="compileButton" onAction="#handleCompile">
+                <Button onAction="#handleCompile" disable="${!controller.canCompile}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/flash_20_regular.fxml" styleClass="fluent-icon-orange"/>
                     </graphic>
@@ -243,7 +245,7 @@
                         <Tooltip text="%main.toolbar.compile.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="compileAndLoadButton" onAction="#handleCompileAndLoad">
+                <Button onAction="#handleCompileAndLoad" disable="${!controller.canLoad}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/flash_play_20_regular.fxml" styleClass="fluent-icon-orange"/>
                     </graphic>
@@ -254,7 +256,7 @@
                 <Separator/>
 
                 <!-- run section -->
-                <Button fx:id="runButton" onAction="#handleRun">
+                <Button onAction="#handleRun" disable="${!controller.canRun}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/play_20_regular.fxml" styleClass="fluent-icon-green"/>
                     </graphic>
@@ -262,7 +264,7 @@
                         <Tooltip text="%main.toolbar.run.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="pauseButton" onAction="#handlePause">
+                <Button onAction="#handlePause" disable="${!controller.canPause}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/pause_20_regular.fxml" styleClass="fluent-icon-blue"/>
                     </graphic>
@@ -270,7 +272,7 @@
                         <Tooltip text="%main.toolbar.pause.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="stepButton" onAction="#handleStep">
+                <Button onAction="#handleStep" disable="${!controller.canRun}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/next_20_regular.fxml" styleClass="fluent-icon-blue"/>
                     </graphic>
@@ -278,7 +280,7 @@
                         <Tooltip text="%main.toolbar.step.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="resetButton" onAction="#handleReset">
+                <Button onAction="#handleReset" disable="${!controller.canReset}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_counterclockwise_20_regular.fxml" styleClass="fluent-icon-green"/>
                     </graphic>
@@ -286,7 +288,7 @@
                         <Tooltip text="%main.toolbar.reset.tooltip"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="stopButton" onAction="#handleStop">
+                <Button onAction="#handleStop" disable="${!controller.canStop}">
                     <graphic>
                         <fx:include source="/name/ulbricht/dlx/ui/icon/stop_20_regular.fxml" styleClass="fluent-icon-red"/>
                     </graphic>
@@ -331,6 +333,7 @@
 
         <!-- status bar-->
         <HBox fx:id="statusBar" styleClass="status-bar">
+
             <Label fx:id="statusLabel" text="Status">
                 <graphic>
                     <ImageView>
@@ -338,6 +341,13 @@
                     </ImageView>
                 </graphic>
             </Label>
+
+            <Separator orientation="VERTICAL"/>
+            <Label fx:id="cyclesLabel"/>
+
+            <Separator orientation="VERTICAL"/>
+            <Label fx:id="programCounterLabel"/>
+
             <Separator orientation="VERTICAL"/>
             <Label fx:id="editPositionLabel"/>
         </HBox>

@@ -11,6 +11,14 @@ public final class FormatUtil {
         return Integer.toString(value);
     }
 
+    /// Formats the given value as a decimal string.
+    ///
+    /// @param value the value to format
+    /// @return the formatted decimal string
+    public static String decimal(final long value) {
+        return Long.toString(value);
+    }
+
     /// Formats the given value as a hexadecimal string with the format `XX XX XX
     /// XX`.
     /// 

@@ -64,4 +64,8 @@ public final class RegisterItem {
     void updateAccess(final Access newAccess) {
         this.access.set(newAccess);
     }
+
+    void clearAccess() {
+        this.access.set(null);
+    }
 }

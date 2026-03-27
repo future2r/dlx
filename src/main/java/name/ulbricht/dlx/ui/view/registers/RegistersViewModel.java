@@ -11,10 +11,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import name.ulbricht.dlx.simulator.Access;
 import name.ulbricht.dlx.simulator.CPU;
+import name.ulbricht.dlx.simulator.ProcessingListener;
 import name.ulbricht.dlx.simulator.RegisterAccessListener;
 
 /// View model for the registers view.
-public final class RegistersViewModel implements RegisterAccessListener {
+public final class RegistersViewModel implements ProcessingListener, RegisterAccessListener {
 
     private final ObjectProperty<CPU> processor = new SimpleObjectProperty<>();
 
@@ -56,6 +57,7 @@ public final class RegistersViewModel implements RegisterAccessListener {
 
     private void processorChanged(final CPU oldProcessor, final CPU newProcessor) {
         if (oldProcessor != null) {
+            oldProcessor.removeProcessingListener(this);
             oldProcessor.getRegisters().removeAccessListener(this);
         }
 
@@ -65,6 +67,7 @@ public final class RegistersViewModel implements RegisterAccessListener {
             this.modifiableRegisters.add(new RegisterItem(i));
 
         if (newProcessor != null) {
+            newProcessor.addProcessingListener(this);
             newProcessor.getRegisters().addAccessListener(this);
         }
     }
@@ -86,5 +89,16 @@ public final class RegistersViewModel implements RegisterAccessListener {
             }
             default -> throw new IllegalStateException(Objects.toString(access.type()));
         }
+    }
+
+    @Override
+    public void processing(final ProcessStep step) {
+        // Events may originate from the CPU's virtual thread.
+        Platform.runLater(this::clearRegisterAccess);
+    }
+
+    private void clearRegisterAccess() {
+        // Clear access highlights before each processing cycle.
+        getRegisters().forEach(RegisterItem::clearAccess);
     }
 }

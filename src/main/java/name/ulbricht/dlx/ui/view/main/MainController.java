@@ -30,6 +30,7 @@ import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.scene.Theme;
 import name.ulbricht.dlx.ui.scene.ThemeManager;
 import name.ulbricht.dlx.ui.scene.control.Alerts;
+import name.ulbricht.dlx.ui.util.FormatUtil;
 import name.ulbricht.dlx.ui.view.ViewPart;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
 import name.ulbricht.dlx.ui.view.memory.MemoryView;
@@ -52,6 +53,8 @@ public final class MainController {
     private FileChooser saveFileChooser;
     @FXML
     private MainViewModel viewModel;
+    @FXML
+    private RunService runService;
 
     @FXML
     private TabPane leftTabPane;
@@ -62,6 +65,12 @@ public final class MainController {
     @FXML
     private TabPane bottomTabPane;
 
+    @FXML
+    private Label statusLabel;
+    @FXML
+    private Label cyclesLabel;
+    @FXML
+    private Label programCounterLabel;
     @FXML
     private Label editPositionLabel;
 
@@ -75,12 +84,34 @@ public final class MainController {
     private final ReadOnlyBooleanWrapper canCopy = new ReadOnlyBooleanWrapper();
     private final ReadOnlyBooleanWrapper canPaste = new ReadOnlyBooleanWrapper();
 
+    private final ReadOnlyBooleanWrapper canCompile = new ReadOnlyBooleanWrapper();
+    private final ReadOnlyBooleanWrapper canLoad = new ReadOnlyBooleanWrapper();
+
+    private final ReadOnlyBooleanWrapper canRun = new ReadOnlyBooleanWrapper();
+    private final ReadOnlyBooleanWrapper canPause = new ReadOnlyBooleanWrapper();
+    private final ReadOnlyBooleanWrapper canReset = new ReadOnlyBooleanWrapper();
+    private final ReadOnlyBooleanWrapper canStop = new ReadOnlyBooleanWrapper();
+
     /// Creates a new main controller instance.
     public MainController() {
     }
 
     @FXML
     private void initialize() {
+        configureFileChoosers();
+
+        // React on changes of the current editor tab.
+        this.editorsTabPane.getSelectionModel().selectedItemProperty().subscribe(this::currentEditorTabChanged);
+
+        configureBuildActions();
+        configureProcessorActions();
+        configureStatusBar();
+
+        openDefaultViews();
+        openNewEditor();
+    }
+
+    private void configureFileChoosers() {
         // Bind the file chooser to the most recently used directory preference
         this.openFileChooser.initialDirectoryProperty()
                 .bind(this.userPreferences.mostRecentlyUsedDirectoryProperty().map(Path::toFile));
@@ -95,12 +126,46 @@ public final class MainController {
                 new FileChooser.ExtensionFilter(Messages.getString("main.fileChooser.extension.all"), "*.*"));
         this.openFileChooser.getExtensionFilters().addAll(extensionFilters);
         this.saveFileChooser.getExtensionFilters().addAll(extensionFilters);
+    }
 
-        // React on changes of the current editor tab.
-        this.editorsTabPane.getSelectionModel().selectedItemProperty().subscribe(this::currentEditorTabChanged);
+    private void configureBuildActions() {
+        // Compile needs open editor
+        this.canCompile.bind(this.editorsTabPane.getSelectionModel().selectedItemProperty().isNotNull());
 
-        openDefaultViews();
-        openNewEditor();
+        // Load needs compile and idle processor
+        this.canLoad.bind(this.canCompile.and(this.runService.runningProperty().not()));
+    }
+
+    private void configureProcessorActions() {
+        final var idle = this.runService.runningProperty().not();
+        final var programLoaded = this.viewModel.programIdProperty().isNotNull();
+        final var notHalted = this.viewModel.haltedProperty().not();
+
+        // Run/Step need a loaded program, idle service, and non-halted CPU
+        this.canRun.bind(programLoaded.and(idle).and(notHalted));
+
+        // Pause/Stop need a running service
+        this.canPause.bind(this.runService.runningProperty());
+        this.canStop.bind(this.runService.runningProperty());
+
+        // Reset needs an idle service
+        this.canReset.bind(idle);
+    }
+
+    private void configureStatusBar() {
+        this.runService.stateProperty().subscribe(state -> this.statusLabel.setText(switch (state) {
+            case SCHEDULED, RUNNING -> Messages.getString("main.status.running");
+            case READY, SUCCEEDED, FAILED, CANCELLED -> Messages.getString("main.status.idle");
+        }));
+
+        this.viewModel.cyclesProperty().subscribe(
+                cycles -> this.cyclesLabel.setText(
+                        Messages.getString("main.cycles.pattern").formatted(FormatUtil.decimal(cycles.longValue()))));
+
+        this.viewModel.programCounterProperty().subscribe(
+                programCounter -> this.programCounterLabel
+                        .setText(Messages.getString("main.programCounter.pattern")
+                                .formatted(FormatUtil.hexadecimal(programCounter.intValue()))));
     }
 
     /// Handles the window shown event.
@@ -128,12 +193,21 @@ public final class MainController {
     /// 
     /// @param event the window event
     public void windowCloseRequest(final WindowEvent event) {
-        for (final var editorView : getAllEditorViews()) {
-            if (!confirmSaveIfDirty(editorView)) {
-                event.consume();
-                return;
-            }
+        if (!canCloseWindow())
+            event.consume();
+    }
+
+    private boolean canCloseWindow() {
+        // Check if the processor is idle
+        if (this.runService.isRunning()) {
+            Alerts.info(this.window, Messages.getString("main.exit.running"))
+                    .showAndWait();
+            return false;
         }
+
+        // Verify that all editor views are either not dirty or the user confirmed to
+        // save/discard changes
+        return getAllEditorViews().stream().map(this::confirmSaveIfDirty).allMatch(Boolean.TRUE::equals);
     }
 
     /// {@return a read-only property indicating whether the active editor can
@@ -195,6 +269,66 @@ public final class MainController {
     /// {@return whether paste is available}
     public boolean isCanPaste() {
         return this.canPaste.get();
+    }
+
+    /// {@return a read-only property indicating whether compile is available}
+    public ReadOnlyBooleanProperty canCompileProperty() {
+        return this.canCompile.getReadOnlyProperty();
+    }
+
+    /// {@return whether compile is available}
+    public boolean isCanCompile() {
+        return this.canCompile.get();
+    }
+
+    /// {@return a read-only property indicating whether load is available}
+    public ReadOnlyBooleanProperty canLoadProperty() {
+        return this.canLoad.getReadOnlyProperty();
+    }
+
+    /// {@return whether load is available}
+    public boolean isCanLoad() {
+        return this.canLoad.get();
+    }
+
+    /// {@return a read-only property indicating whether run is available}
+    public ReadOnlyBooleanProperty canRunProperty() {
+        return this.canRun.getReadOnlyProperty();
+    }
+
+    /// {@return whether run is available}
+    public boolean isCanRun() {
+        return this.canRun.get();
+    }
+
+    /// {@return a read-only property indicating whether pause is available}
+    public ReadOnlyBooleanProperty canPauseProperty() {
+        return this.canPause.getReadOnlyProperty();
+    }
+
+    /// {@return whether pause is available}
+    public boolean isCanPause() {
+        return this.canPause.get();
+    }
+
+    /// {@return a read-only property indicating whether stop is available}
+    public ReadOnlyBooleanProperty canStopProperty() {
+        return this.canStop.getReadOnlyProperty();
+    }
+
+    /// {@return whether stop is available}
+    public boolean isCanStop() {
+        return this.canStop.get();
+    }
+
+    /// {@return a read-only property indicating whether reset is available}
+    public ReadOnlyBooleanProperty canResetProperty() {
+        return this.canReset.getReadOnlyProperty();
+    }
+
+    /// {@return whether reset is available}
+    public boolean isCanReset() {
+        return this.canReset.get();
     }
 
     @FXML
@@ -262,41 +396,46 @@ public final class MainController {
 
     @FXML
     private void handleCompile() {
-        compile();
+        if (isCanCompile())
+            compile();
     }
 
     @FXML
     private void handleCompileAndLoad() {
-        // TODO Check if we can load now
-        compile().ifPresent(compiledProgram -> this.viewModel.loadProgram(compiledProgram));
+        if (isCanLoad())
+            compile().ifPresent(this::load);
     }
 
     @FXML
     private void handleRun() {
-        // TODO Check if we can run now
-
-        this.viewModel.run();
+        if (isCanRun())
+            run(false);
     }
 
     @FXML
     private void handlePause() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
-    }
-
-    @FXML
-    private void handleStop() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
+        if (isCanPause())
+            this.runService.cancel();
     }
 
     @FXML
     private void handleStep() {
-        Alerts.info(this.window, "No implemented yet.").showAndWait();
+        if (isCanRun())
+            run(true);
+    }
+
+    @FXML
+    private void handleStop() {
+        if (isCanStop()) {
+            this.runService.cancel();
+            this.viewModel.reset();
+        }
     }
 
     @FXML
     private void handleReset() {
-        // TODO Check if we should reset now
-        this.viewModel.reset();
+        if (isCanReset())
+            this.viewModel.reset();
     }
 
     @FXML
@@ -566,7 +705,7 @@ public final class MainController {
         return selectedFile;
     }
 
-    public Optional<CompiledProgram> compile() {
+    private Optional<CompiledProgram> compile() {
         return getActiveEditorView().map(editorView -> {
             if (editorView.getViewModel().compile())
                 return editorView.getViewModel().getCompiledProgram();
@@ -574,5 +713,16 @@ public final class MainController {
             Alerts.error(this.window, Messages.getString("main.compile.error")).showAndWait();
             return null;
         });
+    }
+
+    private void load(final CompiledProgram program) {
+        this.runService.reset();
+        this.viewModel.loadProgram(program);
+    }
+
+    private void run(final boolean debug) {
+        this.runService.reset();
+        this.runService.setDebug(debug);
+        this.runService.start();
     }
 }

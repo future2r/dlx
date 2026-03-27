@@ -22,10 +22,6 @@ import name.ulbricht.dlx.simulator.CPU;
 
 final class CompilerTest {
 
-        // =====================================================================
-        // Data section encoding
-        // =====================================================================
-
         @Nested
         @DisplayName("Data section")
         class DataSection {
@@ -146,10 +142,6 @@ final class CompilerTest {
                         assertEquals(0x8C020004, word1); // (0x23<<26)|(0<<21)|(2<<16)|4
                 }
         }
-
-        // =====================================================================
-        // Instruction encoding
-        // =====================================================================
 
         @Nested
         @DisplayName("Instruction encoding")
@@ -321,10 +313,6 @@ final class CompilerTest {
                 }
         }
 
-        // =====================================================================
-        // Error handling
-        // =====================================================================
-
         @Nested
         @DisplayName("Error handling")
         class ErrorHandling {
@@ -367,17 +355,13 @@ final class CompilerTest {
                 }
         }
 
-        // =====================================================================
-        // Integration: compile → load → run
-        // =====================================================================
-
         @Nested
         @DisplayName("Integration")
         class Integration {
 
                 @Test
                 @DisplayName("Example program compiles and runs correctly")
-                void exampleProgram() {
+                void exampleProgram() throws InterruptedException {
                         final var compiled = compile("""
                                         .data
                                         a:   .word 10
