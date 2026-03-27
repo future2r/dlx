@@ -51,6 +51,10 @@
 			{
 				"alias": "Create runtime image (jlink)",
 				"command": "clean package -Pjlink"
+			},
+			{
+				"alias": "Create app image (jpackage)",
+				"command": "clean package -Pjpackage"
 			}
 		]
 	},

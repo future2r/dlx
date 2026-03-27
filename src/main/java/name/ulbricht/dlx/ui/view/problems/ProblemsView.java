@@ -69,7 +69,7 @@ public final class ProblemsView implements ViewPart<ProblemsViewModel> {
     private void updateTitle(final Number size) {
         final var count = size.intValue();
         if (count > 0) {
-            this.title.set(Messages.getString("problems.title.pattern").formatted(count));
+            this.title.set(Messages.getString("problems.title.pattern").formatted(Integer.toString(count)));
         } else {
             this.title.set(Messages.getString("problems.title"));
         }
