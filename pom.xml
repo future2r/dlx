@@ -14,7 +14,7 @@
         <maven-wrapper-plugin.version>3.3.4</maven-wrapper-plugin.version>
         <maven-toolchains-plugin.version>3.2.0</maven-toolchains-plugin.version>
         <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
-        <maven-resources-plugin.version>3.4.0</maven-resources-plugin.version>
+        <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
         <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
@@ -164,6 +164,37 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>versions-maven-plugin</artifactId>
                     <version>${versions-maven-plugin.version}</version>
+                    <configuration>
+                        <ruleSet>
+                            <ignoreVersions>
+                                <!-- Ignore early access versions -->
+                                <ignoreVersion>
+                                    <type>regex</type>
+                                    <version>(?i).*-ea([.+-]?\d+)?</version>
+                                </ignoreVersion>
+                                <!-- Ignore alpha versions -->
+                                <ignoreVersion>
+                                    <type>regex</type>
+                                    <version>(?i).*-alpha([.-]?\d+)?</version>
+                                </ignoreVersion>
+                                <!-- Ignore beta versions-->
+                                <ignoreVersion>
+                                    <type>regex</type>
+                                    <version>(?i).*-beta([.-]?\d+)?</version>
+                                </ignoreVersion>
+                                <!-- Ignore milestones -->
+                                <ignoreVersion>
+                                    <type>regex</type>
+                                    <version>(?i).*-M([.-]?\d+)?</version>
+                                </ignoreVersion>
+                                <!-- Ignore release candidates -->
+                                <ignoreVersion>
+                                    <type>regex</type>
+                                    <version>(?i).*-RC([.-]?\d+)?</version>
+                                </ignoreVersion>
+                            </ignoreVersions>
+                        </ruleSet>
+                    </configuration>
                 </plugin>
 
             </plugins>
