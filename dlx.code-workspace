@@ -47,6 +47,10 @@
 			{
 				"alias": "Check for major updates",
 				"command": "versions:display-property-updates -U -DallowSnapshots=false -DallowMinorUpdates=true -DallowMajorUpdates=true"
+			},
+			{
+				"alias": "Create runtime image (jlink)",
+				"command": "clean package -Pjlink"
 			}
 		]
 	},
