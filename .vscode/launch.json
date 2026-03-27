@@ -11,6 +11,32 @@
             "vmArgs": [
                 "--enable-native-access=javafx.graphics"
             ]
+        },
+        {
+            "name": "DLX (de-DE)",
+            "type": "java",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "projectName": "dlx",
+            "mainClass": "name.ulbricht.dlx/name.ulbricht.dlx.Main",
+            "vmArgs": [
+                "--enable-native-access=javafx.graphics",
+                "-Duser.language=de",
+                "-Duser.country=DE"
+            ]
+        },
+        {
+            "name": "DLX (en-US)",
+            "type": "java",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "projectName": "dlx",
+            "mainClass": "name.ulbricht.dlx/name.ulbricht.dlx.Main",
+            "vmArgs": [
+                "--enable-native-access=javafx.graphics",
+                "-Duser.language=en",
+                "-Duser.country=US"
+            ]
         }
     ]
 }
