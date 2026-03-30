@@ -38,4 +38,4 @@ jobs:
           cp .github/maven/toolchains.xml ~/.m2/toolchains.xml
 
       - name: Build with Maven
-        run: mvn --batch-mode clean verify
+        run: ./mvnw --batch-mode clean verify
