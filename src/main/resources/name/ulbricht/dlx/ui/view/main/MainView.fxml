@@ -122,7 +122,7 @@
                     </MenuItem>
                     <MenuItem fx:id="compileAndLoadMenuItem" text="%main.menu.build.compileAndLoad.text" accelerator="F5" onAction="#handleCompileAndLoad" disable="${!controller.canLoad}">
                         <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/flash_play_16_regular.fxml" styleClass="fluent-icon-orange"/>
+                            <fx:include source="/name/ulbricht/dlx/ui/icon/flash_sparkle_16_regular.fxml" styleClass="fluent-icon-orange"/>
                         </graphic>
                     </MenuItem>
                 </Menu>
@@ -251,7 +251,7 @@
                 </Button>
                 <Button onAction="#handleCompileAndLoad" disable="${!controller.canLoad}">
                     <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/flash_play_20_regular.fxml" styleClass="fluent-icon-orange"/>
+                        <fx:include source="/name/ulbricht/dlx/ui/icon/flash_sparkle_20_regular.fxml" styleClass="fluent-icon-orange"/>
                     </graphic>
                     <tooltip>
                         <Tooltip text="%main.toolbar.compileAndLoad.tooltip"/>
