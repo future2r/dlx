@@ -323,18 +323,17 @@ final class LexerTest {
     }
 
     private static void assertLexer(final String source, final Token... expected) {
-        final var lines = List.of(source.split("\\R"));
         final var tokens = List.of(expected);
 
         // first, use the highlighting lexer, that uses all tokens
         final var highlightingLexer = new Lexer(LexerMode.HIGHLIGHTING);
-        final var highlightingTokens = highlightingLexer.tokenize(UUID.randomUUID(), lines).tokens();
+        final var highlightingTokens = highlightingLexer.tokenize(UUID.randomUUID(), source).tokens();
 
         assertIterableEquals(tokens, highlightingTokens);
 
         // second, use the assembler lexer, that uses only assembler tokens
         final var assemblerLexer = new Lexer(LexerMode.ASSEMBLER);
-        final var assemblerTokens = assemblerLexer.tokenize(UUID.randomUUID(), lines).tokens();
+        final var assemblerTokens = assemblerLexer.tokenize(UUID.randomUUID(), source).tokens();
 
         // filter out non-assembler tokens from the expected list
         final var filteredTokens = tokens.stream()

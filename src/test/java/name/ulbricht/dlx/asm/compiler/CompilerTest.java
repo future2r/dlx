@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
@@ -424,8 +423,7 @@ final class CompilerTest {
         }
 
         private static ParsedProgram parse(final String source) {
-                final var lines = List.of(source.split("\\R", -1));
-                final var tokenized = new Lexer(LexerMode.ASSEMBLER).tokenize(UUID.randomUUID(), lines);
+                final var tokenized = new Lexer(LexerMode.ASSEMBLER).tokenize(UUID.randomUUID(), source);
                 return new Parser().parse(tokenized);
         }
 

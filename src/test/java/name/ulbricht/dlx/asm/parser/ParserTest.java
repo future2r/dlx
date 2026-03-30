@@ -523,7 +523,6 @@ final class ParserTest {
         }
 
         private static TokenizedProgram lex(final String source) {
-                final var lines = List.of(source.split("\\R", -1));
-                return new Lexer(LexerMode.ASSEMBLER).tokenize(UUID.randomUUID(), lines);
+                return new Lexer(LexerMode.ASSEMBLER).tokenize(UUID.randomUUID(), source);
         }
 }

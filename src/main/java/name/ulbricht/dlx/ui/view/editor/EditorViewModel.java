@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.UUID;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -143,9 +142,8 @@ public final class EditorViewModel {
         this.modifiableDiagnostics.clear();
 
         if (src != null) {
-            final var lines = List.of(src.split("\\R", -1));
             final var lexer = new Lexer(LexerMode.ASSEMBLER);
-            final var tokenized = lexer.tokenize(this.programId, lines);
+            final var tokenized = lexer.tokenize(this.programId, src);
 
             this.modifiableDiagnostics.addAll(tokenized.diagnostics());
 

@@ -74,17 +74,18 @@ public final class Lexer {
     /// [TokenizedProgram#diagnostics()].
     ///
     /// @param id    Unique identifier for the tokenized program.
-    /// @param lines List of source lines.
+    /// @param lines The source lines.
     /// @return [TokenizedProgram] containing the flat token list and any
     ///         diagnostics. In [LexerMode#ASSEMBLER] mode, whitespace and comments
     ///         are excluded from the token list.
-    public TokenizedProgram tokenize(final UUID id, final List<String> lines) {
+    public TokenizedProgram tokenize(final UUID id, final String lines) {
         requireNonNull(lines);
 
         final var allTokens = new ArrayList<Token>();
         final var allDiagnostics = new ArrayList<Diagnostic>();
-        for (int i = 0; i < lines.size(); i++) {
-            allTokens.addAll(tokenizeLine(lines.get(i), i));
+        final var lineArray = lines.split("\\R", -1);
+        for (int i = 0; i < lineArray.length; i++) {
+            allTokens.addAll(tokenizeLine(lineArray[i], i));
             allDiagnostics.addAll(this.diagnostics); // collect before next call clears them
         }
         return new TokenizedProgram(id, List.copyOf(allTokens), List.copyOf(allDiagnostics));
