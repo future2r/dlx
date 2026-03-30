@@ -25,17 +25,22 @@ public final class SplashPreLoader extends Preloader {
 
     @Override
     public void start(final Stage stage) throws Exception {
+        requireNonNull(stage);
+
         // Create the scene programmatically, this is faster than loading from FXML
         final var imageUrl = SplashPreLoader.class.getResource("/name/ulbricht/dlx/ui/image/splash.png");
         final var imageView = new ImageView(new Image(imageUrl.toString()));
         final var root = new StackPane(imageView);
 
+        // Create the scene
+        final var scene = new Scene(root);
+        scene.setFill(null);
+
         // Configure the stage
         stage.initStyle(StageStyle.UNDECORATED);
         Stages.initStageIcons(stage);
         stage.setTitle(Messages.getString("splash.title"));
-        stage.setScene(new Scene(root));
-        stage.sizeToScene();
+        stage.setScene(scene);
         stage.centerOnScreen();
         stage.setAlwaysOnTop(true);
 
@@ -43,7 +48,7 @@ public final class SplashPreLoader extends Preloader {
         stage.show();
 
         // Save the stage reference for later hiding
-        preloaderStage = requireNonNull(stage);
+        preloaderStage = stage;
     }
 
     @Override

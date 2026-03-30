@@ -34,6 +34,13 @@
 			"tryWithResource",
 			"useSwitchForInstanceofPattern"
 		],
+		"java.test.config": {
+			"vmArgs": [
+				"-Djava.util.prefs.PreferencesFactory=name.ulbricht.dlx.config.InMemoryPreferencesFactory",
+				"--add-opens",
+				"name.ulbricht.dlx/name.ulbricht.dlx.config=java.prefs"
+			]
+		},
 		"xml.format.spaceBeforeEmptyCloseTag": false,
 		"xml.format.enforceQuoteStyle": "preferred",
 		"xml.format.maxLineWidth": 0,

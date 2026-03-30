@@ -30,8 +30,10 @@ import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.scene.Theme;
 import name.ulbricht.dlx.ui.scene.ThemeManager;
 import name.ulbricht.dlx.ui.scene.control.Alerts;
+import name.ulbricht.dlx.ui.stage.Stages;
 import name.ulbricht.dlx.ui.util.FormatUtil;
 import name.ulbricht.dlx.ui.view.ViewPart;
+import name.ulbricht.dlx.ui.view.ViewResources;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
 import name.ulbricht.dlx.ui.view.memory.MemoryView;
 import name.ulbricht.dlx.ui.view.outline.OutlineView;
@@ -172,6 +174,11 @@ public final class MainController {
     /// @param event the window event
     public void windowShown(final WindowEvent event) {
         this.window = (Window) event.getSource();
+
+        // Start tracking window state for persistence
+        if (this.window instanceof final Stage stage)
+            Stages.initWindowStatePersistence(stage,
+                    ws -> ViewResources.userPreferences().putWindowState(MainView.WINDOW_ID, ws));
 
         // React on changes of the theme preferences
         this.userPreferences.themeProperty()
@@ -545,12 +552,12 @@ public final class MainController {
         if (this.window instanceof final Stage stage) {
             // Unbind from the old editor
             stage.titleProperty().unbind();
-            stage.setTitle(Messages.getString("primaryStage.title"));
+            stage.setTitle(Messages.getString("main.title"));
 
             // Bind to new editor
             if (newEditorView != null)
                 stage.titleProperty().bind(newEditorView.nameProperty()
-                        .map(name -> Messages.getString("primaryStage.titlePattern").formatted(name)));
+                        .map(name -> Messages.getString("main.titlePattern").formatted(name)));
         }
     }
 

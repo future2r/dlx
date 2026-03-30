@@ -12,6 +12,7 @@
 <?import name.ulbricht.dlx.ui.scene.layout.Index?>
 <?import name.ulbricht.dlx.ui.view.preferences.PreferencesView?>
 <?import name.ulbricht.dlx.ui.view.preferences.PreferencesViewModel?>
+<?import name.ulbricht.dlx.ui.view.ViewResources?>
 
 <DialogPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
     fx:id="preferencesRoot" fx:controller="name.ulbricht.dlx.ui.view.preferences.PreferencesController">
@@ -21,7 +22,7 @@
     </stylesheets>
 
     <fx:define>
-        <PreferencesView fx:id="userPreferences" fx:factory="userPreferences"/>
+        <ViewResources fx:id="userPreferences" fx:factory="userPreferences"/>
         <PreferencesViewModel fx:id="viewModel">
             <userPreferences>
                 <fx:reference source="userPreferences"/>

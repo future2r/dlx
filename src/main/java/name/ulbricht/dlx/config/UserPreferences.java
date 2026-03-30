@@ -13,27 +13,25 @@ import java.util.prefs.Preferences;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.geometry.Rectangle2D;
 import name.ulbricht.dlx.ui.scene.Theme;
+import name.ulbricht.dlx.ui.stage.WindowState;
 
 /// User preferences.
 public final class UserPreferences {
 
-    private static UserPreferences instance;
-
-    /// Get the singleton instance.
-    ///
-    /// @return the singleton instance
-    public static UserPreferences getInstance() {
-        if (instance == null)
-            instance = new UserPreferences();
-        return instance;
-    }
-
-    private static final String ROOT_NODE = "name.ulbricht.dlx";
+    private static final String ROOT_NODE = "name/ulbricht/dlx";
     private static final String MOST_RECENTLY_USED_DIRECTORY_KEY = "mostRecentlyUsedDirectory";
     private static final String MEMORY_SIZE_KEY = "memorySize";
     private static final String PROCESSOR_SPEED_KEY = "processorSpeed";
     private static final String THEME_KEY = "theme";
+
+    private static final String WINDOWS_NODE = "windows";
+    private static final String WINDOW_X_KEY = "x";
+    private static final String WINDOW_Y_KEY = "y";
+    private static final String WINDOW_WIDTH_KEY = "width";
+    private static final String WINDOW_HEIGHT_KEY = "height";
+    private static final String WINDOW_MAXIMIZED_KEY = "maximized";
 
     private final Preferences preferences;
 
@@ -42,7 +40,8 @@ public final class UserPreferences {
     private final ReadOnlyObjectWrapper<ProcessorSpeed> processorSpeed = new ReadOnlyObjectWrapper<>();
     private final ReadOnlyObjectWrapper<Theme> theme = new ReadOnlyObjectWrapper<>();
 
-    private UserPreferences() {
+    /// Creates a new user preferences instance.
+    public UserPreferences() {
         this.preferences = Preferences.userRoot().node(ROOT_NODE);
         this.preferences.addPreferenceChangeListener(this::preferenceChanged);
 
@@ -149,6 +148,51 @@ public final class UserPreferences {
     /// @param newTheme the theme to set, or null to remove the preference
     public void putTheme(final Theme newTheme) {
         putEnum(THEME_KEY, newTheme);
+    }
+
+    /// Returns the saved window state for the given window identifier.
+    ///
+    /// @param windowId identifies the window, must not be `null`
+    /// @return the saved window state, or empty if not previously saved
+    public Optional<WindowState> getWindowState(final String windowId) {
+        requireNonNull(windowId);
+
+        final var node = this.preferences.node(WINDOWS_NODE).node(windowId);
+        final var x = node.getDouble(WINDOW_X_KEY, Double.NaN);
+        final var y = node.getDouble(WINDOW_Y_KEY, Double.NaN);
+        final var width = node.getDouble(WINDOW_WIDTH_KEY, Double.NaN);
+        final var height = node.getDouble(WINDOW_HEIGHT_KEY, Double.NaN);
+
+        if (Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(width) || Double.isNaN(height))
+            return Optional.empty();
+
+        final var maximized = node.getBoolean(WINDOW_MAXIMIZED_KEY, false);
+        return Optional.of(new WindowState(new Rectangle2D(x, y, width, height), maximized));
+    }
+
+    /// Save the window state for the given window identifier, or remove the sub
+    /// node if `windowState` is `null`.
+    ///
+    /// @param windowId    identifies the window, must not be `null`
+    /// @param windowState the window state to save, or `null` to remove
+    public void putWindowState(final String windowId, final WindowState windowState) {
+        requireNonNull(windowId);
+
+        final var node = this.preferences.node(WINDOWS_NODE).node(windowId);
+        if (windowState != null) {
+            final var bounds = windowState.bounds();
+            node.putDouble(WINDOW_X_KEY, bounds.getMinX());
+            node.putDouble(WINDOW_Y_KEY, bounds.getMinY());
+            node.putDouble(WINDOW_WIDTH_KEY, bounds.getWidth());
+            node.putDouble(WINDOW_HEIGHT_KEY, bounds.getHeight());
+            node.putBoolean(WINDOW_MAXIMIZED_KEY, windowState.maximized());
+        } else {
+            node.remove(WINDOW_X_KEY);
+            node.remove(WINDOW_Y_KEY);
+            node.remove(WINDOW_WIDTH_KEY);
+            node.remove(WINDOW_HEIGHT_KEY);
+            node.remove(WINDOW_MAXIMIZED_KEY);
+        }
     }
 
     private Path getDirectory(final String key) {

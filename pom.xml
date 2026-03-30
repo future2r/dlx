@@ -252,6 +252,14 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Djava.util.prefs.PreferencesFactory=name.ulbricht.dlx.config.InMemoryPreferencesFactory --add-opens name.ulbricht.dlx/name.ulbricht.dlx.config=java.prefs</argLine>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <executions>
                     <execution>

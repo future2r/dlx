@@ -10,7 +10,6 @@ import javafx.stage.Window;
 import javafx.util.StringConverter;
 import name.ulbricht.dlx.config.MemorySize;
 import name.ulbricht.dlx.config.ProcessorSpeed;
-import name.ulbricht.dlx.config.UserPreferences;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.scene.Theme;
 import name.ulbricht.dlx.ui.stage.Stages;
@@ -46,11 +45,6 @@ public final class PreferencesView {
         dialog.setResultConverter(button -> button == ButtonType.OK ? Boolean.TRUE : null);
 
         return dialog;
-    }
-
-    /// {@return the user preferences}
-    public static UserPreferences userPreferences() {
-        return UserPreferences.getInstance();
     }
 
     /// {@return a string converter for processor speed presets}
