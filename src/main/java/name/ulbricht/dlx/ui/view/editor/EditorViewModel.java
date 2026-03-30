@@ -32,7 +32,7 @@ import name.ulbricht.dlx.io.SourceFile;
 /// View model for the editor view.
 public final class EditorViewModel {
 
-    private final UUID id = UUID.randomUUID();
+    private final UUID programId = UUID.randomUUID();
 
     private final ReadOnlyObjectWrapper<Path> file = new ReadOnlyObjectWrapper<>();
 
@@ -145,7 +145,7 @@ public final class EditorViewModel {
         if (src != null) {
             final var lines = List.of(src.split("\\R", -1));
             final var lexer = new Lexer(LexerMode.ASSEMBLER);
-            final var tokenized = lexer.tokenize(this.id, lines);
+            final var tokenized = lexer.tokenize(this.programId, lines);
 
             this.modifiableDiagnostics.addAll(tokenized.diagnostics());
 
