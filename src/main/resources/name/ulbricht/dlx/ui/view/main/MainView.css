@@ -1,27 +1,27 @@
 @import url("/name/ulbricht/dlx/ui/css/global.css");
 
 /* default icon color */
-.fluent-icon {
+.fluent-icon-regular {
     -fx-fill: -fx-text-inner-color;
 }
 
 /* red icons */
-.fluent-icon-red {
+.fluent-icon-red .fluent-icon-regular {
     -fx-fill: -dlx-red;
 }
 
 /* blue icons */
-.fluent-icon-blue {
+.fluent-icon-blue .fluent-icon-regular {
     -fx-fill: -dlx-blue;
 }
 
 /* green icons */
-.fluent-icon-green {
+.fluent-icon-green .fluent-icon-regular {
     -fx-fill: -dlx-green;
 }
 
 /* orange icons */
-.fluent-icon-orange {
+.fluent-icon-orange .fluent-icon-regular {
     -fx-fill: -dlx-orange;
 }
 

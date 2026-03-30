@@ -40,8 +40,15 @@ The project uses the [Maven Wrapper](https://maven.apache.org/wrapper/), so you 
 The recommended editor is [Visual Studio Code](https://code.visualstudio.com/) with the Java extensions.
 
 1. Open the workspace file `dlx.code-workspace` in VS Code.
-2. Install the recommended extensions when prompted
+2. Install the recommended extensions when prompted.
 3. Use the pre-configured launch configuration to run the application.
+
+### Using
+
+1. Open a DLX source file from `src/dlx`.
+2. Choose *Compile and Load*.
+3. Choose *Run*.
+4. Watch the magic happen! 😉
 
 ## DLX Processor
 
