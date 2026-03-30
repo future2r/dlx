@@ -108,7 +108,6 @@ public final class MainController {
         configureStatusBar();
 
         openDefaultViews();
-        openNewEditor();
     }
 
     private void configureFileChoosers() {
@@ -178,8 +177,11 @@ public final class MainController {
         this.userPreferences.themeProperty()
                 .subscribe(this::themeUpdated);
 
-        // Focus the editor (if there is any)
-        Platform.runLater(() -> getActiveEditorView().ifPresent(EditorView::requestFocus));
+        // Open a new editor and focus it
+        Platform.runLater(() -> {
+            openNewEditor();
+            getActiveEditorView().ifPresent(EditorView::requestFocus);
+        });
     }
 
     private void themeUpdated(final Theme theme) {
@@ -531,11 +533,25 @@ public final class MainController {
     private void currentEditorTabChanged(final Tab newEditorTab) {
         final var newEditorView = getEditorView(newEditorTab).orElse(null);
 
+        updateStageTitleBinding(newEditorView);
         updateCanSaveBinding(newEditorView);
         updateEditBindings(newEditorView);
         updateOutlineBinding(newEditorView);
         updateProblemsBinding(newEditorView);
         updateEditPositionBinding(newEditorView);
+    }
+
+    private void updateStageTitleBinding(final EditorView newEditorView) {
+        if (this.window instanceof final Stage stage) {
+            // Unbind from the old editor
+            stage.titleProperty().unbind();
+            stage.setTitle(Messages.getString("primaryStage.title"));
+
+            // Bind to new editor
+            if (newEditorView != null)
+                stage.titleProperty().bind(newEditorView.nameProperty()
+                        .map(name -> Messages.getString("primaryStage.titlePattern").formatted(name)));
+        }
     }
 
     private void updateCanSaveBinding(final EditorView newEditorView) {
