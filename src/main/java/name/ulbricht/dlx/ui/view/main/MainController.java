@@ -217,13 +217,14 @@ public final class MainController {
     /// Handles the window shown event.
     /// 
     /// @param event the window event
-    public void windowShown(final WindowEvent event) {
+    void windowShown(final WindowEvent event) {
         this.window = (Window) event.getSource();
 
-        // Start tracking window state for persistence
-        if (this.window instanceof final Stage stage)
-            Stages.initWindowStatePersistence(stage,
-                    ws -> ViewResources.userPreferences().putWindowState(MainView.WINDOW_ID, ws));
+        // Restore saved window state
+        if (this.window instanceof final Stage stage) {
+            ViewResources.userPreferences().getWindowState(MainView.WINDOW_ID)
+                    .ifPresent(windowState -> Stages.restoreWindowState(stage, windowState));
+        }
 
         // React on changes of the theme preferences
         this.userPreferences.themeProperty()
@@ -246,9 +247,14 @@ public final class MainController {
     /// Handles the window close request event.
     /// 
     /// @param event the window event
-    public void windowCloseRequest(final WindowEvent event) {
+    void windowCloseRequest(final WindowEvent event) {
         if (!canCloseWindow())
             event.consume();
+    }
+
+    void windowHiding(final WindowEvent event) {
+        if (event.getSource() instanceof final Stage stage)
+            this.userPreferences.putWindowState(MainView.WINDOW_ID, Stages.getWindowState(stage));
     }
 
     private boolean canCloseWindow() {

@@ -8,7 +8,6 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.stage.Stages;
-import name.ulbricht.dlx.ui.view.ViewResources;
 
 /// The main view of the application, defined in an FXML file.
 public final class MainView {
@@ -48,14 +47,9 @@ public final class MainView {
         final var controller = fxmlLoader.<MainController>getController();
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, controller::windowShown);
         stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, controller::windowCloseRequest);
+        stage.addEventHandler(WindowEvent.WINDOW_HIDING, controller::windowHiding);
 
         // Show the stage
         stage.show();
-
-        // Restore the saved window state
-        // Must be done after show(), known popup menu positions bug
-        ViewResources.userPreferences().getWindowState(WINDOW_ID)
-                .ifPresent(ws -> Stages.restoreWindowState(stage, ws));
-
     }
 }

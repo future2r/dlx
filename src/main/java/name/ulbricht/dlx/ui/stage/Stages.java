@@ -5,10 +5,8 @@ import static java.util.Objects.requireNonNull;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
@@ -16,7 +14,6 @@ import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.stage.WindowEvent;
 
 /// Stage utilities.
 public final class Stages {
@@ -62,69 +59,46 @@ public final class Stages {
         return dialog;
     }
 
-    /// Restores the window state of the given stage from a previously saved
-    /// [WindowState]. The position and size are validated against the currently
-    /// available screens. If the saved bounds do not overlap any screen, the restore
-    /// is skipped and JavaFX defaults apply. Width and height are clamped so that
-    /// the window does not exceed the visual bounds of the target screen.
-    ///
-    /// @param stage       the stage to restore, must not be `null`
-    /// @param windowState the saved window state, must not be `null`
+    /// Gets the current window state of the given stage.
+    /// 
+    /// @param stage the stage to get the window state from, must not be `null`
+    /// @return the current window state of the given stage
+    public static WindowState getWindowState(final Stage stage) {
+        requireNonNull(stage);
+
+        if (stage.isMaximized())
+            return new WindowState(null, true);
+
+        final var bounds = new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+        return new WindowState(bounds, false);
+    }
+
+    /// Restores the window state of the given stage to the given window state.
+    /// 
+    /// @param stage       the stage to restore the window state for, must not be
+    ///                    `null`
+    /// @param windowState the window state to restore, must not be `null`
     public static void restoreWindowState(final Stage stage, final WindowState windowState) {
         requireNonNull(stage);
         requireNonNull(windowState);
 
-        final var bounds = windowState.bounds();
-
-        // Check if the saved bounds overlap any current screen
-        final var screens = Screen.getScreensForRectangle(bounds);
-        if (screens.isEmpty())
-            return;
-
-        // Clamp dimensions to the visual bounds of the target screen
-        final var screenBounds = screens.getFirst().getVisualBounds();
-        final var width = Math.min(bounds.getWidth(), screenBounds.getWidth());
-        final var height = Math.min(bounds.getHeight(), screenBounds.getHeight());
-
-        stage.setX(bounds.getMinX());
-        stage.setY(bounds.getMinY());
-        stage.setWidth(width);
-        stage.setHeight(height);
-
-        if (windowState.maximized())
+        if (windowState.maximized()) {
             stage.setMaximized(true);
+        } else {
+            final var bounds = windowState.bounds();
+            final var screens = Screen.getScreensForRectangle(bounds);
+            if (screens.isEmpty())
+                return;
+
+            final var screenBounds = screens.getFirst().getVisualBounds();
+            stage.setX(bounds.getMinX());
+            stage.setY(bounds.getMinY());
+            stage.setWidth(Math.min(bounds.getWidth(), screenBounds.getWidth() - bounds.getMinX()));
+            stage.setHeight(Math.min(bounds.getHeight(), screenBounds.getHeight() - bounds.getMinY()));
+        }
     }
 
-    /// Sets up listeners on the given stage that track position and size changes
-    /// and save the window state when the window is hiding. The non-maximized bounds
-    /// are tracked so that the normal window geometry is preserved even when the
-    /// window is closed in a maximized state.
-    ///
-    /// @param stage  the stage to track, must not be `null`
-    /// @param onSave called with the current [WindowState] when the window is
-    ///               hiding, must not be `null`
-    public static void initWindowStatePersistence(final Stage stage, final Consumer<WindowState> onSave) {
-        requireNonNull(stage);
-        requireNonNull(onSave);
-
-        final var bounds = new SimpleObjectProperty<>(
-                new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight()));
-
-        final Runnable updateBounds = () -> {
-            if (!stage.isMaximized() && stage.isShowing())
-                bounds.set(new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight()));
-        };
-
-        stage.xProperty().subscribe(_ -> updateBounds.run());
-        stage.yProperty().subscribe(_ -> updateBounds.run());
-        stage.widthProperty().subscribe(_ -> updateBounds.run());
-        stage.heightProperty().subscribe(_ -> updateBounds.run());
-
-        stage.addEventHandler(WindowEvent.WINDOW_HIDING,
-                _ -> onSave.accept(new WindowState(bounds.get(), stage.isMaximized())));
-    }
-
-    /// Private constructor to prevent instantiation .
+    /// Private constructor to prevent instantiation.
     private Stages() {
     }
 }

@@ -243,6 +243,11 @@ public final class UserPreferences {
         requireNonNull(windowId);
 
         final var node = this.preferences.node(WINDOWS_NODE).node(windowId);
+        final var maximized = node.getBoolean(WINDOW_MAXIMIZED_KEY, false);
+
+        if (maximized)
+            return Optional.of(new WindowState(null, true));
+
         final var x = node.getDouble(WINDOW_X_KEY, Double.NaN);
         final var y = node.getDouble(WINDOW_Y_KEY, Double.NaN);
         final var width = node.getDouble(WINDOW_WIDTH_KEY, Double.NaN);
@@ -251,8 +256,7 @@ public final class UserPreferences {
         if (Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(width) || Double.isNaN(height))
             return Optional.empty();
 
-        final var maximized = node.getBoolean(WINDOW_MAXIMIZED_KEY, false);
-        return Optional.of(new WindowState(new Rectangle2D(x, y, width, height), maximized));
+        return Optional.of(new WindowState(new Rectangle2D(x, y, width, height), false));
     }
 
     /// Save the window state for the given window identifier, or remove the sub
@@ -265,12 +269,20 @@ public final class UserPreferences {
 
         final var node = this.preferences.node(WINDOWS_NODE).node(windowId);
         if (windowState != null) {
-            final var bounds = windowState.bounds();
-            node.putDouble(WINDOW_X_KEY, bounds.getMinX());
-            node.putDouble(WINDOW_Y_KEY, bounds.getMinY());
-            node.putDouble(WINDOW_WIDTH_KEY, bounds.getWidth());
-            node.putDouble(WINDOW_HEIGHT_KEY, bounds.getHeight());
-            node.putBoolean(WINDOW_MAXIMIZED_KEY, windowState.maximized());
+            if (windowState.maximized()) {
+                node.remove(WINDOW_X_KEY);
+                node.remove(WINDOW_Y_KEY);
+                node.remove(WINDOW_WIDTH_KEY);
+                node.remove(WINDOW_HEIGHT_KEY);
+                node.putBoolean(WINDOW_MAXIMIZED_KEY, true);
+            } else {
+                final var bounds = windowState.bounds();
+                node.putDouble(WINDOW_X_KEY, bounds.getMinX());
+                node.putDouble(WINDOW_Y_KEY, bounds.getMinY());
+                node.putDouble(WINDOW_WIDTH_KEY, bounds.getWidth());
+                node.putDouble(WINDOW_HEIGHT_KEY, bounds.getHeight());
+                node.putBoolean(WINDOW_MAXIMIZED_KEY, false);
+            }
         } else {
             node.remove(WINDOW_X_KEY);
             node.remove(WINDOW_Y_KEY);

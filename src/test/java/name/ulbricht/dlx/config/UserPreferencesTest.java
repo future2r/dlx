@@ -2,6 +2,7 @@ package name.ulbricht.dlx.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
@@ -44,14 +45,13 @@ final class UserPreferencesTest {
     }
 
     @Test
-    @DisplayName("putWindowState preserves maximized flag")
+    @DisplayName("putWindowState with maximized stores only the maximized flag")
     void windowStateMaximized() {
-        final var bounds = new Rectangle2D(50, 50, 1024, 768);
-        this.prefs.putWindowState("main", new WindowState(bounds, true));
+        this.prefs.putWindowState("main", new WindowState(null, true));
 
         final var restored = this.prefs.getWindowState("main");
         assertTrue(restored.isPresent());
-        assertEquals(bounds, restored.get().bounds());
+        assertNull(restored.get().bounds());
         assertTrue(restored.get().maximized());
     }
 
@@ -70,10 +70,9 @@ final class UserPreferencesTest {
     @DisplayName("Different window IDs are independent")
     void windowStateIndependentIds() {
         final var boundsA = new Rectangle2D(0, 0, 500, 400);
-        final var boundsB = new Rectangle2D(100, 100, 300, 200);
 
         this.prefs.putWindowState("main", new WindowState(boundsA, false));
-        this.prefs.putWindowState("other", new WindowState(boundsB, true));
+        this.prefs.putWindowState("other", new WindowState(null, true));
 
         final var restoredA = this.prefs.getWindowState("main");
         final var restoredB = this.prefs.getWindowState("other");
@@ -81,7 +80,7 @@ final class UserPreferencesTest {
         assertEquals(boundsA, restoredA.get().bounds());
         assertFalse(restoredA.get().maximized());
 
-        assertEquals(boundsB, restoredB.get().bounds());
+        assertNull(restoredB.get().bounds());
         assertTrue(restoredB.get().maximized());
     }
 
