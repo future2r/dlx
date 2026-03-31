@@ -2,6 +2,7 @@ package name.ulbricht.dlx.ui.view.preferences;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.DialogPane;
@@ -14,6 +15,9 @@ public final class PreferencesController {
 
     @FXML
     private DialogPane preferencesRoot;
+
+    @FXML
+    private ButtonType restoreDefaultsButtonType;
 
     @FXML
     private PreferencesViewModel viewModel;
@@ -31,7 +35,12 @@ public final class PreferencesController {
 
     @FXML
     private void initialize() {
-        this.preferencesRoot.lookupButton(ButtonType.OK).addEventFilter(ActionEvent.ACTION, this::onOk);
+
+        this.preferencesRoot.lookupButton(ButtonType.OK).addEventFilter(ActionEvent.ACTION, this::handleOk);
+
+        final var restoreDefaultsButton = this.preferencesRoot.lookupButton(this.restoreDefaultsButtonType);
+        ButtonBar.setButtonUniformSize(restoreDefaultsButton, false);
+        restoreDefaultsButton.addEventFilter(ActionEvent.ACTION, this::handleRestoreDefaults);
 
         this.processorSpeedChoiceBox.itemsProperty().bind(this.viewModel.processorSpeedsProperty());
         this.processorSpeedChoiceBox.valueProperty().bindBidirectional(this.viewModel.selectedProcessorSpeedProperty());
@@ -43,7 +52,12 @@ public final class PreferencesController {
         this.themeChoiceBox.valueProperty().bindBidirectional(this.viewModel.selectedThemeProperty());
     }
 
-    private void onOk(@SuppressWarnings("unused") final ActionEvent event) {
+    private void handleOk(@SuppressWarnings("unused") final ActionEvent event) {
         this.viewModel.savePreferences();
+    }
+
+    private void handleRestoreDefaults(final ActionEvent event) {
+        this.viewModel.restoreDefaults();
+        event.consume();
     }
 }

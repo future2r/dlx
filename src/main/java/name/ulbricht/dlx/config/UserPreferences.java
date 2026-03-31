@@ -25,6 +25,15 @@ import name.ulbricht.dlx.ui.stage.WindowState;
 /// User preferences.
 public final class UserPreferences {
 
+    /// Default value for the processor speed preference.
+    public static final ProcessorSpeed DEFAULT_PROCESSOR_SPEED = ProcessorSpeed.MEDIUM;
+
+    /// Default value for the memory size preference.
+    public static final MemorySize DEFAULT_MEMORY_SIZE = MemorySize.SMALL;
+
+    /// Default value for the theme preference.
+    public static final Theme DEFAULT_THEME = Theme.LIGHT;
+
     private static final String ROOT_NODE = "name/ulbricht/dlx";
     private static final String RECENT_DIRECTORY_KEY = "recentDirectory";
     private static final String MEMORY_SIZE_KEY = "memorySize";
@@ -105,7 +114,7 @@ public final class UserPreferences {
     }
 
     private void updateMemorySize() {
-        this.memorySize.set(getEnumValue(MEMORY_SIZE_KEY, MemorySize.class, () -> MemorySize.SMALL));
+        this.memorySize.set(getEnumValue(MEMORY_SIZE_KEY, MemorySize.class, () -> DEFAULT_MEMORY_SIZE));
     }
 
     /// {@return the memory size, or [MemorySize#SMALL] if not set or invalid}
@@ -126,7 +135,7 @@ public final class UserPreferences {
     }
 
     private void updateProcessorSpeed() {
-        this.processorSpeed.set(getEnumValue(PROCESSOR_SPEED_KEY, ProcessorSpeed.class, () -> ProcessorSpeed.MEDIUM));
+        this.processorSpeed.set(getEnumValue(PROCESSOR_SPEED_KEY, ProcessorSpeed.class, () -> DEFAULT_PROCESSOR_SPEED));
     }
 
     /// {@return the processor speed, or [ProcessorSpeed#MEDIUM] if not set
@@ -149,7 +158,7 @@ public final class UserPreferences {
     }
 
     private void updateTheme() {
-        this.theme.set(getEnumValue(THEME_KEY, Theme.class, () -> Theme.LIGHT));
+        this.theme.set(getEnumValue(THEME_KEY, Theme.class, () -> DEFAULT_THEME));
     }
 
     /// {@return the theme, or [Theme#LIGHT] if not set or invalid.}

@@ -3,6 +3,7 @@ package name.ulbricht.dlx.ui.view.preferences;
 import java.io.IOException;
 
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
@@ -100,6 +101,11 @@ public final class PreferencesView {
                 throw new UnsupportedOperationException();
             }
         };
+    }
+
+    /// {@return a button type for restoring default preferences}
+    public static ButtonType restoreDefaultsButtonType() {
+        return new ButtonType(Messages.getString("preferences.restoreDefaults.text"), ButtonBar.ButtonData.LEFT);
     }
 
     /// Private constructor to prevent instantiation.

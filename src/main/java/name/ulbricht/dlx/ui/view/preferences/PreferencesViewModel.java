@@ -123,6 +123,13 @@ public final class PreferencesViewModel {
         this.selectedTheme.set(theme);
     }
 
+    void restoreDefaults() {
+        // Restore in this dialog only, user still needs to save the preferences
+        this.selectedProcessorSpeed.set(UserPreferences.DEFAULT_PROCESSOR_SPEED);
+        this.selectedMemorySize.set(UserPreferences.DEFAULT_MEMORY_SIZE);
+        this.selectedTheme.set(UserPreferences.DEFAULT_THEME);
+    }
+
     void savePreferences() {
         this.userPreferences.putProcessorSpeed(getSelectedProcessorSpeed());
         this.userPreferences.putMemorySize(getSelectedMemorySize());
