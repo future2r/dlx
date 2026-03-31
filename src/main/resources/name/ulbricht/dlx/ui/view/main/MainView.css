@@ -1,8 +1,23 @@
 @import url("/name/ulbricht/dlx/ui/css/global.css");
 
+/* controls in tool bar shall not get the focus */
+.tool-bar .button {
+    -fx-focus-traversable: false;
+}
+
 #statusBar {
     -fx-padding: 0.5em;
     -fx-spacing: 0.5em;
+}
+
+#statusLabel .fluent-icon-regular {
+    -fx-fill: -dlx-orange;
+
+}
+
+#statusLabel:running .fluent-icon-regular {
+    -fx-fill: -dlx-green;
+
 }
 
 /* default icon color */
@@ -28,9 +43,4 @@
 /* orange icons */
 .fluent-icon-orange .fluent-icon-regular {
     -fx-fill: -dlx-orange;
-}
-
-/* controls in tool bar shall not get the focus */
-.tool-bar .button {
-    -fx-focus-traversable: false;
 }

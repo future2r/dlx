@@ -10,6 +10,7 @@ import java.util.Optional;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -183,10 +184,22 @@ public final class MainController {
     }
 
     private void configureStatusBar() {
-        this.runService.stateProperty().subscribe(state -> this.statusLabel.setText(switch (state) {
-            case SCHEDULED, RUNNING -> Messages.getString("main.status.running");
-            case READY, SUCCEEDED, FAILED, CANCELLED -> Messages.getString("main.status.idle");
-        }));
+        this.runService.stateProperty().subscribe(state -> {
+            final String text;
+            final boolean running;
+            switch (state) {
+                case SCHEDULED, RUNNING -> {
+                    text = Messages.getString("main.status.running");
+                    running = true;
+                }
+                default -> {
+                    text = Messages.getString("main.status.idle");
+                    running = false;
+                }
+            }
+            this.statusLabel.setText(text);
+            this.statusLabel.pseudoClassStateChanged(PseudoClass.getPseudoClass("running"), running);
+        });
 
         this.viewModel.cyclesProperty().subscribe(
                 cycles -> this.cyclesLabel.setText(

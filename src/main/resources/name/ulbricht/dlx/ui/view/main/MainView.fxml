@@ -12,8 +12,6 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -342,11 +340,9 @@
         <!-- status bar-->
         <HBox fx:id="statusBar">
 
-            <Label fx:id="statusLabel" text="Status">
+            <Label fx:id="statusLabel">
                 <graphic>
-                    <ImageView>
-                        <Image url="@/name/ulbricht/dlx/ui/image/application_16.png"/>
-                    </ImageView>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/developer_board_16_regular.fxml"/>
                 </graphic>
             </Label>
 
