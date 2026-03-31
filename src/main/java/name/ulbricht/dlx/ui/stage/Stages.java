@@ -64,9 +64,9 @@ public final class Stages {
 
     /// Restores the window state of the given stage from a previously saved
     /// [WindowState]. The position and size are validated against the currently
-    /// available screens. If the saved bounds do not overlap any screen, the
-    /// restore is skipped and JavaFX defaults apply. Width and height are clamped
-    /// so that the window does not exceed the visual bounds of the target screen.
+    /// available screens. If the saved bounds do not overlap any screen, the restore
+    /// is skipped and JavaFX defaults apply. Width and height are clamped so that
+    /// the window does not exceed the visual bounds of the target screen.
     ///
     /// @param stage       the stage to restore, must not be `null`
     /// @param windowState the saved window state, must not be `null`
@@ -96,9 +96,9 @@ public final class Stages {
     }
 
     /// Sets up listeners on the given stage that track position and size changes
-    /// and save the window state when the window is hiding. The non-maximized
-    /// bounds are tracked so that the normal window geometry is preserved even
-    /// when the window is closed in a maximized state.
+    /// and save the window state when the window is hiding. The non-maximized bounds
+    /// are tracked so that the normal window geometry is preserved even when the
+    /// window is closed in a maximized state.
     ///
     /// @param stage  the stage to track, must not be `null`
     /// @param onSave called with the current [WindowState] when the window is
@@ -110,7 +110,7 @@ public final class Stages {
         final var bounds = new SimpleObjectProperty<>(
                 new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight()));
 
-        Runnable updateBounds = () -> {
+        final Runnable updateBounds = () -> {
             if (!stage.isMaximized() && stage.isShowing())
                 bounds.set(new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight()));
         };
@@ -120,8 +120,8 @@ public final class Stages {
         stage.widthProperty().subscribe(_ -> updateBounds.run());
         stage.heightProperty().subscribe(_ -> updateBounds.run());
 
-        stage.addEventHandler(WindowEvent.WINDOW_HIDING, _ ->
-                onSave.accept(new WindowState(bounds.get(), stage.isMaximized())));
+        stage.addEventHandler(WindowEvent.WINDOW_HIDING,
+                _ -> onSave.accept(new WindowState(bounds.get(), stage.isMaximized())));
     }
 
     /// Private constructor to prevent instantiation .

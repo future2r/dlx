@@ -44,10 +44,6 @@ public final class MainView {
         Stages.initStageIcons(stage);
         stage.setScene(scene);
 
-        // Restore the saved window state
-        ViewResources.userPreferences().getWindowState(WINDOW_ID)
-                .ifPresent(ws -> Stages.restoreWindowState(stage, ws));
-
         // Forward window events to the controller
         final var controller = fxmlLoader.<MainController>getController();
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, controller::windowShown);
@@ -55,5 +51,11 @@ public final class MainView {
 
         // Show the stage
         stage.show();
+
+        // Restore the saved window state
+        // Must be done after show(), known popup menu positions bug
+        ViewResources.userPreferences().getWindowState(WINDOW_ID)
+                .ifPresent(ws -> Stages.restoreWindowState(stage, ws));
+
     }
 }
