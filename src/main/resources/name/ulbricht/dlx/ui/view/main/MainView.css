@@ -1,5 +1,10 @@
 @import url("/name/ulbricht/dlx/ui/css/global.css");
 
+#statusBar {
+    -fx-padding: 0.5em;
+    -fx-spacing: 0.5em;
+}
+
 /* default icon color */
 .fluent-icon-regular {
     -fx-fill: -fx-text-inner-color;
@@ -28,10 +33,4 @@
 /* controls in tool bar shall not get the focus */
 .tool-bar .button {
     -fx-focus-traversable: false;
-}
-
-/* status bar */
-.status-bar {
-    -fx-padding: 0.5em;
-    -fx-spacing: 0.5em;
 }

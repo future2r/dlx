@@ -336,7 +336,7 @@
     <bottom>
 
         <!-- status bar-->
-        <HBox fx:id="statusBar" styleClass="status-bar">
+        <HBox fx:id="statusBar">
 
             <Label fx:id="statusLabel" text="Status">
                 <graphic>

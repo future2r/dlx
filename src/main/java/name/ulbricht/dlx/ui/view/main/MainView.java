@@ -3,6 +3,7 @@ package name.ulbricht.dlx.ui.view.main;
 import java.io.IOException;
 
 import javafx.scene.Scene;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
@@ -35,9 +36,13 @@ public final class MainView {
             throw new IllegalStateException("Failed to load MainView FXML", ex);
         }
 
+        // Configure the scene
+        final var scene = new Scene(fxmlLoader.getRoot());
+        scene.setFill(Color.TRANSPARENT);
+
         // Configure the stage
-        stage.setScene(new Scene(fxmlLoader.getRoot()));
         Stages.initStageIcons(stage);
+        stage.setScene(scene);
 
         // Restore the saved window state
         ViewResources.userPreferences().getWindowState(WINDOW_ID)
