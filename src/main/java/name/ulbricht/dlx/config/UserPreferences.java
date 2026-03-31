@@ -5,14 +5,19 @@ import static java.util.Objects.requireNonNull;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.prefs.PreferenceChangeEvent;
 import java.util.prefs.Preferences;
 
+import javafx.beans.property.ReadOnlyListProperty;
+import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Rectangle2D;
 import name.ulbricht.dlx.ui.scene.Theme;
 import name.ulbricht.dlx.ui.stage.WindowState;
@@ -21,10 +26,14 @@ import name.ulbricht.dlx.ui.stage.WindowState;
 public final class UserPreferences {
 
     private static final String ROOT_NODE = "name/ulbricht/dlx";
-    private static final String MOST_RECENTLY_USED_DIRECTORY_KEY = "mostRecentlyUsedDirectory";
+    private static final String RECENT_DIRECTORY_KEY = "recentDirectory";
     private static final String MEMORY_SIZE_KEY = "memorySize";
     private static final String PROCESSOR_SPEED_KEY = "processorSpeed";
     private static final String THEME_KEY = "theme";
+
+    private static final String RECENT_FILES_NODE = "recentFiles";
+    private static final String RECENT_FILES_COUNT_KEY = "count";
+    private static final int MAX_RECENT_FILES = 5;
 
     private static final String WINDOWS_NODE = "windows";
     private static final String WINDOW_X_KEY = "x";
@@ -35,25 +44,30 @@ public final class UserPreferences {
 
     private final Preferences preferences;
 
-    private final ReadOnlyObjectWrapper<Path> mostRecentlyUsedDirectory = new ReadOnlyObjectWrapper<>();
+    private final ReadOnlyObjectWrapper<Path> recentDirectory = new ReadOnlyObjectWrapper<>();
     private final ReadOnlyObjectWrapper<MemorySize> memorySize = new ReadOnlyObjectWrapper<>();
     private final ReadOnlyObjectWrapper<ProcessorSpeed> processorSpeed = new ReadOnlyObjectWrapper<>();
     private final ReadOnlyObjectWrapper<Theme> theme = new ReadOnlyObjectWrapper<>();
+
+    private final ObservableList<Path> modifiableRecentFiles = FXCollections.observableArrayList();
+    private final ReadOnlyListWrapper<Path> recentFiles = new ReadOnlyListWrapper<>(
+            FXCollections.unmodifiableObservableList(this.modifiableRecentFiles));
 
     /// Creates a new user preferences instance.
     public UserPreferences() {
         this.preferences = Preferences.userRoot().node(ROOT_NODE);
         this.preferences.addPreferenceChangeListener(this::preferenceChanged);
 
-        updateMostRecentlyUsedDirectory();
+        updateRecentDirectory();
         updateMemorySize();
         updateProcessorSpeed();
         updateTheme();
+        updateRecentFiles();
     }
 
     private void preferenceChanged(final PreferenceChangeEvent event) {
         switch (event.getKey()) {
-            case MOST_RECENTLY_USED_DIRECTORY_KEY -> updateMostRecentlyUsedDirectory();
+            case RECENT_DIRECTORY_KEY -> updateRecentDirectory();
             case MEMORY_SIZE_KEY -> updateMemorySize();
             case PROCESSOR_SPEED_KEY -> updateProcessorSpeed();
             case THEME_KEY -> updateTheme();
@@ -64,25 +78,25 @@ public final class UserPreferences {
     }
 
     /// {@return a read-only property for the most recently used directory}
-    public ReadOnlyObjectProperty<Path> mostRecentlyUsedDirectoryProperty() {
-        return this.mostRecentlyUsedDirectory.getReadOnlyProperty();
+    public ReadOnlyObjectProperty<Path> recentDirectoryProperty() {
+        return this.recentDirectory.getReadOnlyProperty();
     }
 
-    private void updateMostRecentlyUsedDirectory() {
-        this.mostRecentlyUsedDirectory.set(getDirectory(MOST_RECENTLY_USED_DIRECTORY_KEY));
+    private void updateRecentDirectory() {
+        this.recentDirectory.set(getDirectory(RECENT_DIRECTORY_KEY));
     }
 
     /// {@return the most recently used directory, or the user's home directory if
     /// not set or invalid.}
-    public Path getMostRecentlyUsedDirectory() {
-        return mostRecentlyUsedDirectoryProperty().get();
+    public Path getRecentDirectory() {
+        return recentDirectoryProperty().get();
     }
 
     /// Set the most recently used directory.
     /// 
     /// @param directory the directory to set, or null to remove the preference
     public void putMostRecentlyUsedDirectory(final Path directory) {
-        putPath(MOST_RECENTLY_USED_DIRECTORY_KEY, directory);
+        putPath(RECENT_DIRECTORY_KEY, directory);
     }
 
     /// {@return a read-only property for the memory size}
@@ -148,6 +162,68 @@ public final class UserPreferences {
     /// @param newTheme the theme to set, or null to remove the preference
     public void putTheme(final Theme newTheme) {
         putEnum(THEME_KEY, newTheme);
+    }
+
+    /// {@return a read-only property for the recently opened files}
+    public ReadOnlyListProperty<Path> recentFilesProperty() {
+        return this.recentFiles.getReadOnlyProperty();
+    }
+
+    /// Adds a file to the recent files list. If the file is already in the list, it
+    /// is moved to the beginning. The list is trimmed to at most 5 entries.
+    ///
+    /// @param file the file to add, must not be `null`
+    public void addRecentFile(final Path file) {
+        requireNonNull(file);
+        this.modifiableRecentFiles.remove(file);
+        this.modifiableRecentFiles.addFirst(file);
+        while (this.modifiableRecentFiles.size() > MAX_RECENT_FILES)
+            this.modifiableRecentFiles.removeLast();
+        persistRecentFiles();
+    }
+
+    /// Removes a file from the recent files list.
+    ///
+    /// @param file the file to remove, must not be `null`
+    public void removeRecentFile(final Path file) {
+        requireNonNull(file);
+        if (this.modifiableRecentFiles.remove(file))
+            persistRecentFiles();
+    }
+
+    /// Removes all files from the recent files list.
+    public void clearRecentFiles() {
+        if (!this.modifiableRecentFiles.isEmpty()) {
+            this.modifiableRecentFiles.clear();
+            persistRecentFiles();
+        }
+    }
+
+    private void updateRecentFiles() {
+        final var node = this.preferences.node(RECENT_FILES_NODE);
+        final var count = node.getInt(RECENT_FILES_COUNT_KEY, 0);
+        final var files = new ArrayList<Path>();
+        for (var i = 0; i < count; i++) {
+            final var value = node.get(String.valueOf(i), null);
+            if (value != null) {
+                try {
+                    files.add(Path.of(value));
+                } catch (final InvalidPathException _) {
+                    // skip invalid entries
+                }
+            }
+        }
+        this.modifiableRecentFiles.setAll(files);
+    }
+
+    private void persistRecentFiles() {
+        final var node = this.preferences.node(RECENT_FILES_NODE);
+        final var size = this.modifiableRecentFiles.size();
+        node.putInt(RECENT_FILES_COUNT_KEY, size);
+        for (var i = 0; i < size; i++)
+            node.put(String.valueOf(i), this.modifiableRecentFiles.get(i).toString());
+        for (var i = size; i < MAX_RECENT_FILES; i++)
+            node.remove(String.valueOf(i));
     }
 
     /// Returns the saved window state for the given window identifier.

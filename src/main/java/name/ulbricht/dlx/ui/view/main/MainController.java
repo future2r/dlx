@@ -10,10 +10,13 @@ import java.util.Optional;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
@@ -59,6 +62,9 @@ public final class MainController {
     private RunService runService;
 
     @FXML
+    private Menu openRecentMenu;
+
+    @FXML
     private TabPane leftTabPane;
     @FXML
     private TabPane editorsTabPane;
@@ -101,6 +107,7 @@ public final class MainController {
     @FXML
     private void initialize() {
         configureFileChoosers();
+        configureOpenRecentMenu();
 
         // React on changes of the current editor tab.
         this.editorsTabPane.getSelectionModel().selectedItemProperty().subscribe(this::currentEditorTabChanged);
@@ -115,9 +122,9 @@ public final class MainController {
     private void configureFileChoosers() {
         // Bind the file chooser to the most recently used directory preference
         this.openFileChooser.initialDirectoryProperty()
-                .bind(this.userPreferences.mostRecentlyUsedDirectoryProperty().map(Path::toFile));
+                .bind(this.userPreferences.recentDirectoryProperty().map(Path::toFile));
         this.saveFileChooser.initialDirectoryProperty()
-                .bind(this.userPreferences.mostRecentlyUsedDirectoryProperty().map(Path::toFile));
+                .bind(this.userPreferences.recentDirectoryProperty().map(Path::toFile));
 
         // Set the extension filters for the file choosers
         final var extensionFilters = List.of(
@@ -127,6 +134,28 @@ public final class MainController {
                 new FileChooser.ExtensionFilter(Messages.getString("main.fileChooser.extension.all"), "*.*"));
         this.openFileChooser.getExtensionFilters().addAll(extensionFilters);
         this.saveFileChooser.getExtensionFilters().addAll(extensionFilters);
+    }
+
+    private void configureOpenRecentMenu() {
+        this.openRecentMenu.disableProperty()
+                .bind(this.userPreferences.recentFilesProperty().emptyProperty());
+        this.userPreferences.recentFilesProperty().subscribe(this::rebuildOpenRecentMenu);
+        rebuildOpenRecentMenu();
+    }
+
+    private void rebuildOpenRecentMenu() {
+        // Remove all items that have a Path object as user data
+        this.openRecentMenu.getItems().removeIf(item -> item.getUserData() instanceof Path);
+        // Add menu items for the recent files
+        this.openRecentMenu.getItems().addAll(0,
+                this.userPreferences.recentFilesProperty().stream()
+                        .map(file -> {
+                            final var item = new MenuItem(file.toString());
+                            item.setUserData(file);
+                            item.setOnAction(this::handleOpenRecent);
+                            return item;
+                        })
+                        .toList());
     }
 
     private void configureBuildActions() {
@@ -347,14 +376,17 @@ public final class MainController {
 
     @FXML
     private void handleOpen() {
-        chooseOpenFile().ifPresent(file -> {
-            try {
-                openEditor(file);
-            } catch (final IOException ex) {
-                Alerts.error(this.window, Messages.getString("main.open.error").formatted(ex.getMessage()))
-                        .showAndWait();
-            }
-        });
+        chooseOpenFile().ifPresent(this::openEditor);
+    }
+
+    private void handleOpenRecent(final ActionEvent event) {
+        if (event.getSource() instanceof final MenuItem menuItem && menuItem.getUserData() instanceof final Path file)
+            openEditor(file);
+    }
+
+    @FXML
+    private void handleClearRecent() {
+        this.userPreferences.clearRecentFiles();
     }
 
     @FXML
@@ -522,8 +554,15 @@ public final class MainController {
         addEditorTab(EditorView.load());
     }
 
-    private void openEditor(final Path file) throws IOException {
-        addEditorTab(EditorView.load(file));
+    private void openEditor(final Path file) {
+        try {
+            addEditorTab(EditorView.load(file));
+            this.userPreferences.addRecentFile(file);
+        } catch (final IOException ex) {
+            this.userPreferences.removeRecentFile(file);
+            Alerts.error(this.window, Messages.getString("main.open.error").formatted(ex.getMessage()))
+                    .showAndWait();
+        }
     }
 
     private void addEditorTab(final EditorView editorView) {

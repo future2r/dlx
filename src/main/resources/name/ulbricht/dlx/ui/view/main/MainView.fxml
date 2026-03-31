@@ -63,6 +63,10 @@
                             <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_16_regular.fxml" styleClass="fluent-icon-orange"/>
                         </graphic>
                     </MenuItem>
+                    <Menu fx:id="openRecentMenu" text="%main.menu.file.openRecent.text">
+                        <SeparatorMenuItem/>
+                        <MenuItem text="%main.menu.file.openRecent.clear.text" onAction="#handleClearRecent"/>
+                    </Menu>
                     <MenuItem text="%main.menu.file.save.text" accelerator="Ctrl+S" onAction="#handleSave" disable="${!controller.canSave}">
                         <graphic>
                             <fx:include source="/name/ulbricht/dlx/ui/icon/save_16_regular.fxml" styleClass="fluent-icon-blue"/>
