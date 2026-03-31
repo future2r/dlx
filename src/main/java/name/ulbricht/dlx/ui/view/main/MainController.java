@@ -555,14 +555,28 @@ public final class MainController {
     }
 
     private void openEditor(final Path file) {
-        try {
-            addEditorTab(EditorView.load(file));
+        // If the file is already open, select its tab instead of opening a new one
+        findEditorTab(file).ifPresentOrElse(tab -> {
+            this.editorsTabPane.getSelectionModel().select(tab);
             this.userPreferences.addRecentFile(file);
-        } catch (final IOException ex) {
-            this.userPreferences.removeRecentFile(file);
-            Alerts.error(this.window, Messages.getString("main.open.error").formatted(ex.getMessage()))
-                    .showAndWait();
-        }
+        }, () -> {
+            try {
+                addEditorTab(EditorView.load(file));
+                this.userPreferences.addRecentFile(file);
+            } catch (final IOException ex) {
+                this.userPreferences.removeRecentFile(file);
+                Alerts.error(this.window, Messages.getString("main.open.error").formatted(ex.getMessage()))
+                        .showAndWait();
+            }
+        });
+    }
+
+    private Optional<Tab> findEditorTab(final Path file) {
+        return this.editorsTabPane.getTabs().stream()
+                .filter(tab -> getEditorView(tab)
+                        .map(view -> Boolean.valueOf(file.equals(view.getViewModel().getFile())))
+                        .orElse(Boolean.FALSE).booleanValue())
+                .findFirst();
     }
 
     private void addEditorTab(final EditorView editorView) {
