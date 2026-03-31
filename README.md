@@ -45,7 +45,7 @@ The recommended editor is [Visual Studio Code](https://code.visualstudio.com/) w
 
 ### Using
 
-1. Open a DLX source file from `src/dlx`.
+1. Open a DLX source file from `assets/examples`.
 2. Choose *Compile and Load*.
 3. Choose *Run*.
 4. Watch the magic happen! 😉

@@ -5,12 +5,16 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 /// Utility class for reading and writing source files.
 public final class SourceFile {
 
-    /// The file extension for source files.
-    public static final String FILE_EXTENSION = ".dlx";
+    /// The default file extension for source files.
+    public static final String FILE_EXTENSION = ".s";
+
+    /// The alternative file extension for source files.
+    public static final List<String> FILE_EXTENSIONS = List.of(FILE_EXTENSION, ".asm");
 
     /// Reads the content of a source file.
     /// 

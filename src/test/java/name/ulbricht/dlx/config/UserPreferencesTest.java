@@ -98,7 +98,7 @@ final class UserPreferencesTest {
         @Test
         @DisplayName("addRecentFile adds file to the list")
         void addRecentFile() {
-            final var file = Path.of("/tmp/test.dlx");
+            final var file = Path.of("/tmp/test.s");
             UserPreferencesTest.this.prefs.addRecentFile(file);
 
             assertEquals(List.of(file), List.copyOf(UserPreferencesTest.this.prefs.recentFilesProperty()));
@@ -107,9 +107,9 @@ final class UserPreferencesTest {
         @Test
         @DisplayName("addRecentFile moves existing file to the front")
         void addRecentFileMovesToFront() {
-            final var file1 = Path.of("/tmp/a.dlx");
-            final var file2 = Path.of("/tmp/b.dlx");
-            final var file3 = Path.of("/tmp/c.dlx");
+            final var file1 = Path.of("/tmp/a.s");
+            final var file2 = Path.of("/tmp/b.s");
+            final var file3 = Path.of("/tmp/c.s");
 
             UserPreferencesTest.this.prefs.addRecentFile(file1);
             UserPreferencesTest.this.prefs.addRecentFile(file2);
@@ -126,18 +126,18 @@ final class UserPreferencesTest {
         @DisplayName("addRecentFile limits list to five entries")
         void limitsToFive() {
             for (var i = 0; i < 7; i++)
-                UserPreferencesTest.this.prefs.addRecentFile(Path.of("/tmp/file" + i + ".dlx"));
+                UserPreferencesTest.this.prefs.addRecentFile(Path.of("/tmp/file" + i + ".s"));
 
             assertEquals(5, UserPreferencesTest.this.prefs.recentFilesProperty().size());
-            assertEquals(Path.of("/tmp/file6.dlx"), UserPreferencesTest.this.prefs.recentFilesProperty().getFirst());
-            assertEquals(Path.of("/tmp/file2.dlx"), UserPreferencesTest.this.prefs.recentFilesProperty().getLast());
+            assertEquals(Path.of("/tmp/file6.s"), UserPreferencesTest.this.prefs.recentFilesProperty().getFirst());
+            assertEquals(Path.of("/tmp/file2.s"), UserPreferencesTest.this.prefs.recentFilesProperty().getLast());
         }
 
         @Test
         @DisplayName("removeRecentFile removes the file from the list")
         void removeRecentFile() {
-            final var file1 = Path.of("/tmp/a.dlx");
-            final var file2 = Path.of("/tmp/b.dlx");
+            final var file1 = Path.of("/tmp/a.s");
+            final var file2 = Path.of("/tmp/b.s");
 
             UserPreferencesTest.this.prefs.addRecentFile(file1);
             UserPreferencesTest.this.prefs.addRecentFile(file2);
@@ -149,8 +149,8 @@ final class UserPreferencesTest {
         @Test
         @DisplayName("clearRecentFiles empties the list")
         void clearRecentFiles() {
-            UserPreferencesTest.this.prefs.addRecentFile(Path.of("/tmp/a.dlx"));
-            UserPreferencesTest.this.prefs.addRecentFile(Path.of("/tmp/b.dlx"));
+            UserPreferencesTest.this.prefs.addRecentFile(Path.of("/tmp/a.s"));
+            UserPreferencesTest.this.prefs.addRecentFile(Path.of("/tmp/b.s"));
             UserPreferencesTest.this.prefs.clearRecentFiles();
 
             assertTrue(UserPreferencesTest.this.prefs.recentFilesProperty().isEmpty());

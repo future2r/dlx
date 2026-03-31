@@ -129,12 +129,15 @@ public final class MainController {
 
         // Set the extension filters for the file choosers
         final var extensionFilters = List.of(
-                new FileChooser.ExtensionFilter(
-                        Messages.getString("main.fileChooser.extension.dlx").formatted(SourceFile.FILE_EXTENSION),
-                        "*" + SourceFile.FILE_EXTENSION),
-                new FileChooser.ExtensionFilter(Messages.getString("main.fileChooser.extension.all"), "*.*"));
+                createExtensionFilter("main.fileChooser.extension.asm", SourceFile.FILE_EXTENSIONS),
+                createExtensionFilter("main.fileChooser.extension.all", List.of(".*")));
         this.openFileChooser.getExtensionFilters().addAll(extensionFilters);
         this.saveFileChooser.getExtensionFilters().addAll(extensionFilters);
+    }
+
+    private static FileChooser.ExtensionFilter createExtensionFilter(final String key, final List<String> extensions) {
+        return new FileChooser.ExtensionFilter(Messages.getString(key),
+                extensions.stream().map(ext -> "*" + ext).toList());
     }
 
     private void configureOpenRecentMenu() {

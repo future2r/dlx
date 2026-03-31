@@ -166,7 +166,7 @@ public final class EditorViewModel {
 
     /// Creates a new file with example source code.
     void newFile() throws IOException {
-        final var fileName = "example.dlx";
+        final var fileName = "example.s";
         final String example;
         try (var in = getClass().getResourceAsStream(fileName)) {
             if (in == null)
