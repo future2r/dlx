@@ -38,6 +38,7 @@ import name.ulbricht.dlx.ui.stage.Stages;
 import name.ulbricht.dlx.ui.util.FormatUtil;
 import name.ulbricht.dlx.ui.view.ViewPart;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
+import name.ulbricht.dlx.ui.view.log.LogView;
 import name.ulbricht.dlx.ui.view.memory.MemoryView;
 import name.ulbricht.dlx.ui.view.outline.OutlineView;
 import name.ulbricht.dlx.ui.view.preferences.PreferencesView;
@@ -544,6 +545,10 @@ public final class MainController {
         final var problemsView = ProblemsView.load();
         problemsView.setOnTextPosition(this::showTextPosition);
         openBottomView(problemsView);
+
+        // Log View
+        final var logView = LogView.load();
+        openBottomView(logView);
     }
 
     private void openLeftView(final ViewPart<?> viewPart) {

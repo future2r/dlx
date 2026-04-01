@@ -1,8 +1,11 @@
 package name.ulbricht.dlx.ui.view.registers;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
-import javafx.application.Platform;
+import java.util.Objects;
+import java.util.concurrent.Executor;
+
+import javafx.beans.NamedArg;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
@@ -17,6 +20,8 @@ import name.ulbricht.dlx.simulator.RegisterAccessListener;
 /// View model for the registers view.
 public final class RegistersViewModel implements ProcessingListener, RegisterAccessListener {
 
+    private final Executor uiExecutor;
+
     private final ObjectProperty<CPU> processor = new SimpleObjectProperty<>();
 
     private final ObservableList<RegisterItem> modifiableRegisters = FXCollections.observableArrayList();
@@ -24,7 +29,11 @@ public final class RegistersViewModel implements ProcessingListener, RegisterAcc
             .unmodifiableObservableList(this.modifiableRegisters));
 
     /// Creates a new internals view model instance.
-    public RegistersViewModel() {
+    /// 
+    /// @param uiExecutor the executor to use for UI updates, must not be `null`
+    public RegistersViewModel(@NamedArg("uiExecutor") final Executor uiExecutor) {
+        this.uiExecutor = requireNonNull(uiExecutor);
+
         this.processor.subscribe(this::processorChanged);
     }
 
@@ -75,7 +84,7 @@ public final class RegistersViewModel implements ProcessingListener, RegisterAcc
     @Override
     public void registerAccessed(final RegisterAccess access) {
         // This event may be originated from a different thread
-        Platform.runLater(() -> updateRegisterAccess(access));
+        this.uiExecutor.execute(() -> updateRegisterAccess(access));
     }
 
     private void updateRegisterAccess(final RegisterAccess access) {
@@ -94,7 +103,7 @@ public final class RegistersViewModel implements ProcessingListener, RegisterAcc
     @Override
     public void processing(final ProcessStep step) {
         // Events may originate from the CPU's virtual thread.
-        Platform.runLater(this::clearRegisterAccess);
+        this.uiExecutor.execute(this::clearRegisterAccess);
     }
 
     private void clearRegisterAccess() {

@@ -1,8 +1,11 @@
 package name.ulbricht.dlx.ui.view.memory;
 
-import java.util.Arrays;
+import static java.util.Objects.requireNonNull;
 
-import javafx.application.Platform;
+import java.util.Arrays;
+import java.util.concurrent.Executor;
+
+import javafx.beans.NamedArg;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -20,6 +23,8 @@ import name.ulbricht.dlx.simulator.ProcessingListener;
 /// View model for the memory hex viewer.
 public final class MemoryViewModel implements ProcessingListener, MemoryAccessListener {
 
+    private final Executor uiExecutor;
+
     private final ObjectProperty<CPU> processor = new SimpleObjectProperty<>();
 
     private final ObservableList<MemoryRow> modifiableRows = FXCollections.observableArrayList();
@@ -35,7 +40,11 @@ public final class MemoryViewModel implements ProcessingListener, MemoryAccessLi
     private Access[] accessState = new Access[0];
 
     /// Creates a new memory view model instance.
-    public MemoryViewModel() {
+    /// 
+    /// @param uiExecutor the executor to use for UI updates, must not be `null`
+    public MemoryViewModel(@NamedArg("uiExecutor") final Executor uiExecutor) {
+        this.uiExecutor = requireNonNull(uiExecutor);
+
         this.processor.subscribe(this::processorChanged);
     }
 
@@ -120,7 +129,7 @@ public final class MemoryViewModel implements ProcessingListener, MemoryAccessLi
     @Override
     public void memoryAccessed(final MemoryAccess access) {
         // Events may originate from the CPU's virtual thread.
-        Platform.runLater(() -> updateMemoryAccess(access));
+        this.uiExecutor.execute(() -> updateMemoryAccess(access));
     }
 
     private void updateMemoryAccess(final MemoryAccess access) {
@@ -146,7 +155,7 @@ public final class MemoryViewModel implements ProcessingListener, MemoryAccessLi
     @Override
     public void processing(final ProcessStep step) {
         // Events may originate from the CPU's virtual thread.
-        Platform.runLater(this::clearMemoryAccess);
+        this.uiExecutor.execute(this::clearMemoryAccess);
     }
 
     /// Clears all per-byte access highlights without changing the shadow data.

@@ -3,15 +3,15 @@ package name.ulbricht.dlx.ui.view.main;
 import static java.util.Objects.requireNonNull;
 
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
-import javafx.application.Platform;
+import javafx.beans.NamedArg;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyLongProperty;
 import javafx.beans.property.ReadOnlyLongWrapper;
-import javafx.beans.NamedArg;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import name.ulbricht.dlx.asm.compiler.CompiledProgram;
@@ -28,13 +28,19 @@ public final class MainViewModel implements ProcessingListener {
     private final ReadOnlyIntegerWrapper programCounter = new ReadOnlyIntegerWrapper();
     private final ReadOnlyBooleanWrapper halted = new ReadOnlyBooleanWrapper();
 
+    private final Executor uiExecutor;
     private final UserPreferences userPreferences;
 
     /// Creates a new main view model instance.
     ///
+    /// @param uiExecutor      the executor to use for UI updates, must not be `null`
     /// @param userPreferences the user preferences, must not be `null`
-    public MainViewModel(@NamedArg("userPreferences") final UserPreferences userPreferences) {
+    public MainViewModel(
+            @NamedArg("uiExecutor") final Executor uiExecutor,
+            @NamedArg("userPreferences") final UserPreferences userPreferences) {
+        this.uiExecutor = requireNonNull(uiExecutor);
         this.userPreferences = requireNonNull(userPreferences);
+
         this.processor.subscribe(this::processorChanged);
         this.processor.set(createProcessor());
     }
@@ -133,7 +139,7 @@ public final class MainViewModel implements ProcessingListener {
     @Override
     public void processing(final ProcessStep step) {
         // Events may originate from the CPU's virtual thread.
-        Platform.runLater(() -> handleProcessing(step));
+        this.uiExecutor.execute(() -> handleProcessing(step));
     }
 
     private void handleProcessing(final ProcessStep step) {

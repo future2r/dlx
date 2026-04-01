@@ -34,6 +34,9 @@
         <FileChooser fx:id="openFileChooser" title="%main.fileChooser.open.title"/>
         <FileChooser fx:id="saveFileChooser" title="%main.fileChooser.save.title"/>
         <MainViewModel fx:id="viewModel">
+            <uiExecutor>
+                <ViewServices fx:factory="uiExecutor"/>
+            </uiExecutor>
             <userPreferences>
                 <fx:reference source="userPreferences"/>
             </userPreferences>

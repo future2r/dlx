@@ -1,0 +1,19 @@
+.table-row-cell:log-error .table-cell {
+    -fx-text-fill: -dlx-red;
+}
+
+.table-row-cell:log-warning .table-cell {
+    -fx-text-fill: -dlx-orange;
+}
+
+.table-row-cell:log-info .table-cell {
+    -fx-text-fill: -fx-text-background-color;
+}
+
+.table-row-cell:log-debug .table-cell {
+    -fx-text-fill: -dlx-blue;
+}
+
+.table-row-cell:log-trace .table-cell {
+    -fx-opacity: 0.8;
+}

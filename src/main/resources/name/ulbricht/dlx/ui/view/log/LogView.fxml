@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.BorderPane?>
+<?import name.ulbricht.dlx.ui.view.log.LogView?>
+<?import name.ulbricht.dlx.ui.view.log.LogViewModel?>
+<?import name.ulbricht.dlx.ui.view.ViewServices?>
+
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+    fx:id="logRoot" fx:controller="name.ulbricht.dlx.ui.view.log.LogController">
+
+    <stylesheets>
+        <URL value="@LogView.css"/>
+    </stylesheets>
+
+    <fx:define>
+        <ViewServices fx:id="logStore" fx:factory="logStore"/>
+        <LogViewModel fx:id="viewModel">
+            <uiExecutor>
+                <ViewServices fx:factory="uiExecutor"/>
+            </uiExecutor>
+            <logStore>
+                <fx:reference source="logStore"/>
+            </logStore>
+        </LogViewModel>
+    </fx:define>
+
+    <center>
+        <TableView fx:id="logTableView" items="${viewModel.entries}">
+            <placeholder>
+                <Label text="%log.placeholder"/>
+            </placeholder>
+            <rowFactory>
+                <LogView fx:factory="logTableRowFactory"/>
+            </rowFactory>
+            <columns>
+                <TableColumn text="%log.column.time" prefWidth="100">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="time"/>
+                    </cellValueFactory>
+                    <cellFactory>
+                        <LogView fx:factory="timeCellFactory"/>
+                    </cellFactory>
+                </TableColumn>
+                <TableColumn text="%log.column.level" prefWidth="100">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="level"/>
+                    </cellValueFactory>
+                    <cellFactory>
+                        <LogView fx:factory="levelCellFactory"/>
+                    </cellFactory>
+                </TableColumn>
+                <TableColumn text="%log.column.source" prefWidth="200">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="source"/>
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn text="%log.column.message" prefWidth="400">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="message"/>
+                    </cellValueFactory>
+                </TableColumn>
+            </columns>
+        </TableView>
+
+    </center>
+
+    <right>
+
+        <ToolBar orientation="vertical">
+
+            <Button onAction="#handleClear">
+                <tooltip>
+                    <Tooltip text="%log.clear.tooltip"/>
+                </tooltip>
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/delete_16_regular.fxml"/>
+                </graphic>
+            </Button>
+            <ToggleButton fx:id="autoScrollToggleButton">
+                <tooltip>
+                    <Tooltip text="%log.autoScroll.tooltip"/>
+                </tooltip>
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_down_16_regular.fxml"/>
+                </graphic>
+            </ToggleButton>
+
+        </ToolBar>
+
+    </right>
+
+</BorderPane>

@@ -6,7 +6,7 @@ import name.ulbricht.dlx.ui.i18n.Messages;
 
 /// A table cell that displays the source of the problem as a
 /// human-readable string.
-public class SourceTableCell extends TableCell<ProblemItem, Diagnostic.Stage> {
+public final class SourceTableCell extends TableCell<ProblemItem, Diagnostic.Stage> {
 
     /// Creates a new instance.
     public SourceTableCell() {
