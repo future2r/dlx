@@ -2,6 +2,7 @@
 module name.ulbricht.dlx {
 
     // Required JDK modules
+    requires java.logging; // Use java.util.logging as the logging implementation
     requires java.prefs;
 
     // Required modules

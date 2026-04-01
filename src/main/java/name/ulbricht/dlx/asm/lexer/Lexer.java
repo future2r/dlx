@@ -13,6 +13,8 @@ import name.ulbricht.dlx.util.TextPosition;
 /// The lexer for the DLX assembler.
 public final class Lexer {
 
+    private static final System.Logger log = System.getLogger(Lexer.class.getName());
+
     private static final Set<String> DIRECTIVES = Set.of(
             "data", "text",
             "word", "half", "byte", "float", "double",
@@ -308,7 +310,15 @@ public final class Lexer {
     }
 
     private void addError(final String msg, final int col, final int length) {
-        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.LEXING, Diagnostic.Severity.ERROR,
+        addDiagnostic(Diagnostic.Severity.ERROR, msg, col, length);
+    }
+
+    private void addDiagnostic(final Diagnostic.Severity severity, final String msg, final int col, final int length) {
+        requireNonNull(severity);
+
+        log.log(severity.toLogLevel(), msg);
+
+        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.LEXING, severity,
                 new TextPosition(this.line, col, length), msg));
     }
 

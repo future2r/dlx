@@ -23,7 +23,16 @@ public record Diagnostic(Stage stage, Severity severity, TextPosition pos, Strin
         WARNING,
 
         /// Diagnostic produced for an error that prevents successful compilation.
-        ERROR
+        ERROR;
+
+        /// {@return the corresponding log level for this severity}
+        public System.Logger.Level toLogLevel() {
+            return switch (this) {
+                case INFO -> System.Logger.Level.INFO;
+                case WARNING -> System.Logger.Level.WARNING;
+                case ERROR -> System.Logger.Level.ERROR;
+            };
+        }
     }
 
 

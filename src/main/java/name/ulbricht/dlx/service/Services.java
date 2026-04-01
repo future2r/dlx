@@ -1,10 +1,9 @@
-package name.ulbricht.dlx.ui.view;
+package name.ulbricht.dlx.service;
 
 import name.ulbricht.dlx.config.UserPreferences;
 
-/// Provides shared resources required by views. Factory methods can be
-/// referenced from FXML via `fx:factory`.
-public final class ViewResources {
+/// Provides shared application service instances.
+public final class Services {
 
     private static UserPreferences userPreferences;
 
@@ -16,6 +15,6 @@ public final class ViewResources {
     }
 
     /// Private constructor to prevent instantiation.
-    private ViewResources() {
+    private Services() {
     }
 }

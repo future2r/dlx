@@ -37,6 +37,8 @@ import name.ulbricht.dlx.util.TextPosition;
 /// remainder of that line is discarded and parsing continues from the next line.
 public final class Parser {
 
+    private static final System.Logger log = System.getLogger(Parser.class.getName());
+
     /// Creates a new Parser.
     public Parser() {
     }
@@ -524,7 +526,15 @@ public final class Parser {
     }
 
     private void addError(final String msg, final Token token, final int len) {
-        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.PARSING, Diagnostic.Severity.ERROR,
+        addDiagnostic(Diagnostic.Severity.ERROR, msg, token, len);
+    }
+
+    private void addDiagnostic(final Diagnostic.Severity severity, final String msg, final Token token, final int len) {
+        requireNonNull(severity);
+
+        log.log(severity.toLogLevel(), msg);
+
+        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.PARSING, severity,
                 new TextPosition(token.pos().line(), token.pos().column(), len), msg));
     }
 

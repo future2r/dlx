@@ -37,7 +37,6 @@ import name.ulbricht.dlx.ui.scene.control.Alerts;
 import name.ulbricht.dlx.ui.stage.Stages;
 import name.ulbricht.dlx.ui.util.FormatUtil;
 import name.ulbricht.dlx.ui.view.ViewPart;
-import name.ulbricht.dlx.ui.view.ViewResources;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
 import name.ulbricht.dlx.ui.view.memory.MemoryView;
 import name.ulbricht.dlx.ui.view.outline.OutlineView;
@@ -121,11 +120,14 @@ public final class MainController {
     }
 
     private void configureFileChoosers() {
-        // Bind the file chooser to the most recently used directory preference
-        this.openFileChooser.initialDirectoryProperty()
-                .bind(this.userPreferences.recentDirectoryProperty().map(Path::toFile));
-        this.saveFileChooser.initialDirectoryProperty()
-                .bind(this.userPreferences.recentDirectoryProperty().map(Path::toFile));
+        // Set initial directory from preference
+        updateFileChooserDirectories();
+        this.userPreferences.addPreferenceChangeListener(UserPreferences.RECENT_DIRECTORY_PROPERTY,
+                _ -> Platform.runLater(this::updateFileChooserDirectories));
+        this.userPreferences.addPreferenceChangeListener(UserPreferences.RECENT_FILES_PROPERTY,
+                _ -> Platform.runLater(this::updateOpenRecentMenu));
+        this.userPreferences.addPreferenceChangeListener(UserPreferences.THEME_PROPERTY,
+                (final Theme theme) -> Platform.runLater(() -> themeUpdated(theme)));
 
         // Set the extension filters for the file choosers
         final var extensionFilters = List.of(
@@ -135,24 +137,29 @@ public final class MainController {
         this.saveFileChooser.getExtensionFilters().addAll(extensionFilters);
     }
 
+    private void updateFileChooserDirectories() {
+        final var dir = this.userPreferences.getRecentDirectory().toFile();
+        this.openFileChooser.setInitialDirectory(dir);
+        this.saveFileChooser.setInitialDirectory(dir);
+    }
+
     private static FileChooser.ExtensionFilter createExtensionFilter(final String key, final List<String> extensions) {
         return new FileChooser.ExtensionFilter(Messages.getString(key),
                 extensions.stream().map(ext -> "*" + ext).toList());
     }
 
     private void configureOpenRecentMenu() {
-        this.openRecentMenu.disableProperty()
-                .bind(this.userPreferences.recentFilesProperty().emptyProperty());
-        this.userPreferences.recentFilesProperty().subscribe(this::rebuildOpenRecentMenu);
-        rebuildOpenRecentMenu();
+        updateOpenRecentMenu();
     }
 
-    private void rebuildOpenRecentMenu() {
+    private void updateOpenRecentMenu() {
+        final var files = this.userPreferences.getRecentFiles();
+        this.openRecentMenu.setDisable(files.isEmpty());
         // Remove all items that have a Path object as user data
         this.openRecentMenu.getItems().removeIf(item -> item.getUserData() instanceof Path);
         // Add menu items for the recent files
         this.openRecentMenu.getItems().addAll(0,
-                this.userPreferences.recentFilesProperty().stream()
+                files.stream()
                         .map(file -> {
                             final var item = new MenuItem(file.toString());
                             item.setUserData(file);
@@ -222,13 +229,12 @@ public final class MainController {
 
         // Restore saved window state
         if (this.window instanceof final Stage stage) {
-            ViewResources.userPreferences().getWindowState(MainView.WINDOW_ID)
+            this.userPreferences.getWindowState(MainView.WINDOW_ID)
                     .ifPresent(windowState -> Stages.restoreWindowState(stage, windowState));
         }
 
-        // React on changes of the theme preferences
-        this.userPreferences.themeProperty()
-                .subscribe(this::themeUpdated);
+        // Apply the current theme
+        themeUpdated(this.userPreferences.getTheme());
 
         // Open a new editor and focus it
         Platform.runLater(() -> {

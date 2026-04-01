@@ -6,24 +6,38 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.prefs.PreferenceChangeEvent;
 import java.util.prefs.Preferences;
 
-import javafx.beans.property.ReadOnlyListProperty;
-import javafx.beans.property.ReadOnlyListWrapper;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.geometry.Rectangle2D;
 import name.ulbricht.dlx.ui.scene.Theme;
-import name.ulbricht.dlx.ui.stage.WindowState;
 
 /// User preferences.
 public final class UserPreferences {
+
+    /// Property name for the processor speed preference.
+    public static final String PROCESSOR_SPEED_PROPERTY = "processorSpeed";
+
+    /// Property name for the memory size preference.
+    public static final String MEMORY_SIZE_PROPERTY = "memorySize";
+
+    /// Property name for the theme preference.
+    public static final String THEME_PROPERTY = "theme";
+
+    /// Property name for the recent directory preference.
+    public static final String RECENT_DIRECTORY_PROPERTY = "recentDirectory";
+
+    /// Property name for the recent files preference.
+    public static final String RECENT_FILES_PROPERTY = "recentFiles";
+
+    /// Property name for the log level preference.
+    public static final String LOG_LEVEL_PROPERTY = "logLevel";
 
     /// Default value for the processor speed preference.
     public static final ProcessorSpeed DEFAULT_PROCESSOR_SPEED = ProcessorSpeed.MEDIUM;
@@ -34,13 +48,17 @@ public final class UserPreferences {
     /// Default value for the theme preference.
     public static final Theme DEFAULT_THEME = Theme.LIGHT;
 
-    private static final String ROOT_NODE = "name/ulbricht/dlx";
-    private static final String RECENT_DIRECTORY_KEY = "recentDirectory";
-    private static final String MEMORY_SIZE_KEY = "memorySize";
-    private static final String PROCESSOR_SPEED_KEY = "processorSpeed";
-    private static final String THEME_KEY = "theme";
+    /// Default value for the log level preference.
+    public static final System.Logger.Level DEFAULT_LOG_LEVEL = System.Logger.Level.INFO;
 
-    private static final String RECENT_FILES_NODE = "recentFiles";
+    private static final String ROOT_NODE = "name/ulbricht/dlx";
+    private static final String RECENT_DIRECTORY_KEY = RECENT_DIRECTORY_PROPERTY;
+    private static final String MEMORY_SIZE_KEY = MEMORY_SIZE_PROPERTY;
+    private static final String PROCESSOR_SPEED_KEY = PROCESSOR_SPEED_PROPERTY;
+    private static final String THEME_KEY = THEME_PROPERTY;
+    private static final String LOG_LEVEL_KEY = LOG_LEVEL_PROPERTY;
+
+    private static final String RECENT_FILES_NODE = RECENT_FILES_PROPERTY;
     private static final String RECENT_FILES_COUNT_KEY = "count";
     private static final int MAX_RECENT_FILES = 5;
 
@@ -53,73 +71,72 @@ public final class UserPreferences {
 
     private final Preferences preferences;
 
-    private final ReadOnlyObjectWrapper<Path> recentDirectory = new ReadOnlyObjectWrapper<>();
-    private final ReadOnlyObjectWrapper<MemorySize> memorySize = new ReadOnlyObjectWrapper<>();
-    private final ReadOnlyObjectWrapper<ProcessorSpeed> processorSpeed = new ReadOnlyObjectWrapper<>();
-    private final ReadOnlyObjectWrapper<Theme> theme = new ReadOnlyObjectWrapper<>();
+    private final Map<String, List<Consumer<?>>> listeners = new HashMap<>();
 
-    private final ObservableList<Path> modifiableRecentFiles = FXCollections.observableArrayList();
-    private final ReadOnlyListWrapper<Path> recentFiles = new ReadOnlyListWrapper<>(
-            FXCollections.unmodifiableObservableList(this.modifiableRecentFiles));
+    private final List<Path> recentFiles = new ArrayList<>();
 
     /// Creates a new user preferences instance.
     public UserPreferences() {
         this.preferences = Preferences.userRoot().node(ROOT_NODE);
-        this.preferences.addPreferenceChangeListener(this::preferenceChanged);
 
-        updateRecentDirectory();
-        updateMemorySize();
-        updateProcessorSpeed();
-        updateTheme();
-        updateRecentFiles();
+        this.recentFiles.addAll(loadRecentFiles());
     }
 
-    private void preferenceChanged(final PreferenceChangeEvent event) {
-        switch (event.getKey()) {
-            case RECENT_DIRECTORY_KEY -> updateRecentDirectory();
-            case MEMORY_SIZE_KEY -> updateMemorySize();
-            case PROCESSOR_SPEED_KEY -> updateProcessorSpeed();
-            case THEME_KEY -> updateTheme();
-            default -> {
-                // Ignore other preferences
+    /// Adds a preference change listener.
+    ///
+    /// @param <T>      the type of the preference value
+    /// @param name     the name of the preference to listen for, must not be `null`
+    /// @param listener the listener to add, must not be `null`
+    public <T> void addPreferenceChangeListener(final String name, final Consumer<T> listener) {
+        requireNonNull(name);
+        requireNonNull(listener);
+
+        this.listeners.computeIfAbsent(name, _ -> new ArrayList<>()).add(listener);
+    }
+
+    /// Removes a preference change listener.
+    /// 
+    /// @param <T>      the type of the preference value
+    /// @param name     the name of the preference, must not be `null`
+    /// @param listener the listener to remove, must not be `null`
+    public <T> void removePreferenceChangeListener(final String name, final Consumer<T> listener) {
+        requireNonNull(name);
+        requireNonNull(listener);
+
+        Optional.ofNullable(this.listeners.get(name)).ifPresent(list -> {
+            list.remove(listener);
+            if (list.isEmpty())
+                this.listeners.remove(name);
+        });
+    }
+
+    private <T> void firePreferenceChanged(final String name, final T newValue) {
+        Optional.ofNullable(this.listeners.get(name)).ifPresent(list -> {
+            for (final var listener : List.copyOf(list)) {
+                @SuppressWarnings("unchecked")
+                final var typedListener = (Consumer<T>) listener;
+                typedListener.accept(newValue);
             }
-        }
-    }
-
-    /// {@return a read-only property for the most recently used directory}
-    public ReadOnlyObjectProperty<Path> recentDirectoryProperty() {
-        return this.recentDirectory.getReadOnlyProperty();
-    }
-
-    private void updateRecentDirectory() {
-        this.recentDirectory.set(getDirectory(RECENT_DIRECTORY_KEY));
+        });
     }
 
     /// {@return the most recently used directory, or the user's home directory if
     /// not set or invalid.}
     public Path getRecentDirectory() {
-        return recentDirectoryProperty().get();
+        return getDirectory(RECENT_DIRECTORY_KEY);
     }
 
     /// Set the most recently used directory.
-    /// 
+    ///
     /// @param directory the directory to set, or null to remove the preference
     public void putMostRecentlyUsedDirectory(final Path directory) {
         putPath(RECENT_DIRECTORY_KEY, directory);
-    }
-
-    /// {@return a read-only property for the memory size}
-    public ReadOnlyObjectProperty<MemorySize> memorySizeProperty() {
-        return this.memorySize.getReadOnlyProperty();
-    }
-
-    private void updateMemorySize() {
-        this.memorySize.set(getEnumValue(MEMORY_SIZE_KEY, MemorySize.class, () -> DEFAULT_MEMORY_SIZE));
+        firePreferenceChanged(RECENT_DIRECTORY_PROPERTY, getRecentDirectory());
     }
 
     /// {@return the memory size, or [MemorySize#SMALL] if not set or invalid}
     public MemorySize getMemorySize() {
-        return memorySizeProperty().get();
+        return getEnumValue(MEMORY_SIZE_KEY, MemorySize.class, () -> DEFAULT_MEMORY_SIZE);
     }
 
     /// Set the memory size.
@@ -127,21 +144,13 @@ public final class UserPreferences {
     /// @param newMemorySize the memory size to set, or null to remove the preference
     public void putMemorySize(final MemorySize newMemorySize) {
         putEnum(MEMORY_SIZE_KEY, newMemorySize);
-    }
-
-    /// {@return a read-only property for the processor speed}
-    public ReadOnlyObjectProperty<ProcessorSpeed> processorSpeedProperty() {
-        return this.processorSpeed.getReadOnlyProperty();
-    }
-
-    private void updateProcessorSpeed() {
-        this.processorSpeed.set(getEnumValue(PROCESSOR_SPEED_KEY, ProcessorSpeed.class, () -> DEFAULT_PROCESSOR_SPEED));
+        firePreferenceChanged(MEMORY_SIZE_PROPERTY, getMemorySize());
     }
 
     /// {@return the processor speed, or [ProcessorSpeed#MEDIUM] if not set
     /// or invalid}
     public ProcessorSpeed getProcessorSpeed() {
-        return processorSpeedProperty().get();
+        return getEnumValue(PROCESSOR_SPEED_KEY, ProcessorSpeed.class, () -> DEFAULT_PROCESSOR_SPEED);
     }
 
     /// Set the processor speed.
@@ -150,20 +159,12 @@ public final class UserPreferences {
     ///                          the preference
     public void putProcessorSpeed(final ProcessorSpeed newProcessorSpeed) {
         putEnum(PROCESSOR_SPEED_KEY, newProcessorSpeed);
-    }
-
-    /// {@return a read-only property for the theme}
-    public ReadOnlyObjectProperty<Theme> themeProperty() {
-        return this.theme.getReadOnlyProperty();
-    }
-
-    private void updateTheme() {
-        this.theme.set(getEnumValue(THEME_KEY, Theme.class, () -> DEFAULT_THEME));
+        firePreferenceChanged(PROCESSOR_SPEED_PROPERTY, getProcessorSpeed());
     }
 
     /// {@return the theme, or [Theme#LIGHT] if not set or invalid.}
     public Theme getTheme() {
-        return themeProperty().get();
+        return getEnumValue(THEME_KEY, Theme.class, () -> DEFAULT_THEME);
     }
 
     /// Set the theme.
@@ -171,11 +172,26 @@ public final class UserPreferences {
     /// @param newTheme the theme to set, or null to remove the preference
     public void putTheme(final Theme newTheme) {
         putEnum(THEME_KEY, newTheme);
+        firePreferenceChanged(THEME_PROPERTY, getTheme());
     }
 
-    /// {@return a read-only property for the recently opened files}
-    public ReadOnlyListProperty<Path> recentFilesProperty() {
-        return this.recentFiles.getReadOnlyProperty();
+    /// {@return the log level, or [System.Logger.Level#INFO] if not set
+    /// or invalid.}
+    public System.Logger.Level getLogLevel() {
+        return getEnumValue(LOG_LEVEL_KEY, System.Logger.Level.class, () -> DEFAULT_LOG_LEVEL);
+    }
+
+    /// Set the log level.
+    ///
+    /// @param newLogLevel the log level to set, or null to remove the preference
+    public void putLogLevel(final System.Logger.Level newLogLevel) {
+        putEnum(LOG_LEVEL_KEY, newLogLevel);
+        firePreferenceChanged(LOG_LEVEL_PROPERTY, getLogLevel());
+    }
+
+    /// {@return an unmodifiable view of the recently opened files}
+    public List<Path> getRecentFiles() {
+        return Collections.unmodifiableList(this.recentFiles);
     }
 
     /// Adds a file to the recent files list. If the file is already in the list, it
@@ -184,11 +200,12 @@ public final class UserPreferences {
     /// @param file the file to add, must not be `null`
     public void addRecentFile(final Path file) {
         requireNonNull(file);
-        this.modifiableRecentFiles.remove(file);
-        this.modifiableRecentFiles.addFirst(file);
-        while (this.modifiableRecentFiles.size() > MAX_RECENT_FILES)
-            this.modifiableRecentFiles.removeLast();
+        this.recentFiles.remove(file);
+        this.recentFiles.addFirst(file);
+        while (this.recentFiles.size() > MAX_RECENT_FILES)
+            this.recentFiles.removeLast();
         persistRecentFiles();
+        firePreferenceChanged(RECENT_FILES_PROPERTY, getRecentFiles());
     }
 
     /// Removes a file from the recent files list.
@@ -196,43 +213,19 @@ public final class UserPreferences {
     /// @param file the file to remove, must not be `null`
     public void removeRecentFile(final Path file) {
         requireNonNull(file);
-        if (this.modifiableRecentFiles.remove(file))
+        if (this.recentFiles.remove(file)) {
             persistRecentFiles();
+            firePreferenceChanged(RECENT_FILES_PROPERTY, getRecentFiles());
+        }
     }
 
     /// Removes all files from the recent files list.
     public void clearRecentFiles() {
-        if (!this.modifiableRecentFiles.isEmpty()) {
-            this.modifiableRecentFiles.clear();
+        if (!this.recentFiles.isEmpty()) {
+            this.recentFiles.clear();
             persistRecentFiles();
+            firePreferenceChanged(RECENT_FILES_PROPERTY, getRecentFiles());
         }
-    }
-
-    private void updateRecentFiles() {
-        final var node = this.preferences.node(RECENT_FILES_NODE);
-        final var count = node.getInt(RECENT_FILES_COUNT_KEY, 0);
-        final var files = new ArrayList<Path>();
-        for (var i = 0; i < count; i++) {
-            final var value = node.get(String.valueOf(i), null);
-            if (value != null) {
-                try {
-                    files.add(Path.of(value));
-                } catch (final InvalidPathException _) {
-                    // skip invalid entries
-                }
-            }
-        }
-        this.modifiableRecentFiles.setAll(files);
-    }
-
-    private void persistRecentFiles() {
-        final var node = this.preferences.node(RECENT_FILES_NODE);
-        final var size = this.modifiableRecentFiles.size();
-        node.putInt(RECENT_FILES_COUNT_KEY, size);
-        for (var i = 0; i < size; i++)
-            node.put(String.valueOf(i), this.modifiableRecentFiles.get(i).toString());
-        for (var i = size; i < MAX_RECENT_FILES; i++)
-            node.remove(String.valueOf(i));
     }
 
     /// Returns the saved window state for the given window identifier.
@@ -246,7 +239,7 @@ public final class UserPreferences {
         final var maximized = node.getBoolean(WINDOW_MAXIMIZED_KEY, false);
 
         if (maximized)
-            return Optional.of(new WindowState(null, true));
+            return Optional.of(new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN));
 
         final var x = node.getDouble(WINDOW_X_KEY, Double.NaN);
         final var y = node.getDouble(WINDOW_Y_KEY, Double.NaN);
@@ -256,7 +249,7 @@ public final class UserPreferences {
         if (Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(width) || Double.isNaN(height))
             return Optional.empty();
 
-        return Optional.of(new WindowState(new Rectangle2D(x, y, width, height), false));
+        return Optional.of(new WindowState(false, x, y, width, height));
     }
 
     /// Save the window state for the given window identifier, or remove the sub
@@ -270,26 +263,52 @@ public final class UserPreferences {
         final var node = this.preferences.node(WINDOWS_NODE).node(windowId);
         if (windowState != null) {
             if (windowState.maximized()) {
+                node.putBoolean(WINDOW_MAXIMIZED_KEY, true);
                 node.remove(WINDOW_X_KEY);
                 node.remove(WINDOW_Y_KEY);
                 node.remove(WINDOW_WIDTH_KEY);
                 node.remove(WINDOW_HEIGHT_KEY);
-                node.putBoolean(WINDOW_MAXIMIZED_KEY, true);
             } else {
-                final var bounds = windowState.bounds();
-                node.putDouble(WINDOW_X_KEY, bounds.getMinX());
-                node.putDouble(WINDOW_Y_KEY, bounds.getMinY());
-                node.putDouble(WINDOW_WIDTH_KEY, bounds.getWidth());
-                node.putDouble(WINDOW_HEIGHT_KEY, bounds.getHeight());
                 node.putBoolean(WINDOW_MAXIMIZED_KEY, false);
+                node.putDouble(WINDOW_X_KEY, windowState.x());
+                node.putDouble(WINDOW_Y_KEY, windowState.y());
+                node.putDouble(WINDOW_WIDTH_KEY, windowState.width());
+                node.putDouble(WINDOW_HEIGHT_KEY, windowState.height());
             }
         } else {
+            node.remove(WINDOW_MAXIMIZED_KEY);
             node.remove(WINDOW_X_KEY);
             node.remove(WINDOW_Y_KEY);
             node.remove(WINDOW_WIDTH_KEY);
             node.remove(WINDOW_HEIGHT_KEY);
-            node.remove(WINDOW_MAXIMIZED_KEY);
         }
+    }
+
+    private List<Path> loadRecentFiles() {
+        final var node = this.preferences.node(RECENT_FILES_NODE);
+        final var count = node.getInt(RECENT_FILES_COUNT_KEY, 0);
+        final var files = new ArrayList<Path>();
+        for (var i = 0; i < count; i++) {
+            final var value = node.get(String.valueOf(i), null);
+            if (value != null) {
+                try {
+                    files.add(Path.of(value));
+                } catch (final InvalidPathException _) {
+                    // skip invalid entries
+                }
+            }
+        }
+        return files;
+    }
+
+    private void persistRecentFiles() {
+        final var node = this.preferences.node(RECENT_FILES_NODE);
+        final var size = this.recentFiles.size();
+        node.putInt(RECENT_FILES_COUNT_KEY, size);
+        for (var i = 0; i < size; i++)
+            node.put(String.valueOf(i), this.recentFiles.get(i).toString());
+        for (var i = size; i < MAX_RECENT_FILES; i++)
+            node.remove(String.valueOf(i));
     }
 
     private Path getDirectory(final String key) {

@@ -29,6 +29,8 @@ import name.ulbricht.dlx.simulator.OperationCode;
 /// computes section sizes, pass 2 emits the binary.
 public final class Compiler {
 
+    private static final System.Logger log = System.getLogger(Compiler.class.getName());
+
     private List<Diagnostic> diagnostics;
     private Map<String, Integer> symbols;
 
@@ -83,10 +85,6 @@ public final class Compiler {
         return new CompiledProgram(parsed.id(), program, dataSize, this.diagnostics);
     }
 
-    // -------------------------------------------------------------------------
-    // Pass 1 helpers
-    // -------------------------------------------------------------------------
-
     private void registerLabel(final String label, final ParsedElement element, final int address) {
         if (label != null) {
             if (this.symbols.containsKey(label)) {
@@ -119,10 +117,6 @@ public final class Compiler {
             }
         };
     }
-
-    // -------------------------------------------------------------------------
-    // Pass 2 — data emission
-    // -------------------------------------------------------------------------
 
     private int emitData(final byte[] program, final int startOffset, final ParsedDataDeclaration decl) {
         var offset = startOffset;
@@ -174,10 +168,6 @@ public final class Compiler {
         }
         return offset;
     }
-
-    // -------------------------------------------------------------------------
-    // Pass 2 — instruction encoding
-    // -------------------------------------------------------------------------
 
     private int encodeInstruction(final ParsedInstruction instr, final int addr) {
         return switch (instr.opcode()) {
@@ -254,8 +244,6 @@ public final class Compiler {
         };
     }
 
-    // --- R-format: rd, rs1, rs2 ---
-
     private int encodeRFormat(final ParsedInstruction instr, final FunctionCode func) {
         if (!checkOperandCount(instr, 3))
             return 0;
@@ -266,8 +254,6 @@ public final class Compiler {
             return 0;
         return encodeR(rs1, rs2, rd, func.code);
     }
-
-    // --- I-format arithmetic: rd, rs1, imm|label ---
 
     private int encodeIArith(final ParsedInstruction instr, final OperationCode opcode) {
         if (!checkOperandCount(instr, 3))
@@ -280,8 +266,6 @@ public final class Compiler {
         return encodeI(opcode.code, rs1, rd, imm);
     }
 
-    // --- I-format load: rd, offset(base)|label(base) ---
-
     private int encodeILoad(final ParsedInstruction instr, final OperationCode opcode) {
         if (!checkOperandCount(instr, 2))
             return 0;
@@ -292,8 +276,6 @@ public final class Compiler {
         return encodeI(opcode.code, mem[1], rd, mem[0]);
     }
 
-    // --- I-format store: offset(base)|label(base), dataReg ---
-
     private int encodeIStore(final ParsedInstruction instr, final OperationCode opcode) {
         if (!checkOperandCount(instr, 2))
             return 0;
@@ -303,8 +285,6 @@ public final class Compiler {
             return 0;
         return encodeI(opcode.code, mem[1], dataReg, mem[0]);
     }
-
-    // --- I-format branch: rs1, label ---
 
     private int encodeIBranch(final ParsedInstruction instr, final OperationCode opcode, final int addr) {
         if (!checkOperandCount(instr, 2))
@@ -319,8 +299,6 @@ public final class Compiler {
         return encodeI(opcode.code, rs1, 0, offset);
     }
 
-    // --- I-format jump register: rs1 ---
-
     private int encodeIJumpReg(final ParsedInstruction instr, final OperationCode opcode) {
         if (!checkOperandCount(instr, 1))
             return 0;
@@ -329,8 +307,6 @@ public final class Compiler {
             return 0;
         return encodeI(opcode.code, rs1, 0, 0);
     }
-
-    // --- I-format LHI: rd, imm|label ---
 
     private int encodeILhi(final ParsedInstruction instr) {
         if (!checkOperandCount(instr, 2))
@@ -342,14 +318,10 @@ public final class Compiler {
         return encodeI(OperationCode.LHI.code, 0, rd, imm);
     }
 
-    // --- I-format HALT ---
-
     @SuppressWarnings("static-method")
     private int encodeIHalt() {
         return encodeI(OperationCode.HALT.code, 0, 0, 0);
     }
-
-    // --- J-format: label ---
 
     private int encodeJFormat(final ParsedInstruction instr, final OperationCode opcode, final int addr) {
         if (!checkOperandCount(instr, 1))
@@ -363,10 +335,6 @@ public final class Compiler {
         return encodeJ(opcode.code, distance);
     }
 
-    // -------------------------------------------------------------------------
-    // Bit-level encoding
-    // -------------------------------------------------------------------------
-
     private static int encodeR(final int rs1, final int rs2, final int rd, final int func) {
         return (OperationCode.SPECIAL.code << 26) | (rs1 << 21) | (rs2 << 16) | (rd << 11) | func;
     }
@@ -378,10 +346,6 @@ public final class Compiler {
     private static int encodeJ(final int opcode, final int dist26) {
         return (opcode << 26) | (dist26 & 0x03FF_FFFF);
     }
-
-    // -------------------------------------------------------------------------
-    // Operand extraction and resolution
-    // -------------------------------------------------------------------------
 
     private int expectRegister(final ParsedInstruction instr, final int index) {
         final var op = instr.operands().get(index);
@@ -438,10 +402,6 @@ public final class Compiler {
         return addr.intValue();
     }
 
-    // -------------------------------------------------------------------------
-    // Validation helpers
-    // -------------------------------------------------------------------------
-
     private boolean checkOperandCount(final ParsedInstruction instr, final int expected) {
         if (instr.operands().size() != expected) {
             addError("Expected " + expected + " operand(s) for '" + instr.opcode()
@@ -450,10 +410,6 @@ public final class Compiler {
         }
         return true;
     }
-
-    // -------------------------------------------------------------------------
-    // Byte emission helpers
-    // -------------------------------------------------------------------------
 
     private static void emitWord(final byte[] buf, final int offset, final int value) {
         buf[offset] = (byte) (value >>> 24);
@@ -467,10 +423,6 @@ public final class Compiler {
         buf[offset + 1] = (byte) value;
     }
 
-    // -------------------------------------------------------------------------
-    // Data helpers
-    // -------------------------------------------------------------------------
-
     private static String stringValue(final ParsedDataDeclaration decl) {
         return (String) decl.values().getFirst();
     }
@@ -479,13 +431,16 @@ public final class Compiler {
         return ((Integer) decl.values().get(index)).intValue();
     }
 
-    // -------------------------------------------------------------------------
-    // Diagnostic helpers
-    // -------------------------------------------------------------------------
-
     private void addError(final String msg, final ParsedElement element) {
-        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.COMPILING, Diagnostic.Severity.ERROR,
-                element.pos(), msg));
+        addDiagnostic(Diagnostic.Severity.ERROR, msg, element);
+    }
+
+    private void addDiagnostic(final Diagnostic.Severity severity, final String msg, final ParsedElement element) {
+        requireNonNull(severity);
+
+        log.log(severity.toLogLevel(), msg);
+
+        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.COMPILING, severity, element.pos(), msg));
     }
 
     private boolean hasErrors() {

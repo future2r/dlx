@@ -14,6 +14,7 @@ import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import name.ulbricht.dlx.config.WindowState;
 
 /// Stage utilities.
 public final class Stages {
@@ -67,10 +68,9 @@ public final class Stages {
         requireNonNull(stage);
 
         if (stage.isMaximized())
-            return new WindowState(null, true);
+            return new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN);
 
-        final var bounds = new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
-        return new WindowState(bounds, false);
+        return new WindowState(false, stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
     }
 
     /// Restores the window state of the given stage to the given window state.
@@ -85,16 +85,17 @@ public final class Stages {
         if (windowState.maximized()) {
             stage.setMaximized(true);
         } else {
-            final var bounds = windowState.bounds();
-            final var screens = Screen.getScreensForRectangle(bounds);
+            final var rect = new Rectangle2D(windowState.x(), windowState.y(), windowState.width(),
+                    windowState.height());
+            final var screens = Screen.getScreensForRectangle(rect);
             if (screens.isEmpty())
                 return;
 
             final var screenBounds = screens.getFirst().getVisualBounds();
-            stage.setX(bounds.getMinX());
-            stage.setY(bounds.getMinY());
-            stage.setWidth(Math.min(bounds.getWidth(), screenBounds.getWidth() - bounds.getMinX()));
-            stage.setHeight(Math.min(bounds.getHeight(), screenBounds.getHeight() - bounds.getMinY()));
+            stage.setX(rect.getMinX());
+            stage.setY(rect.getMinY());
+            stage.setWidth(Math.min(rect.getWidth(), screenBounds.getWidth() - rect.getMinX()));
+            stage.setHeight(Math.min(rect.getHeight(), screenBounds.getHeight() - rect.getMinY()));
         }
     }
 

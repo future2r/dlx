@@ -28,6 +28,8 @@ public final class PreferencesController {
     private ChoiceBox<MemorySize> memorySizeChoiceBox;
     @FXML
     private ChoiceBox<Theme> themeChoiceBox;
+    @FXML
+    private ChoiceBox<System.Logger.Level> logLevelChoiceBox;
 
     /// Creates a new instance.
     public PreferencesController() {
@@ -50,6 +52,9 @@ public final class PreferencesController {
 
         this.themeChoiceBox.itemsProperty().bind(this.viewModel.themesProperty());
         this.themeChoiceBox.valueProperty().bindBidirectional(this.viewModel.selectedThemeProperty());
+
+        this.logLevelChoiceBox.itemsProperty().bind(this.viewModel.logLevelsProperty());
+        this.logLevelChoiceBox.valueProperty().bindBidirectional(this.viewModel.selectedLogLevelProperty());
     }
 
     private void handleOk(@SuppressWarnings("unused") final ActionEvent event) {

@@ -29,6 +29,10 @@ public final class PreferencesViewModel {
             FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(Theme.values())));
     private final ObjectProperty<Theme> selectedTheme = new SimpleObjectProperty<>();
 
+    private final ReadOnlyListWrapper<System.Logger.Level> logLevels = new ReadOnlyListWrapper<>(
+            FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(System.Logger.Level.values())));
+    private final ObjectProperty<System.Logger.Level> selectedLogLevel = new SimpleObjectProperty<>();
+
     private final UserPreferences userPreferences;
 
     /// Creates a new instance.
@@ -40,6 +44,7 @@ public final class PreferencesViewModel {
         this.selectedProcessorSpeed.set(this.userPreferences.getProcessorSpeed());
         this.selectedMemorySize.set(this.userPreferences.getMemorySize());
         this.selectedTheme.set(this.userPreferences.getTheme());
+        this.selectedLogLevel.set(this.userPreferences.getLogLevel());
     }
 
     /// {@return a read-only property for the available processor speeds}
@@ -123,16 +128,45 @@ public final class PreferencesViewModel {
         this.selectedTheme.set(theme);
     }
 
+    /// {@return a read-only property for the available log levels}
+    public ReadOnlyListProperty<System.Logger.Level> logLevelsProperty() {
+        return this.logLevels.getReadOnlyProperty();
+    }
+
+    /// {@return the list of available log levels}
+    public ObservableList<System.Logger.Level> getLogLevels() {
+        return this.logLevels.get();
+    }
+
+    /// {@return a property for the selected log level}
+    public ObjectProperty<System.Logger.Level> selectedLogLevelProperty() {
+        return this.selectedLogLevel;
+    }
+
+    /// {@return the currently selected log level}
+    public System.Logger.Level getSelectedLogLevel() {
+        return this.selectedLogLevel.get();
+    }
+
+    /// Sets the selected log level.
+    ///
+    /// @param logLevel the log level to select
+    public void setSelectedLogLevel(final System.Logger.Level logLevel) {
+        this.selectedLogLevel.set(logLevel);
+    }
+
     void restoreDefaults() {
         // Restore in this dialog only, user still needs to save the preferences
         this.selectedProcessorSpeed.set(UserPreferences.DEFAULT_PROCESSOR_SPEED);
         this.selectedMemorySize.set(UserPreferences.DEFAULT_MEMORY_SIZE);
         this.selectedTheme.set(UserPreferences.DEFAULT_THEME);
+        this.selectedLogLevel.set(UserPreferences.DEFAULT_LOG_LEVEL);
     }
 
     void savePreferences() {
         this.userPreferences.putProcessorSpeed(getSelectedProcessorSpeed());
         this.userPreferences.putMemorySize(getSelectedMemorySize());
         this.userPreferences.putTheme(getSelectedTheme());
+        this.userPreferences.putLogLevel(getSelectedLogLevel());
     }
 }

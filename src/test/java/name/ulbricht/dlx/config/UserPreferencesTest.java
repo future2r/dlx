@@ -2,7 +2,6 @@ package name.ulbricht.dlx.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
@@ -12,9 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import javafx.geometry.Rectangle2D;
-import name.ulbricht.dlx.ui.stage.WindowState;
 
 final class UserPreferencesTest {
 
@@ -35,31 +31,33 @@ final class UserPreferencesTest {
     @Test
     @DisplayName("putWindowState then getWindowState round-trips correctly")
     void windowStateRoundTrip() {
-        final var bounds = new Rectangle2D(100, 200, 800, 600);
-        this.prefs.putWindowState("main", new WindowState(bounds, false));
+        final var expected = new WindowState(false, 100, 200, 800, 600);
+        this.prefs.putWindowState("main", expected);
 
         final var restored = this.prefs.getWindowState("main");
         assertTrue(restored.isPresent());
-        assertEquals(bounds, restored.get().bounds());
+        assertEquals(expected, restored.get());
         assertFalse(restored.get().maximized());
     }
 
     @Test
     @DisplayName("putWindowState with maximized stores only the maximized flag")
     void windowStateMaximized() {
-        this.prefs.putWindowState("main", new WindowState(null, true));
+        this.prefs.putWindowState("main", new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN));
 
         final var restored = this.prefs.getWindowState("main");
         assertTrue(restored.isPresent());
-        assertNull(restored.get().bounds());
         assertTrue(restored.get().maximized());
+        assertTrue(Double.isNaN(restored.get().x()));
+        assertTrue(Double.isNaN(restored.get().y()));
+        assertTrue(Double.isNaN(restored.get().width()));
+        assertTrue(Double.isNaN(restored.get().height()));
     }
 
     @Test
     @DisplayName("putWindowState with null removes the sub-node")
     void windowStateRemoval() {
-        final var bounds = new Rectangle2D(10, 20, 640, 480);
-        this.prefs.putWindowState("main", new WindowState(bounds, false));
+        this.prefs.putWindowState("main", new WindowState(false, 10, 20, 640, 480));
 
         this.prefs.putWindowState("main", null);
 
@@ -69,18 +67,18 @@ final class UserPreferencesTest {
     @Test
     @DisplayName("Different window IDs are independent")
     void windowStateIndependentIds() {
-        final var boundsA = new Rectangle2D(0, 0, 500, 400);
+        final var stateA = new WindowState(false, 0, 0, 500, 400);
+        final var stateB = new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN);
 
-        this.prefs.putWindowState("main", new WindowState(boundsA, false));
-        this.prefs.putWindowState("other", new WindowState(null, true));
+        this.prefs.putWindowState("main", stateA);
+        this.prefs.putWindowState("other", stateB);
 
         final var restoredA = this.prefs.getWindowState("main");
         final var restoredB = this.prefs.getWindowState("other");
 
-        assertEquals(boundsA, restoredA.get().bounds());
+        assertEquals(stateA, restoredA.get());
         assertFalse(restoredA.get().maximized());
 
-        assertNull(restoredB.get().bounds());
         assertTrue(restoredB.get().maximized());
     }
 
@@ -91,7 +89,7 @@ final class UserPreferencesTest {
         @Test
         @DisplayName("recent files list is empty by default")
         void emptyByDefault() {
-            assertTrue(UserPreferencesTest.this.prefs.recentFilesProperty().isEmpty());
+            assertTrue(UserPreferencesTest.this.prefs.getRecentFiles().isEmpty());
         }
 
         @Test
@@ -100,7 +98,7 @@ final class UserPreferencesTest {
             final var file = Path.of("/tmp/test.s");
             UserPreferencesTest.this.prefs.addRecentFile(file);
 
-            assertEquals(List.of(file), List.copyOf(UserPreferencesTest.this.prefs.recentFilesProperty()));
+            assertEquals(List.of(file), UserPreferencesTest.this.prefs.getRecentFiles());
         }
 
         @Test
@@ -117,8 +115,7 @@ final class UserPreferencesTest {
             // Re-add file1 — should move to front
             UserPreferencesTest.this.prefs.addRecentFile(file1);
 
-            assertEquals(List.of(file1, file3, file2),
-                    List.copyOf(UserPreferencesTest.this.prefs.recentFilesProperty()));
+            assertEquals(List.of(file1, file3, file2), UserPreferencesTest.this.prefs.getRecentFiles());
         }
 
         @Test
@@ -127,9 +124,9 @@ final class UserPreferencesTest {
             for (var i = 0; i < 7; i++)
                 UserPreferencesTest.this.prefs.addRecentFile(Path.of("/tmp/file" + i + ".s"));
 
-            assertEquals(5, UserPreferencesTest.this.prefs.recentFilesProperty().size());
-            assertEquals(Path.of("/tmp/file6.s"), UserPreferencesTest.this.prefs.recentFilesProperty().getFirst());
-            assertEquals(Path.of("/tmp/file2.s"), UserPreferencesTest.this.prefs.recentFilesProperty().getLast());
+            assertEquals(5, UserPreferencesTest.this.prefs.getRecentFiles().size());
+            assertEquals(Path.of("/tmp/file6.s"), UserPreferencesTest.this.prefs.getRecentFiles().getFirst());
+            assertEquals(Path.of("/tmp/file2.s"), UserPreferencesTest.this.prefs.getRecentFiles().getLast());
         }
 
         @Test
@@ -142,7 +139,7 @@ final class UserPreferencesTest {
             UserPreferencesTest.this.prefs.addRecentFile(file2);
             UserPreferencesTest.this.prefs.removeRecentFile(file1);
 
-            assertEquals(List.of(file2), List.copyOf(UserPreferencesTest.this.prefs.recentFilesProperty()));
+            assertEquals(List.of(file2), UserPreferencesTest.this.prefs.getRecentFiles());
         }
 
         @Test
@@ -152,7 +149,7 @@ final class UserPreferencesTest {
             UserPreferencesTest.this.prefs.addRecentFile(Path.of("/tmp/b.s"));
             UserPreferencesTest.this.prefs.clearRecentFiles();
 
-            assertTrue(UserPreferencesTest.this.prefs.recentFilesProperty().isEmpty());
+            assertTrue(UserPreferencesTest.this.prefs.getRecentFiles().isEmpty());
         }
     }
 }

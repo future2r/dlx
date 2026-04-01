@@ -103,6 +103,21 @@ public final class PreferencesView {
         };
     }
 
+    /// {@return a string converter for log levels}
+    public static StringConverter<System.Logger.Level> logLevelConverter() {
+        return new StringConverter<>() {
+            @Override
+            public String toString(final System.Logger.Level level) {
+                return Messages.getString("logLevel." + level.name().toLowerCase());
+            }
+
+            @Override
+            public System.Logger.Level fromString(final String string) {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
     /// {@return a button type for restoring default preferences}
     public static ButtonType restoreDefaultsButtonType() {
         return new ButtonType(Messages.getString("preferences.restoreDefaults.text"), ButtonBar.ButtonData.LEFT);
