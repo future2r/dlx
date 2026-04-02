@@ -4,7 +4,7 @@ import java.util.concurrent.Executor;
 
 import javafx.application.Platform;
 import name.ulbricht.dlx.config.UserPreferences;
-import name.ulbricht.dlx.service.LogStore;
+import name.ulbricht.dlx.service.Logging;
 import name.ulbricht.dlx.service.Services;
 
 /// Provides shared resources required by views. Factory methods can be
@@ -24,8 +24,8 @@ public final class ViewServices {
     }
 
     /// {@return the shared log store instance}
-    public static LogStore logStore() {
-        return Services.logStore();
+    public static Logging logStore() {
+        return Services.logging();
     }
 
     /// Private constructor to prevent instantiation.

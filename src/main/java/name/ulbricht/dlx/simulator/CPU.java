@@ -388,23 +388,27 @@ public final class CPU {
     /// Registers a listener to be notified after every processing step.
     /// 
     /// @param listener the listener to register; must not be `null`
-    public void addProcessingListener(final ProcessingListener listener) {
+    public synchronized void addProcessingListener(final ProcessingListener listener) {
         this.processingListeners.add(listener);
     }
 
     /// Unregisters a previously registered processing listener.
     /// 
     /// @param listener the listener to unregister; must not be `null`
-    public void removeProcessingListener(final ProcessingListener listener) {
+    public synchronized void removeProcessingListener(final ProcessingListener listener) {
         this.processingListeners.remove(listener);
     }
 
     private void notifyProcessingListeners() {
-        if (this.processingListeners.isEmpty())
-            return;
+        final List<ProcessingListener> currentListeners;
+        synchronized (this.processingListeners) {
+            if (this.processingListeners.isEmpty())
+                return;
+            currentListeners = List.copyOf(this.processingListeners);
+        }
 
         final var step = new ProcessingListener.ProcessStep(this.cycles, this.programCounter, this.halted);
-        List.copyOf(this.processingListeners).forEach(listener -> listener.processing(step));
+        currentListeners.forEach(listener -> listener.processing(step));
     }
 
     /// Returns an immutable snapshot of all four pipeline latches at the current

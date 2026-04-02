@@ -200,11 +200,11 @@ final class Memory {
         }
     }
 
-    void addAccessListener(final MemoryAccessListener listener) {
+    synchronized void addAccessListener(final MemoryAccessListener listener) {
         this.accessListeners.add(listener);
     }
 
-    void removeAccessListener(final MemoryAccessListener listener) {
+    synchronized void removeAccessListener(final MemoryAccessListener listener) {
         this.accessListeners.remove(listener);
     }
 
@@ -217,11 +217,15 @@ final class Memory {
     }
 
     private void notifyAccessListeners(final Access access, final int address, final byte[] value) {
-        if (this.accessListeners.isEmpty())
-            return;
+        final List<MemoryAccessListener> currentListeners;
+        synchronized (this.accessListeners) {
+            if (this.accessListeners.isEmpty())
+                return;
+            currentListeners = List.copyOf(this.accessListeners);
+        }
 
         final var event = new MemoryAccess(access, address, value);
-        List.copyOf(this.accessListeners).forEach(listener -> listener.memoryAccessed(event));
+        currentListeners.forEach(listener -> listener.memoryAccessed(event));
     }
 
     /// {@return a read-only view of this memory}

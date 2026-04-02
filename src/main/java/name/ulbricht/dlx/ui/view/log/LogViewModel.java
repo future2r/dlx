@@ -12,13 +12,13 @@ import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import name.ulbricht.dlx.service.LogStore;
+import name.ulbricht.dlx.service.Logging;
 
 /// View model for the Log view.
 public final class LogViewModel {
 
     private final Executor uiExecutor;
-    private final LogStore logStore;
+    private final Logging logStore;
 
     private final ObservableList<LogEntry> modifiableEntries = FXCollections.observableArrayList();
     private final ReadOnlyListWrapper<LogEntry> entries = new ReadOnlyListWrapper<>(
@@ -26,7 +26,7 @@ public final class LogViewModel {
 
     private final BooleanProperty autoScroll = new SimpleBooleanProperty(true);
 
-    private final LogStore.LogListener storeListener = this::storeChanged;
+    private final Logging.LogListener storeListener = this::storeChanged;
 
     /// Creates a new log view model instance.
     /// 
@@ -34,7 +34,7 @@ public final class LogViewModel {
     /// @param logStore   the log store to observe for log entries
     public LogViewModel(
             @NamedArg("uiExecutor") final Executor uiExecutor,
-            @NamedArg("logStore") final LogStore logStore) {
+            @NamedArg("logStore") final Logging logStore) {
         this.uiExecutor = requireNonNull(uiExecutor);
         this.logStore = requireNonNull(logStore);
 
@@ -74,12 +74,12 @@ public final class LogViewModel {
         this.autoScroll.set(autoScroll);
     }
 
-    private void applySnapshot(final LogStore store) {
+    private void applySnapshot(final Logging store) {
         final var snapshot = store.snapshot().stream().map(LogEntry::new).toList();
         this.uiExecutor.execute(() -> this.modifiableEntries.setAll(snapshot));
     }
 
-    private void storeChanged(final LogStore.Change change) {
+    private void storeChanged(final Logging.Change change) {
         this.uiExecutor.execute(() -> {
             if (!change.removed().isEmpty()) {
                 // Remove entries whose LogRecords are in the removed set

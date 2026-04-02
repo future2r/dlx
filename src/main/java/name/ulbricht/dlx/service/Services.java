@@ -6,7 +6,7 @@ import name.ulbricht.dlx.config.UserPreferences;
 public final class Services {
 
     private static UserPreferences userPreferences;
-    private static LogStore logStore;
+    private static Logging logging;
 
     /// {@return the shared user preferences instance}
     public static UserPreferences userPreferences() {
@@ -15,11 +15,11 @@ public final class Services {
         return userPreferences;
     }
 
-    /// {@return the shared log store instance}
-    public static LogStore logStore() {
-        if (logStore == null)
-            logStore = new LogStore();
-        return logStore;
+    /// {@return the shared logging service instance}
+    public static Logging logging() {
+        if (logging == null)
+            logging = new Logging();
+        return logging;
     }
 
     /// Private constructor to prevent instantiation.

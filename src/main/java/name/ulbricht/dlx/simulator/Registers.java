@@ -82,11 +82,11 @@ final class Registers {
         return this.regs.clone();
     }
 
-    void addAccessListener(final RegisterAccessListener listener) {
+    synchronized void addAccessListener(final RegisterAccessListener listener) {
         this.accessListeners.add(listener);
     }
 
-    void removeAccessListener(final RegisterAccessListener listener) {
+    synchronized void removeAccessListener(final RegisterAccessListener listener) {
         this.accessListeners.remove(listener);
     }
 
@@ -99,11 +99,15 @@ final class Registers {
     }
 
     private void notifyAccessListeners(final Access access, final int index, final int value) {
-        if (this.accessListeners.isEmpty())
-            return;
+        final List<RegisterAccessListener> currentListeners;
+        synchronized (this.accessListeners) {
+            if (this.accessListeners.isEmpty())
+                return;
+            currentListeners = List.copyOf(this.accessListeners);
+        }
 
         final var event = new RegisterAccess(access, index, value);
-        List.copyOf(this.accessListeners).forEach(listener -> listener.registerAccessed(event));
+        currentListeners.forEach(listener -> listener.registerAccessed(event));
     }
 
     /// {@return a read-only view of this registers}

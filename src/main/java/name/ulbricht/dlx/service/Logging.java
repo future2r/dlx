@@ -4,16 +4,67 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-/// Service that stores recent log records and notifies listeners about changes.
-public final class LogStore {
+import name.ulbricht.dlx.config.UserPreferences;
+
+/// Logging service that also stores recent log records and notifies listeners
+/// about changes. This implementation uses the 'java.util.logging' framework.
+/// The application itselfs however uses the 'System.Logger' API. This way, the
+/// application stys independent of the underlying logging framework.
+public final class Logging {
 
     /// Maximum number of records retained in this store.
     private static final int MAX_ENTRIES = 100;
 
-    private final Logger rootLogger = Logger.getLogger("");
+    private static final Logger rootLogger = Logger.getLogger("name.ulbricht.dlx");
+
+    /// Initializes the logging system.
+    public static void initLogging() {
+        // Load logging configuration from the bundled properties file
+        try (var is = Logging.class.getResourceAsStream("/name/ulbricht/dlx/logging.properties")) {
+            if (is != null)
+                LogManager.getLogManager().readConfiguration(is);
+        } catch (final Exception _) {
+            // Fall back to JVM defaults
+        }
+
+        // Apply the log level from the user preferences
+        applyLogLevel(Services.userPreferences().getLogLevel());
+
+        // Register for future changes of the log level
+        Services.userPreferences().addPreferenceChangeListener(UserPreferences.LOG_LEVEL_PROPERTY,
+                Logging::applyLogLevel);
+    }
+
+    /// Applies the current log level preference to the 'java.util.logging' root
+    /// logger.
+    /// 
+    /// @param level The log level to apply.
+    private static void applyLogLevel(final System.Logger.Level level) {
+        final var utilLevel = convertLevel(level);
+        rootLogger.setLevel(utilLevel);
+        for (final var handler : rootLogger.getHandlers())
+            handler.setLevel(utilLevel);
+    }
+
+    /// Converts a [System.Logger.Level] to a [java.util.logging.Level].
+    /// 
+    /// @param level The [System.Logger.Level] to convert.
+    /// @return The corresponding [java.util.logging.Level].
+    private static Level convertLevel(final System.Logger.Level level) {
+        return switch (level) {
+            case OFF -> Level.OFF;
+            case ERROR -> Level.SEVERE;
+            case WARNING -> Level.WARNING;
+            case INFO -> Level.INFO;
+            case DEBUG -> Level.FINE;
+            case TRACE -> Level.FINER;
+            case ALL -> Level.ALL;
+        };
+    }
 
     private final List<LogRecord> records = new ArrayList<>();
 
@@ -40,9 +91,9 @@ public final class LogStore {
 
     /// Creates a new log store and installs a root logging handler that forwards
     /// records into this store.
-    public LogStore() {
+    public Logging() {
         this.handler.setLevel(Level.ALL);
-        this.rootLogger.addHandler(this.handler);
+        rootLogger.addHandler(this.handler);
     }
 
     /// Returns an immutable snapshot of the currently retained records.
@@ -55,7 +106,7 @@ public final class LogStore {
     /// Clears all retained records.
     public void clear() {
         final List<LogRecord> removed;
-        synchronized (this) {
+        synchronized (this.records) {
             if (this.records.isEmpty())
                 return;
 
@@ -82,7 +133,7 @@ public final class LogStore {
 
     private void append(final LogRecord record) {
         final List<LogRecord> removed;
-        synchronized (this) {
+        synchronized (this.records) {
             this.records.add(record);
             if (this.records.size() > MAX_ENTRIES) {
                 removed = List.of(this.records.removeFirst());
@@ -97,6 +148,8 @@ public final class LogStore {
     private void notifyListeners(final Change change) {
         final List<LogListener> currentListeners;
         synchronized (this) {
+            if (this.listeners.isEmpty())
+                return;
             currentListeners = List.copyOf(this.listeners);
         }
 

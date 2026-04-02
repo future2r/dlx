@@ -87,7 +87,7 @@ public final class UserPreferences {
     /// @param <T>      the type of the preference value
     /// @param name     the name of the preference to listen for, must not be `null`
     /// @param listener the listener to add, must not be `null`
-    public <T> void addPreferenceChangeListener(final String name, final Consumer<T> listener) {
+    public synchronized <T> void addPreferenceChangeListener(final String name, final Consumer<T> listener) {
         requireNonNull(name);
         requireNonNull(listener);
 
@@ -99,7 +99,7 @@ public final class UserPreferences {
     /// @param <T>      the type of the preference value
     /// @param name     the name of the preference, must not be `null`
     /// @param listener the listener to remove, must not be `null`
-    public <T> void removePreferenceChangeListener(final String name, final Consumer<T> listener) {
+    public synchronized <T> void removePreferenceChangeListener(final String name, final Consumer<T> listener) {
         requireNonNull(name);
         requireNonNull(listener);
 
@@ -110,13 +110,20 @@ public final class UserPreferences {
         });
     }
 
-    private <T> void firePreferenceChanged(final String name, final T newValue) {
-        Optional.ofNullable(this.listeners.get(name)).ifPresent(list -> {
-            for (final var listener : List.copyOf(list)) {
-                @SuppressWarnings("unchecked")
-                final var typedListener = (Consumer<T>) listener;
-                typedListener.accept(newValue);
-            }
+    private <T> void notofyPreferenceChangeListeners(final String name, final T newValue) {
+        final List<Consumer<?>> currentListeners;
+        synchronized (this.listeners) {
+            if (this.listeners.isEmpty())
+                return;
+            currentListeners = this.listeners.get(name);
+            if (currentListeners == null || currentListeners.isEmpty())
+                return;
+        }
+
+        currentListeners.forEach(listener -> {
+            @SuppressWarnings("unchecked")
+            final var typedListener = (Consumer<T>) listener;
+            typedListener.accept(newValue);
         });
     }
 
@@ -131,7 +138,7 @@ public final class UserPreferences {
     /// @param directory the directory to set, or null to remove the preference
     public void putMostRecentlyUsedDirectory(final Path directory) {
         putPath(RECENT_DIRECTORY_KEY, directory);
-        firePreferenceChanged(RECENT_DIRECTORY_PROPERTY, getRecentDirectory());
+        notofyPreferenceChangeListeners(RECENT_DIRECTORY_PROPERTY, getRecentDirectory());
     }
 
     /// {@return the memory size, or [MemorySize#SMALL] if not set or invalid}
@@ -144,7 +151,7 @@ public final class UserPreferences {
     /// @param newMemorySize the memory size to set, or null to remove the preference
     public void putMemorySize(final MemorySize newMemorySize) {
         putEnum(MEMORY_SIZE_KEY, newMemorySize);
-        firePreferenceChanged(MEMORY_SIZE_PROPERTY, getMemorySize());
+        notofyPreferenceChangeListeners(MEMORY_SIZE_PROPERTY, getMemorySize());
     }
 
     /// {@return the processor speed, or [ProcessorSpeed#MEDIUM] if not set
@@ -159,7 +166,7 @@ public final class UserPreferences {
     ///                          the preference
     public void putProcessorSpeed(final ProcessorSpeed newProcessorSpeed) {
         putEnum(PROCESSOR_SPEED_KEY, newProcessorSpeed);
-        firePreferenceChanged(PROCESSOR_SPEED_PROPERTY, getProcessorSpeed());
+        notofyPreferenceChangeListeners(PROCESSOR_SPEED_PROPERTY, getProcessorSpeed());
     }
 
     /// {@return the theme, or [Theme#LIGHT] if not set or invalid.}
@@ -172,7 +179,7 @@ public final class UserPreferences {
     /// @param newTheme the theme to set, or null to remove the preference
     public void putTheme(final Theme newTheme) {
         putEnum(THEME_KEY, newTheme);
-        firePreferenceChanged(THEME_PROPERTY, getTheme());
+        notofyPreferenceChangeListeners(THEME_PROPERTY, getTheme());
     }
 
     /// {@return the log level, or [System.Logger.Level#INFO] if not set
@@ -186,7 +193,7 @@ public final class UserPreferences {
     /// @param newLogLevel the log level to set, or null to remove the preference
     public void putLogLevel(final System.Logger.Level newLogLevel) {
         putEnum(LOG_LEVEL_KEY, newLogLevel);
-        firePreferenceChanged(LOG_LEVEL_PROPERTY, getLogLevel());
+        notofyPreferenceChangeListeners(LOG_LEVEL_PROPERTY, getLogLevel());
     }
 
     /// {@return an unmodifiable view of the recently opened files}
@@ -205,7 +212,7 @@ public final class UserPreferences {
         while (this.recentFiles.size() > MAX_RECENT_FILES)
             this.recentFiles.removeLast();
         persistRecentFiles();
-        firePreferenceChanged(RECENT_FILES_PROPERTY, getRecentFiles());
+        notofyPreferenceChangeListeners(RECENT_FILES_PROPERTY, getRecentFiles());
     }
 
     /// Removes a file from the recent files list.
@@ -215,7 +222,7 @@ public final class UserPreferences {
         requireNonNull(file);
         if (this.recentFiles.remove(file)) {
             persistRecentFiles();
-            firePreferenceChanged(RECENT_FILES_PROPERTY, getRecentFiles());
+            notofyPreferenceChangeListeners(RECENT_FILES_PROPERTY, getRecentFiles());
         }
     }
 
@@ -224,7 +231,7 @@ public final class UserPreferences {
         if (!this.recentFiles.isEmpty()) {
             this.recentFiles.clear();
             persistRecentFiles();
-            firePreferenceChanged(RECENT_FILES_PROPERTY, getRecentFiles());
+            notofyPreferenceChangeListeners(RECENT_FILES_PROPERTY, getRecentFiles());
         }
     }
 
