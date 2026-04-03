@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import name.ulbricht.dlx.asm.Diagnostic;
+import name.ulbricht.dlx.asm.Instruction;
 import name.ulbricht.dlx.asm.parser.ImmediateOperand;
 import name.ulbricht.dlx.asm.parser.LabelImmediateOperand;
 import name.ulbricht.dlx.asm.parser.LabelMemoryOperand;
@@ -172,77 +173,21 @@ public final class Compiler {
     }
 
     private int encodeInstruction(final ParsedInstruction instr, final int addr) {
-        return switch (instr.opcode()) {
-            // R-format instructions
-            case "add" -> encodeRFormat(instr, FunctionCode.ADD);
-            case "addu" -> encodeRFormat(instr, FunctionCode.ADDU);
-            case "sub" -> encodeRFormat(instr, FunctionCode.SUB);
-            case "subu" -> encodeRFormat(instr, FunctionCode.SUBU);
-            case "and" -> encodeRFormat(instr, FunctionCode.AND);
-            case "or" -> encodeRFormat(instr, FunctionCode.OR);
-            case "xor" -> encodeRFormat(instr, FunctionCode.XOR);
-            case "sll" -> encodeRFormat(instr, FunctionCode.SLL);
-            case "srl" -> encodeRFormat(instr, FunctionCode.SRL);
-            case "sra" -> encodeRFormat(instr, FunctionCode.SRA);
-            case "seq" -> encodeRFormat(instr, FunctionCode.SEQ);
-            case "sne" -> encodeRFormat(instr, FunctionCode.SNE);
-            case "slt" -> encodeRFormat(instr, FunctionCode.SLT);
-            case "sgt" -> encodeRFormat(instr, FunctionCode.SGT);
-            case "sle" -> encodeRFormat(instr, FunctionCode.SLE);
-            case "sge" -> encodeRFormat(instr, FunctionCode.SGE);
-
-            // I-format arithmetic/logic/shift/set immediate
-            case "addi" -> encodeIArith(instr, OperationCode.ADDI);
-            case "addui" -> encodeIArith(instr, OperationCode.ADDUI);
-            case "subi" -> encodeIArith(instr, OperationCode.SUBI);
-            case "subui" -> encodeIArith(instr, OperationCode.SUBUI);
-            case "andi" -> encodeIArith(instr, OperationCode.ANDI);
-            case "ori" -> encodeIArith(instr, OperationCode.ORI);
-            case "xori" -> encodeIArith(instr, OperationCode.XORI);
-            case "slli" -> encodeIArith(instr, OperationCode.SLLI);
-            case "srli" -> encodeIArith(instr, OperationCode.SRLI);
-            case "srai" -> encodeIArith(instr, OperationCode.SRAI);
-            case "seqi" -> encodeIArith(instr, OperationCode.SEQI);
-            case "snei" -> encodeIArith(instr, OperationCode.SNEI);
-            case "slti" -> encodeIArith(instr, OperationCode.SLTI);
-            case "sgti" -> encodeIArith(instr, OperationCode.SGTI);
-            case "slei" -> encodeIArith(instr, OperationCode.SLEI);
-            case "sgei" -> encodeIArith(instr, OperationCode.SGEI);
-
-            // I-format loads
-            case "lb" -> encodeILoad(instr, OperationCode.LB);
-            case "lh" -> encodeILoad(instr, OperationCode.LH);
-            case "lw" -> encodeILoad(instr, OperationCode.LW);
-            case "lbu" -> encodeILoad(instr, OperationCode.LBU);
-            case "lhu" -> encodeILoad(instr, OperationCode.LHU);
-
-            // I-format stores
-            case "sb" -> encodeIStore(instr, OperationCode.SB);
-            case "sh" -> encodeIStore(instr, OperationCode.SH);
-            case "sw" -> encodeIStore(instr, OperationCode.SW);
-
-            // I-format branches
-            case "beqz" -> encodeIBranch(instr, OperationCode.BEQZ, addr);
-            case "bnez" -> encodeIBranch(instr, OperationCode.BNEZ, addr);
-
-            // I-format jump register
-            case "jr" -> encodeIJumpReg(instr, OperationCode.JR);
-            case "jalr" -> encodeIJumpReg(instr, OperationCode.JALR);
-
-            // I-format load high immediate
-            case "lhi" -> encodeILhi(instr);
-
-            // I-format halt
-            case "halt" -> encodeIHalt();
-
-            // J-format
-            case "j" -> encodeJFormat(instr, OperationCode.J, addr);
-            case "jal" -> encodeJFormat(instr, OperationCode.JAL, addr);
-
-            default -> {
-                addError("Unknown instruction '" + instr.opcode() + "'", instr);
-                yield 0;
-            }
+        final var def = Instruction.fromMnemonic(instr.opcode()).orElse(null);
+        if (def == null) {
+            addError("Unknown instruction '" + instr.opcode() + "'", instr);
+            return 0;
+        }
+        return switch (def.format) {
+            case R        -> encodeRFormat(instr, def.functionCode);
+            case I_ARITH  -> encodeIArith(instr, def.operationCode);
+            case LOAD     -> encodeILoad(instr, def.operationCode);
+            case STORE    -> encodeIStore(instr, def.operationCode);
+            case RD_IMM   -> encodeILhi(instr);
+            case RS_LABEL -> encodeIBranch(instr, def.operationCode, addr);
+            case LABEL    -> encodeJFormat(instr, def.operationCode, addr);
+            case RS       -> encodeIJumpReg(instr, def.operationCode);
+            case NONE     -> encodeIHalt();
         };
     }
 

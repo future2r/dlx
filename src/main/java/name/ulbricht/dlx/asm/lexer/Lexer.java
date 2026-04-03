@@ -4,39 +4,17 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import name.ulbricht.dlx.asm.Diagnostic;
+import name.ulbricht.dlx.asm.Directive;
+import name.ulbricht.dlx.asm.Instruction;
 import name.ulbricht.dlx.util.TextPosition;
 
 /// The lexer for the DLX assembler.
 public final class Lexer {
 
     private static final System.Logger log = System.getLogger(Lexer.class.getName());
-
-    private static final Set<String> DIRECTIVES = Set.of(
-            "data", "text",
-            "word", "half", "byte", "float", "double",
-            "ascii", "asciiz", "space", "align");
-
-    private static final Set<String> INSTRUCTIONS = Set.of(
-            "lb", "lh", "lw", "lbu", "lhu",
-            "sb", "sh", "sw",
-            "lhi",
-            "add", "sub", "addu", "subu",
-            "addi", "subi", "addui", "subui",
-            "and", "or", "xor",
-            "andi", "ori", "xori",
-            "sll", "srl", "sra",
-            "slli", "srli", "srai",
-            "slt", "sle", "seq",
-            "slti", "slei", "seqi",
-            "sgt", "sge", "sne",
-            "sgti", "sgei", "snei",
-            "beqz", "bnez",
-            "j", "jr", "jal", "jalr",
-            "halt");
 
     private final LexerMode mode;
     private final List<Token> tokens = new ArrayList<>();
@@ -188,7 +166,7 @@ public final class Lexer {
         final var raw = this.src.substring(start, this.pos);
         final var name = raw.substring(1).toLowerCase(); // strip dot, normalise
 
-        if (DIRECTIVES.contains(name)) {
+        if (Directive.isKnown(name)) {
             emit(new DirectiveToken(new TextPosition(this.line, start), raw, name));
         } else {
             addError("Unknown directive '" + raw + "'", start, raw.length());
@@ -296,7 +274,7 @@ public final class Lexer {
         }
 
         // Instruction?
-        if (INSTRUCTIONS.contains(lower)) {
+        if (Instruction.isKnown(lower)) {
             emit(new InstructionToken(new TextPosition(this.line, start), raw, lower));
             return;
         }

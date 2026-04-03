@@ -4,9 +4,9 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import name.ulbricht.dlx.asm.Diagnostic;
+import name.ulbricht.dlx.asm.Instruction;
 import name.ulbricht.dlx.asm.lexer.CommaToken;
 import name.ulbricht.dlx.asm.lexer.DirectiveToken;
 import name.ulbricht.dlx.asm.lexer.EOLToken;
@@ -42,26 +42,6 @@ public final class Parser {
     /// Creates a new Parser.
     public Parser() {
     }
-
-    /// R-format: Rd, Rs1, Rs2
-    private static final Set<String> FMT_R = Set.of(
-            "add", "sub", "addu", "subu",
-            "and", "or", "xor",
-            "sll", "srl", "sra",
-            "slt", "sle", "seq", "sgt", "sge", "sne");
-
-    /// I-format: Rd, Rs1, Imm
-    private static final Set<String> FMT_RI = Set.of(
-            "addi", "subi", "addui", "subui",
-            "andi", "ori", "xori",
-            "slli", "srli", "srai",
-            "slti", "slei", "seqi", "sgti", "sgei", "snei");
-
-    /// Load: Rd, mem(Rs)
-    private static final Set<String> FMT_LOAD = Set.of("lb", "lh", "lw", "lbu", "lhu");
-
-    /// Store: mem(Rs), Rsrc
-    private static final Set<String> FMT_STORE = Set.of("sb", "sh", "sw");
 
     private List<ParsedDataDeclaration> data;
     private List<ParsedInstruction> code;
@@ -181,29 +161,23 @@ public final class Parser {
 
     private void parseInstruction(final String label, final InstructionToken it, final List<Token> rest) {
         final String op = it.name();
-        final List<Operand> operands;
-
-        if (FMT_R.contains(op)) {
-            operands = parseRdRs1Rs2(rest, it);
-        } else if (FMT_RI.contains(op)) {
-            operands = parseRdRs1Imm(rest, it);
-        } else if (FMT_LOAD.contains(op)) {
-            operands = parseRdMem(rest, it);
-        } else if (FMT_STORE.contains(op)) {
-            operands = parseRsrcMem(rest, it);
-        } else {
-            operands = switch (op) {
-                case "lhi" -> parseRdImm(rest, it);
-                case "beqz", "bnez" -> parseRsLabel(rest, it);
-                case "j", "jal" -> parseLabel(rest, it);
-                case "jr", "jalr" -> parseRs(rest, it);
-                case "halt" -> parseNone(rest);
-                default -> {
-                    addError("Unknown instruction: " + op, it, it.raw().length());
-                    yield null;
-                }
-            };
+        final var instr = Instruction.fromMnemonic(op).orElse(null);
+        if (instr == null) {
+            addError("Unknown instruction: " + op, it, it.raw().length());
+            return;
         }
+
+        final var operands = switch (instr.format) {
+            case R        -> parseRdRs1Rs2(rest, it);
+            case I_ARITH  -> parseRdRs1Imm(rest, it);
+            case LOAD     -> parseRdMem(rest, it);
+            case STORE    -> parseRsrcMem(rest, it);
+            case RD_IMM   -> parseRdImm(rest, it);
+            case RS_LABEL -> parseRsLabel(rest, it);
+            case LABEL    -> parseLabel(rest, it);
+            case RS       -> parseRs(rest, it);
+            case NONE     -> parseNone(rest);
+        };
 
         if (operands != null) {
             this.code.add(new ParsedInstruction(it.pos(), label, op, operands));
