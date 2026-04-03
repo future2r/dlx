@@ -98,7 +98,7 @@ final class CompilerTest {
                         final var compiled = compile("""
                                         .data
                                         .byte 1
-                                        .align 4
+                                        .align 2
                                         .word 42""");
                         assertNoErrors(compiled);
                         // 1 byte + 3 padding + 4 word = 8 bytes
@@ -113,6 +113,51 @@ final class CompilerTest {
                         assertEquals(0, compiled.program()[5]);
                         assertEquals(0, compiled.program()[6]);
                         assertEquals(42, compiled.program()[7]);
+                }
+
+                @Test
+                @DisplayName(".align 0 is a no-op")
+                void alignZero() {
+                        final var compiled = compile("""
+                                        .data
+                                        .byte 1
+                                        .align 0
+                                        .byte 2""");
+                        assertNoErrors(compiled);
+                        assertEquals(2, compiled.program().length);
+                        assertEquals(1, compiled.program()[0]);
+                        assertEquals(2, compiled.program()[1]);
+                }
+
+                @Test
+                @DisplayName(".align 1 pads to halfword boundary")
+                void alignOne() {
+                        final var compiled = compile("""
+                                        .data
+                                        .byte 1
+                                        .align 1
+                                        .byte 2""");
+                        assertNoErrors(compiled);
+                        // 1 byte + 1 padding + 1 byte = 3 bytes
+                        assertEquals(3, compiled.program().length);
+                        assertEquals(1, compiled.program()[0]);
+                        assertEquals(0, compiled.program()[1]); // padding
+                        assertEquals(2, compiled.program()[2]);
+                }
+
+                @Test
+                @DisplayName(".align 3 pads to doubleword boundary")
+                void alignThree() {
+                        final var compiled = compile("""
+                                        .data
+                                        .byte 1
+                                        .align 3
+                                        .byte 2""");
+                        assertNoErrors(compiled);
+                        // 1 byte + 7 padding + 1 byte = 9 bytes
+                        assertEquals(9, compiled.program().length);
+                        assertEquals(1, compiled.program()[0]);
+                        assertEquals(2, compiled.program()[8]);
                 }
 
                 @Test
@@ -339,6 +384,30 @@ final class CompilerTest {
                         assertNull(compiled.program());
                         assertTrue(compiled.diagnostics().stream()
                                         .anyMatch(d -> d.message().contains("Undefined label")));
+                }
+
+                @Test
+                @DisplayName("Negative alignment exponent produces error")
+                void alignNegative() {
+                        final var compiled = compileWithErrors("""
+                                        .data
+                                        .align -1""");
+                        assertTrue(compiled.hasErrors());
+                        assertNull(compiled.program());
+                        assertTrue(compiled.diagnostics().stream()
+                                        .anyMatch(d -> d.message().contains("Alignment exponent must be between 0 and 8")));
+                }
+
+                @Test
+                @DisplayName("Alignment exponent too large produces error")
+                void alignTooLarge() {
+                        final var compiled = compileWithErrors("""
+                                        .data
+                                        .align 9""");
+                        assertTrue(compiled.hasErrors());
+                        assertNull(compiled.program());
+                        assertTrue(compiled.diagnostics().stream()
+                                        .anyMatch(d -> d.message().contains("Alignment exponent must be between 0 and 8")));
                 }
 
                 @Test

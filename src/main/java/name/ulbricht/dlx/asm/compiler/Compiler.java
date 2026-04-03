@@ -104,8 +104,9 @@ public final class Compiler {
             case "asciiz" -> address + stringValue(decl).getBytes(StandardCharsets.UTF_8).length + 1;
             case "space" -> address + intValue(decl, 0);
             case "align" -> {
-                final var alignment = intValue(decl, 0);
-                if (alignment > 0) {
+                final var n = intValue(decl, 0);
+                if (validateAlignment(n, decl) && n > 0) {
+                    final var alignment = 1 << n; // 2^n
                     final var rem = address % alignment;
                     yield rem == 0 ? address : address + alignment - rem;
                 }
@@ -156,8 +157,9 @@ public final class Compiler {
                 offset += n;
             }
             case "align" -> {
-                final var alignment = intValue(decl, 0);
-                if (alignment > 0) {
+                final var n = intValue(decl, 0);
+                if (validateAlignment(n, decl) && n > 0) {
+                    final var alignment = 1 << n; // 2^n
                     final var rem = offset % alignment;
                     if (rem != 0) {
                         offset += alignment - rem;
@@ -429,6 +431,14 @@ public final class Compiler {
 
     private static int intValue(final ParsedDataDeclaration decl, final int index) {
         return ((Integer) decl.values().get(index)).intValue();
+    }
+
+    private boolean validateAlignment(final int n, final ParsedDataDeclaration decl) {
+        if (n < 0 || n > 8) {
+            addError("Alignment exponent must be between 0 and 8, got " + n, decl);
+            return false;
+        }
+        return true;
     }
 
     private void addError(final String msg, final ParsedElement element) {
