@@ -2,6 +2,22 @@
 
 This project is about simulating that processor using Java and JavaFX.
 
+## What You'll Find in This Project
+
+This project is also intended as a programming tutorial. Here is what it demonstrates from a developer's perspective:
+
+- **Modern Java** — Sealed types, records, pattern matching, and switch expressions
+- **JavaFX & MVVM** — Property binding, FXML with factory-based dependency injection, and syntax highlighting via incubator rich text modules
+- **Java Module System** — Single application module with selective package opening for JavaFX reflection
+- **Theming** — Light, dark, and auto theme switching with CSS stylesheet swapping based on system preferences
+- **Internationalization** — Resource bundles for English and German, integrated with FXML property references
+- **Testing** — JUnit with parameterized tests, integration tests, and in-memory preference mocks
+- **Build & Packaging** — Maven Wrapper, toolchains for JDK management, and profiles for jlink runtime images and jpackage native installers
+- **CI/CD** — GitHub Actions workflow with branch-based triggers
+- **Code Quality** — All compiler warnings as errors, strict Javadoc linting for accessibility, HTML, syntax, and references
+- **Compiler Pipeline** — Three-stage assembler (lexer, parser, compiler) with algebraic data types for tokens, AST nodes, and operands
+- **CPU Simulation** — 5-stage pipeline with hazard detection, data forwarding, and snapshot-then-commit execution model
+
 ## Development
 
 ### Prerequisites

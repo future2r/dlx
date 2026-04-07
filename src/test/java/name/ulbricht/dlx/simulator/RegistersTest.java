@@ -3,8 +3,10 @@ package name.ulbricht.dlx.simulator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("Registers")
 final class RegistersTest {
 
     private Registers regs;

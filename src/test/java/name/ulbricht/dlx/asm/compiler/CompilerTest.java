@@ -19,6 +19,7 @@ import name.ulbricht.dlx.asm.parser.ParsedProgram;
 import name.ulbricht.dlx.asm.parser.Parser;
 import name.ulbricht.dlx.simulator.CPU;
 
+@DisplayName("Compiler")
 final class CompilerTest {
 
         @Nested

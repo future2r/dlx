@@ -25,6 +25,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @SuppressWarnings("static-method")
+@DisplayName("FXML validation")
 final class FXMLTest {
 
     //// Represents the content of an XML file.

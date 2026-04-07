@@ -4,6 +4,51 @@
 			"path": "."
 		}
 	],
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "DLX",
+				"type": "java",
+				"request": "launch",
+				"cwd": "${workspaceFolder}",
+				"projectName": "dlx",
+				"mainClass": "name.ulbricht.dlx/name.ulbricht.dlx.Main",
+				"vmArgs": [
+					"--enable-native-access=javafx.graphics",
+					"-Djavafx.preloader=name.ulbricht.dlx.ui.SplashPreLoader"
+				]
+			},
+			{
+				"name": "DLX (de-DE)",
+				"type": "java",
+				"request": "launch",
+				"cwd": "${workspaceFolder}",
+				"projectName": "dlx",
+				"mainClass": "name.ulbricht.dlx/name.ulbricht.dlx.Main",
+				"vmArgs": [
+					"--enable-native-access=javafx.graphics",
+					"-Djavafx.preloader=name.ulbricht.dlx.ui.SplashPreLoader",
+					"-Duser.language=de",
+					"-Duser.country=DE"
+				]
+			},
+			{
+				"name": "DLX (en-US)",
+				"type": "java",
+				"request": "launch",
+				"cwd": "${workspaceFolder}",
+				"projectName": "dlx",
+				"mainClass": "name.ulbricht.dlx/name.ulbricht.dlx.Main",
+				"vmArgs": [
+					"--enable-native-access=javafx.graphics",
+					"-Djavafx.preloader=name.ulbricht.dlx.ui.SplashPreLoader",
+					"-Duser.language=en",
+					"-Duser.country=US"
+				]
+			}
+		]
+	},
 	"settings": {
 		"editor.formatOnSave": true,
 		"editor.codeActionsOnSave": {
