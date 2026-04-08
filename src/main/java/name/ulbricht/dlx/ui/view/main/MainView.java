@@ -6,11 +6,13 @@ import java.io.IOException;
 
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.stage.Stages;
 import name.ulbricht.dlx.ui.view.View;
+import name.ulbricht.dlx.ui.view.ViewServices;
 
 /// The main view of the application, defined in an FXML file.
 public final class MainView implements View<Parent, MainController> {
@@ -38,8 +40,26 @@ public final class MainView implements View<Parent, MainController> {
         final var controller = fxmlLoader.<MainController>getController();
         final var view = new MainView(controller);
 
-        // Use the provided stage
-        Stages.useStage(stage, view);
+        final var windowState = ViewServices.userPreferences().getWindowState(WINDOW_ID);
+
+        // Create the scene
+        final var scene = windowState != null && !windowState.maximized()
+                ? new Scene(view.getRoot(), windowState.width(), windowState.height())
+                : new Scene(view.getRoot());
+
+        // Configure the stage
+        stage.setScene(scene);
+        Stages.initStageIcons(stage);
+        stage.titleProperty().bind(view.titleProperty());
+
+        if (windowState != null) {
+            if (windowState.maximized())
+                stage.setMaximized(true);
+            else {
+                stage.setX(windowState.x());
+                stage.setY(windowState.y());
+            }
+        }
 
         // Forward window events to the controller
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, controller::windowShown);

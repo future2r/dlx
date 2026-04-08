@@ -32,6 +32,7 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import name.ulbricht.dlx.asm.compiler.CompiledProgram;
 import name.ulbricht.dlx.config.UserPreferences;
+import name.ulbricht.dlx.config.WindowState;
 import name.ulbricht.dlx.io.SourceFile;
 import name.ulbricht.dlx.ui.DlxApplication;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
@@ -39,7 +40,6 @@ import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.scene.Theme;
 import name.ulbricht.dlx.ui.scene.ThemeManager;
 import name.ulbricht.dlx.ui.scene.control.Alerts;
-import name.ulbricht.dlx.ui.stage.Stages;
 import name.ulbricht.dlx.ui.util.FormatUtil;
 import name.ulbricht.dlx.ui.view.View;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
@@ -73,13 +73,13 @@ public final class MainController {
     private Menu openRecentMenu;
 
     @FXML
-    private TabPane leftTabPane;
+    private TabPane primarySideBarTabPane;
     @FXML
     private TabPane editorsTabPane;
     @FXML
-    private TabPane rightTabPane;
+    private TabPane secondarySideBarTabPane;
     @FXML
-    private TabPane bottomTabPane;
+    private TabPane panelTabPane;
 
     @FXML
     private Label statusLabel;
@@ -127,6 +127,11 @@ public final class MainController {
         configureFileChoosers();
         configureOpenRecentMenu();
 
+        // Prevent closing the last tab
+        this.primarySideBarTabPane.getTabs().subscribe(() -> toggleTabClosingPolicy(this.primarySideBarTabPane));
+        this.secondarySideBarTabPane.getTabs().subscribe(() -> toggleTabClosingPolicy(this.secondarySideBarTabPane));
+        this.panelTabPane.getTabs().subscribe(() -> toggleTabClosingPolicy(this.panelTabPane));
+
         // React on changes of the active editor
         this.activeEditorView.subscribe(this::activeEditorChanged);
 
@@ -139,6 +144,12 @@ public final class MainController {
         configureStatusBar();
 
         openDefaultViews();
+    }
+
+    private static void toggleTabClosingPolicy(final TabPane tabPane) {
+        tabPane.setTabClosingPolicy(
+                tabPane.getTabs().size() > 1 ? TabPane.TabClosingPolicy.SELECTED_TAB
+                        : TabPane.TabClosingPolicy.UNAVAILABLE);
     }
 
     private void configureFileChoosers() {
@@ -249,12 +260,6 @@ public final class MainController {
     void windowShown(final WindowEvent event) {
         this.window = (Window) event.getSource();
 
-        // Restore saved window state
-        if (this.window instanceof final Stage stage) {
-            this.userPreferences.getWindowState(MainView.WINDOW_ID)
-                    .ifPresent(windowState -> Stages.restoreWindowState(stage, windowState));
-        }
-
         // Apply the current theme
         themeUpdated(this.userPreferences.getTheme());
 
@@ -281,8 +286,13 @@ public final class MainController {
     }
 
     void windowHiding(final WindowEvent event) {
-        if (event.getSource() instanceof final Stage stage)
-            this.userPreferences.putWindowState(MainView.WINDOW_ID, Stages.getWindowState(stage));
+        if (event.getSource() instanceof final Stage stage) {
+            final var windowState = stage.isMaximized()
+                    ? new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN)
+                    : new WindowState(false, stage.getX(), stage.getY(), stage.getScene().getWidth(),
+                            stage.getScene().getHeight());
+            this.userPreferences.putWindowState(MainView.WINDOW_ID, windowState);
+        }
     }
 
     private boolean canCloseWindow() {
@@ -609,7 +619,7 @@ public final class MainController {
     private void showView(final Class<? extends View<?, ?>> viewClass,
             final Supplier<? extends View<?, ?>> viewSupplier) {
         // Try to find the view in any of the view tab panes
-        for (final var tabPane : List.of(this.leftTabPane, this.rightTabPane, this.bottomTabPane)) {
+        for (final var tabPane : List.of(this.primarySideBarTabPane, this.secondarySideBarTabPane, this.panelTabPane)) {
             for (final var tab : tabPane.getTabs()) {
                 final var userData = tab.getUserData();
                 if (viewClass.isInstance(userData)) {
@@ -623,10 +633,10 @@ public final class MainController {
         final var view = viewSupplier.get();
         final var tab = createViewTab(view);
         final var tabPane = switch (view) {
-            case final OutlineView _ -> this.leftTabPane;
-            case final RegistersView _,final MemoryView _ -> this.rightTabPane;
-            case final ProblemsView _,final LogView _ -> this.bottomTabPane;
-            default -> this.leftTabPane;
+            case final OutlineView _ -> this.primarySideBarTabPane;
+            case final RegistersView _,final MemoryView _ -> this.secondarySideBarTabPane;
+            case final ProblemsView _,final LogView _ -> this.panelTabPane;
+            default -> this.primarySideBarTabPane;
         };
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);

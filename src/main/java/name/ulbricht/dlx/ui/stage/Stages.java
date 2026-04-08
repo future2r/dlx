@@ -7,36 +7,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Scene;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.image.Image;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import name.ulbricht.dlx.config.WindowState;
 import name.ulbricht.dlx.ui.view.View;
 
 /// Stage utilities.
 public final class Stages {
-
-    /// Configures the given stage to use the given view.
-    ///
-    /// @param stage the stage to configure, must not be `null`
-    /// @param view  the view to use, must not be `null`
-    public static void useStage(final Stage stage, final View<?, ?> view) {
-        requireNonNull(stage);
-        requireNonNull(view);
-
-        // Configure the scene
-        final var scene = new Scene(view.getRoot());
-
-        // Configure the stage
-        Stages.initStageIcons(stage);
-        stage.setScene(scene);
-        stage.titleProperty().bind(view.titleProperty());
-    }
 
     private static List<Image> stageIcons;
 
@@ -75,45 +54,6 @@ public final class Stages {
         dialog.setDialogPane(view.getRoot());
 
         return dialog;
-    }
-
-    /// Gets the current window state of the given stage.
-    /// 
-    /// @param stage the stage to get the window state from, must not be `null`
-    /// @return the current window state of the given stage
-    public static WindowState getWindowState(final Stage stage) {
-        requireNonNull(stage);
-
-        if (stage.isMaximized())
-            return new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN);
-
-        return new WindowState(false, stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
-    }
-
-    /// Restores the window state of the given stage to the given window state.
-    /// 
-    /// @param stage       the stage to restore the window state for, must not be
-    ///                    `null`
-    /// @param windowState the window state to restore, must not be `null`
-    public static void restoreWindowState(final Stage stage, final WindowState windowState) {
-        requireNonNull(stage);
-        requireNonNull(windowState);
-
-        if (windowState.maximized()) {
-            stage.setMaximized(true);
-        } else {
-            final var rect = new Rectangle2D(windowState.x(), windowState.y(), windowState.width(),
-                    windowState.height());
-            final var screens = Screen.getScreensForRectangle(rect);
-            if (screens.isEmpty())
-                return;
-
-            final var screenBounds = screens.getFirst().getVisualBounds();
-            stage.setX(rect.getMinX());
-            stage.setY(rect.getMinY());
-            stage.setWidth(Math.min(rect.getWidth(), screenBounds.getWidth() - rect.getMinX()));
-            stage.setHeight(Math.min(rect.getHeight(), screenBounds.getHeight() - rect.getMinY()));
-        }
     }
 
     /// Private constructor to prevent instantiation.

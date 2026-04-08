@@ -2,6 +2,8 @@ package name.ulbricht.dlx.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
@@ -26,7 +28,7 @@ final class UserPreferencesTest {
     @Test
     @DisplayName("getWindowState returns empty when nothing saved")
     void windowStateEmptyByDefault() {
-        assertTrue(this.prefs.getWindowState("main").isEmpty());
+        assertNull(this.prefs.getWindowState("main"));
     }
 
     @Test
@@ -36,9 +38,9 @@ final class UserPreferencesTest {
         this.prefs.putWindowState("main", expected);
 
         final var restored = this.prefs.getWindowState("main");
-        assertTrue(restored.isPresent());
-        assertEquals(expected, restored.get());
-        assertFalse(restored.get().maximized());
+        assertNotNull(restored);
+        assertEquals(expected, restored);
+        assertFalse(restored.maximized());
     }
 
     @Test
@@ -47,12 +49,12 @@ final class UserPreferencesTest {
         this.prefs.putWindowState("main", new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN));
 
         final var restored = this.prefs.getWindowState("main");
-        assertTrue(restored.isPresent());
-        assertTrue(restored.get().maximized());
-        assertTrue(Double.isNaN(restored.get().x()));
-        assertTrue(Double.isNaN(restored.get().y()));
-        assertTrue(Double.isNaN(restored.get().width()));
-        assertTrue(Double.isNaN(restored.get().height()));
+        assertNotNull(restored);
+        assertTrue(restored.maximized());
+        assertTrue(Double.isNaN(restored.x()));
+        assertTrue(Double.isNaN(restored.y()));
+        assertTrue(Double.isNaN(restored.width()));
+        assertTrue(Double.isNaN(restored.height()));
     }
 
     @Test
@@ -62,7 +64,7 @@ final class UserPreferencesTest {
 
         this.prefs.putWindowState("main", null);
 
-        assertTrue(this.prefs.getWindowState("main").isEmpty());
+        assertNull(this.prefs.getWindowState("main"));
     }
 
     @Test
@@ -77,10 +79,10 @@ final class UserPreferencesTest {
         final var restoredA = this.prefs.getWindowState("main");
         final var restoredB = this.prefs.getWindowState("other");
 
-        assertEquals(stateA, restoredA.get());
-        assertFalse(restoredA.get().maximized());
+        assertEquals(stateA, restoredA);
+        assertFalse(restoredA.maximized());
 
-        assertTrue(restoredB.get().maximized());
+        assertTrue(restoredB.maximized());
     }
 
     @Nested

@@ -332,18 +332,18 @@
             <SplitPane dividerPositions="0.3,0.7">
 
                 <!-- Left panel, used for view parts directly associated with the current editor. -->
-                <TabPane fx:id="leftTabPane" SplitPane.resizableWithParent="false"/>
+                <TabPane fx:id="primarySideBarTabPane" SplitPane.resizableWithParent="false"/>
 
                 <!-- Center editor area, used for source editors. -->
                 <TabPane fx:id="editorsTabPane"/>
 
                 <!-- Right panel, used for processor view parts. -->
-                <TabPane fx:id="rightTabPane" SplitPane.resizableWithParent="false"/>
+                <TabPane fx:id="secondarySideBarTabPane" SplitPane.resizableWithParent="false"/>
 
             </SplitPane>
 
             <!-- Bottom panel, used for message view parts. -->
-            <TabPane fx:id="bottomTabPane" SplitPane.resizableWithParent="false"/>
+            <TabPane fx:id="panelTabPane" SplitPane.resizableWithParent="false"/>
 
         </SplitPane>
 
