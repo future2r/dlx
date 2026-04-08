@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import name.ulbricht.dlx.util.TextPosition;
 
-@SuppressWarnings("static-method")
 @DisplayName("Lexer")
 final class LexerTest {
 

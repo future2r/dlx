@@ -6,12 +6,17 @@ import java.lang.module.ModuleDescriptor.Version;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.ButtonType;
@@ -36,7 +41,7 @@ import name.ulbricht.dlx.ui.scene.ThemeManager;
 import name.ulbricht.dlx.ui.scene.control.Alerts;
 import name.ulbricht.dlx.ui.stage.Stages;
 import name.ulbricht.dlx.ui.util.FormatUtil;
-import name.ulbricht.dlx.ui.view.ViewPart;
+import name.ulbricht.dlx.ui.view.View;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
 import name.ulbricht.dlx.ui.view.log.LogView;
 import name.ulbricht.dlx.ui.view.memory.MemoryView;
@@ -47,6 +52,8 @@ import name.ulbricht.dlx.ui.view.registers.RegistersView;
 
 /// Controller for the main application view.
 public final class MainController {
+
+    private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper();
 
     @FXML
     private Parent mainRoot;
@@ -101,8 +108,18 @@ public final class MainController {
     private final ReadOnlyBooleanWrapper canReset = new ReadOnlyBooleanWrapper();
     private final ReadOnlyBooleanWrapper canStop = new ReadOnlyBooleanWrapper();
 
+    private final ReadOnlyObjectWrapper<EditorView> activeEditorView = new ReadOnlyObjectWrapper<>();
+
     /// Creates a new main controller instance.
     public MainController() {
+    }
+
+    ReadOnlyStringProperty titleProperty() {
+        return this.title.getReadOnlyProperty();
+    }
+
+    Parent getRoot() {
+        return this.mainRoot;
     }
 
     @FXML
@@ -110,8 +127,12 @@ public final class MainController {
         configureFileChoosers();
         configureOpenRecentMenu();
 
-        // React on changes of the current editor tab.
-        this.editorsTabPane.getSelectionModel().selectedItemProperty().subscribe(this::currentEditorTabChanged);
+        // React on changes of the active editor
+        this.activeEditorView.subscribe(this::activeEditorChanged);
+
+        // Bind the selected editor tab to the active editor view property
+        this.activeEditorView.bind(this.editorsTabPane.getSelectionModel().selectedItemProperty()
+                .map(tab -> tab.getUserData() instanceof final EditorView editorView ? editorView : null));
 
         configureBuildActions();
         configureProcessorActions();
@@ -465,6 +486,31 @@ public final class MainController {
     }
 
     @FXML
+    private void handleShowOutline() {
+        showView(OutlineView.class, this::createOutlineView);
+    }
+
+    @FXML
+    private void handleShowRegisters() {
+        showView(RegistersView.class, this::createRegistersView);
+    }
+
+    @FXML
+    private void handleShowMemory() {
+        showView(MemoryView.class, this::createMemoryView);
+    }
+
+    @FXML
+    private void handleShowProblems() {
+        showView(ProblemsView.class, this::createProblemsView);
+    }
+
+    @FXML
+    private void handleShowLog() {
+        showView(LogView.class, this::createLogView);
+    }
+
+    @FXML
     private void handleCompile() {
         if (isCanCompile())
             compile();
@@ -526,61 +572,85 @@ public final class MainController {
     }
 
     private void openDefaultViews() {
-        // Outline View
-        final var outlineView = OutlineView.load();
-        outlineView.setOnTextPosition(this::showTextPosition);
-        openLeftView(outlineView);
-
-        // Registers View
-        final var registersView = RegistersView.load();
-        registersView.getViewModel().processorProperty().bind(this.viewModel.processorProperty());
-        openRightView(registersView);
-
-        // Memory View
-        final var memoryView = MemoryView.load();
-        memoryView.getViewModel().processorProperty().bind(this.viewModel.processorProperty());
-        openRightView(memoryView);
-
-        // Problems View
-        final var problemsView = ProblemsView.load();
-        problemsView.setOnTextPosition(this::showTextPosition);
-        openBottomView(problemsView);
-
-        // Log View
-        final var logView = LogView.load();
-        openBottomView(logView);
+        showView(OutlineView.class, this::createOutlineView);
+        showView(RegistersView.class, this::createRegistersView);
+        showView(MemoryView.class, this::createMemoryView);
+        showView(ProblemsView.class, this::createProblemsView);
+        showView(LogView.class, this::createLogView);
     }
 
-    private void openLeftView(final ViewPart<?> viewPart) {
-        final var tab = createViewTab(viewPart);
-
-        this.leftTabPane.getTabs().add(tab);
+    private OutlineView createOutlineView() {
+        final var view = OutlineView.load(this.activeEditorView);
+        view.setOnTextPosition(this::showTextPosition);
+        return view;
     }
 
-    private void openRightView(final ViewPart<?> viewPart) {
-        final var tab = createViewTab(viewPart);
-
-        this.rightTabPane.getTabs().add(tab);
+    private ProblemsView createProblemsView() {
+        final var view = ProblemsView.load(this.activeEditorView);
+        view.setOnTextPosition(this::showTextPosition);
+        return view;
     }
 
-    private void openBottomView(final ViewPart<?> viewPart) {
-        final var tab = createViewTab(viewPart);
-
-        this.bottomTabPane.getTabs().add(tab);
+    private RegistersView createRegistersView() {
+        final var view = RegistersView.load(this.viewModel.processorProperty());
+        return view;
     }
 
-    private static Tab createViewTab(final ViewPart<?> viewPart) {
+    private MemoryView createMemoryView() {
+        final var view = MemoryView.load(this.viewModel.processorProperty());
+        return view;
+    }
+
+    private LogView createLogView() {
+        final var view = LogView.load();
+        return view;
+    }
+
+    private void showView(final Class<? extends View<?, ?>> viewClass,
+            final Supplier<? extends View<?, ?>> viewSupplier) {
+        // Try to find the view in any of the view tab panes
+        for (final var tabPane : List.of(this.leftTabPane, this.rightTabPane, this.bottomTabPane)) {
+            for (final var tab : tabPane.getTabs()) {
+                final var userData = tab.getUserData();
+                if (viewClass.isInstance(userData)) {
+                    tabPane.getSelectionModel().select(tab);
+                    return;
+                }
+            }
+        }
+
+        // Create and show the view
+        final var view = viewSupplier.get();
+        final var tab = createViewTab(view);
+        final var tabPane = switch (view) {
+            case final OutlineView _ -> this.leftTabPane;
+            case final RegistersView _,final MemoryView _ -> this.rightTabPane;
+            case final ProblemsView _,final LogView _ -> this.bottomTabPane;
+            default -> this.leftTabPane;
+        };
+        tabPane.getTabs().add(tab);
+        tabPane.getSelectionModel().select(tab);
+    }
+
+    private Tab createViewTab(final View<?, ?> view) {
         final var tab = new Tab();
-        tab.setUserData(viewPart);
-        tab.setContent(viewPart.getRoot());
+        tab.setUserData(view);
+        tab.setContent(view.getRoot());
+        tab.setOnCloseRequest(this::viewCloseRequest);
 
-        tab.textProperty().bind(viewPart.titleProperty());
+        tab.textProperty().bind(view.titleProperty());
 
         final var tooltip = new Tooltip();
-        tooltip.textProperty().bind(viewPart.descriptionProperty());
+        tooltip.textProperty().bind(view.descriptionProperty());
         tab.setTooltip(tooltip);
 
         return tab;
+    }
+
+    private void viewCloseRequest(final Event event) {
+        if (event.getSource() instanceof final Tab tab && tab.getUserData() instanceof final View<?, ?> view) {
+            view.dispose();
+        }
     }
 
     private void openNewEditor() {
@@ -614,6 +684,7 @@ public final class MainController {
 
     private void addEditorTab(final EditorView editorView) {
         final var tab = createViewTab(editorView);
+
         tab.setOnCloseRequest(event -> {
             if (!confirmSaveIfDirty(editorView))
                 event.consume();
@@ -623,28 +694,23 @@ public final class MainController {
         this.editorsTabPane.getSelectionModel().select(tab);
     }
 
-    private void currentEditorTabChanged(final Tab newEditorTab) {
-        final var newEditorView = getEditorView(newEditorTab).orElse(null);
-
-        updateStageTitleBinding(newEditorView);
+    private void activeEditorChanged(final EditorView newEditorView) {
+        updateTitleBinding(newEditorView);
         updateCanSaveBinding(newEditorView);
         updateEditBindings(newEditorView);
-        updateOutlineBinding(newEditorView);
-        updateProblemsBinding(newEditorView);
+
         updateEditPositionBinding(newEditorView);
     }
 
-    private void updateStageTitleBinding(final EditorView newEditorView) {
-        if (this.window instanceof final Stage stage) {
-            // Unbind from the old editor
-            stage.titleProperty().unbind();
-            stage.setTitle(Messages.getString("main.title"));
+    private void updateTitleBinding(final EditorView newEditorView) {
+        // Unbind from the old editor
+        this.title.unbind();
+        this.title.set(Messages.getString("main.title"));
 
-            // Bind to new editor
-            if (newEditorView != null)
-                stage.titleProperty().bind(newEditorView.nameProperty()
-                        .map(name -> Messages.getString("main.titlePattern").formatted(name)));
-        }
+        // Bind to new editor
+        if (newEditorView != null)
+            this.title.bind(newEditorView.nameProperty()
+                    .map(name -> Messages.getString("main.titlePattern").formatted(name)));
     }
 
     private void updateCanSaveBinding(final EditorView newEditorView) {
@@ -671,30 +737,6 @@ public final class MainController {
             this.canCut.bind(newEditorView.hasSelectionProperty());
             this.canCopy.bind(newEditorView.hasSelectionProperty());
         }
-    }
-
-    private void updateOutlineBinding(final EditorView newEditorView) {
-        getOutlineView().ifPresent(outlineView -> {
-            // Unbind from the old editor
-            outlineView.getViewModel().parsedProgramProperty().unbind();
-            outlineView.getViewModel().setParsedProgram(null);
-            // Bind to new editor
-            if (newEditorView != null)
-                outlineView.getViewModel().parsedProgramProperty()
-                        .bind(newEditorView.getViewModel().parsedProgramProperty());
-        });
-    }
-
-    private void updateProblemsBinding(final EditorView newEditorView) {
-        getProblemsView().ifPresent(problemsView -> {
-            // Unbind from the old editor
-            problemsView.getViewModel().diagnosticsProperty().unbind();
-            problemsView.getViewModel().setDiagnostics(null);
-            // Bind to new editor
-            if (newEditorView != null)
-                problemsView.getViewModel().diagnosticsProperty()
-                        .bind(newEditorView.getViewModel().diagnosticsProperty());
-        });
     }
 
     private void updateEditPositionBinding(final EditorView newEditorView) {
@@ -724,23 +766,7 @@ public final class MainController {
     }
 
     private Optional<EditorView> getActiveEditorView() {
-        return getEditorView(this.editorsTabPane.getSelectionModel().getSelectedItem());
-    }
-
-    private Optional<OutlineView> getOutlineView() {
-        return this.leftTabPane.getTabs().stream()
-                .map(Tab::getUserData)
-                .filter(OutlineView.class::isInstance)
-                .map(OutlineView.class::cast)
-                .findFirst();
-    }
-
-    private Optional<ProblemsView> getProblemsView() {
-        return this.bottomTabPane.getTabs().stream()
-                .map(Tab::getUserData)
-                .filter(ProblemsView.class::isInstance)
-                .map(ProblemsView.class::cast)
-                .findFirst();
+        return Optional.ofNullable(this.activeEditorView.get());
     }
 
     private void showTextPosition(final TextPositionEvent event) {

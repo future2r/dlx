@@ -1,14 +1,19 @@
 package name.ulbricht.dlx.ui.view.memory;
 
-import javafx.beans.binding.Bindings;
+import static java.util.Objects.requireNonNull;
+
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import name.ulbricht.dlx.simulator.CPU;
 import name.ulbricht.dlx.ui.i18n.Messages;
 
 /// Controller for the memory hex viewer.
 public final class MemoryController {
+
+    private final ObservableValue<CPU> activeProcessor;
 
     @FXML
     private Parent memoryRoot;
@@ -20,7 +25,11 @@ public final class MemoryController {
     private TableView<MemoryRow> memoryTable;
 
     /// Creates a new memory controller instance.
-    public MemoryController() {
+    /// 
+    /// @param activeProcessor the observable value providing the currently
+    ///                        active processor
+    public MemoryController(final ObservableValue<CPU> activeProcessor) {
+        this.activeProcessor = requireNonNull(activeProcessor);
     }
 
     @FXML
@@ -28,14 +37,13 @@ public final class MemoryController {
         // Enable cell-level selection instead of full-row selection.
         this.memoryTable.getSelectionModel().setCellSelectionEnabled(true);
 
-        // Bind the memory table to the view model's rows list.
-        Bindings.bindContent(this.memoryTable.getItems(), this.viewModel.getRows());
-
         // Repaint visible cells whenever the ViewModel signals a data change.
         this.viewModel.refreshFlagProperty().subscribe(() -> this.memoryTable.refresh());
 
         // Build the columns programmatically.
         buildColumns();
+
+        this.viewModel.processorProperty().bind(this.activeProcessor);
     }
 
     private void buildColumns() {
@@ -83,5 +91,9 @@ public final class MemoryController {
     /// {@return the view model associated with this controller}
     MemoryViewModel getViewModel() {
         return this.viewModel;
+    }
+
+    void dispose() {
+        this.viewModel.processorProperty().unbind();
     }
 }

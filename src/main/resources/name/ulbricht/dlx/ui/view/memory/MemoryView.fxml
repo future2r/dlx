@@ -24,6 +24,6 @@
     <!-- The 18 columns (1 address + 16 byte + 1 ASCII) are created
          programmatically in MemoryController.initialize() because FXML
          does not support loops for the 16 repeating byte columns. -->
-    <TableView fx:id="memoryTable" styleClass="memory-table"/>
+    <TableView fx:id="memoryTable" styleClass="memory-table" items="${viewModel.rows}"/>
 
 </StackPane>

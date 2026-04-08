@@ -72,8 +72,9 @@ public final class RegistersViewModel implements ProcessingListener, RegisterAcc
 
         this.modifiableRegisters.clear();
         final var registerValues = getProcessor().getRegisters().snapshot();
-        for (var i = 0; i < registerValues.length; i++)
-            this.modifiableRegisters.add(new RegisterItem(i));
+        for (var i = 0; i < registerValues.length; i++) {
+            this.modifiableRegisters.add(new RegisterItem(i, registerValues[i]));
+        }
 
         if (newProcessor != null) {
             newProcessor.addProcessingListener(this);

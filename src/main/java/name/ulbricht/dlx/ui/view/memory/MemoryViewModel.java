@@ -109,7 +109,7 @@ public final class MemoryViewModel implements ProcessingListener, MemoryAccessLi
 
         if (newProcessor != null) {
             final var memSize = newProcessor.getMemory().size();
-            this.shadow = new byte[memSize];
+            this.shadow = newProcessor.getMemory().snapshot();
             this.accessState = new Access[memSize];
 
             // Create one MemoryRow per 16-byte line.

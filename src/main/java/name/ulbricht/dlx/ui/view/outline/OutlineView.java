@@ -6,25 +6,33 @@ import java.io.IOException;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
+import javafx.scene.Parent;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
-import name.ulbricht.dlx.ui.view.ViewPart;
+import name.ulbricht.dlx.ui.view.View;
+import name.ulbricht.dlx.ui.view.editor.EditorView;
 
 /// View for displaying the outline of the loaded DLX program.
-public final class OutlineView implements ViewPart<OutlineViewModel> {
+public final class OutlineView implements View<Parent, OutlineViewModel> {
 
     /// Loads the outline view from the FXML file.
     /// 
+    /// @param activeEditorView the observable value providing the currently active
+    ///                         editor view
     /// @return The configured outline view with the loaded content.
-    public static OutlineView load() {
+    public static OutlineView load(final ObservableValue<EditorView> activeEditorView) {
 
         // Configure the FXML loader
         final var resources = Messages.BUNDLE;
         final var fxmlLocation = OutlineView.class.getResource("OutlineView.fxml");
-        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources);
+        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources, null, controllerClass -> {
+            if (controllerClass == OutlineController.class)
+                return new OutlineController(activeEditorView);
+            return null;
+        });
 
         // Load the view layout
         try {
@@ -52,13 +60,13 @@ public final class OutlineView implements ViewPart<OutlineViewModel> {
     }
 
     @Override
-    public Node getRoot() {
+    public Parent getRoot() {
         return this.controller.getRoot();
     }
 
     @Override
-    public OutlineViewModel getViewModel() {
-        return this.controller.getViewModel();
+    public void dispose() {
+        this.controller.dispose();
     }
 
     /// {@return the event handler property for text position events triggered by

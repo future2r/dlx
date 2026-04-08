@@ -1,9 +1,12 @@
 package name.ulbricht.dlx.ui.view.outline;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.List;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -13,9 +16,12 @@ import javafx.scene.control.TreeTableRow;
 import javafx.scene.control.TreeTableView;
 import name.ulbricht.dlx.asm.parser.ParsedProgram;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
+import name.ulbricht.dlx.ui.view.editor.EditorView;
 
 /// Controller for the outline view.
 public final class OutlineController {
+
+    private final ObservableValue<EditorView> activeEditorView;
 
     @FXML
     private Parent outlineRoot;
@@ -31,7 +37,12 @@ public final class OutlineController {
     private final ObjectProperty<EventHandler<TextPositionEvent>> onTextPosition = new SimpleObjectProperty<>();
 
     /// Creates a new outline controller instance.
-    public OutlineController() {
+    /// 
+    /// @param activeEditorView the observable value providing the currently active
+    ///                         editor view
+    OutlineController(final ObservableValue<EditorView> activeEditorView) {
+        this.activeEditorView = requireNonNull(activeEditorView);
+
         this.dataRoot = new TreeItem<>(OutlineItem.dataSection());
         this.codeRoot = new TreeItem<>(OutlineItem.codeSection());
     }
@@ -49,6 +60,9 @@ public final class OutlineController {
 
         // Update the tree on changes to the compiled program
         this.viewModel.parsedProgramProperty().subscribe(this::parsedProgramChanged);
+
+        // React on changes of the active editor view
+        this.activeEditorView.subscribe(this::activeEditorChanged);
     }
 
     /// {@return the root node of the outline view}
@@ -61,21 +75,35 @@ public final class OutlineController {
         return this.viewModel;
     }
 
-    private void parsedProgramChanged(final ParsedProgram program) {
+    void dispose() {
+        activeEditorChanged(null);
+    }
+
+    private void activeEditorChanged(final EditorView newEditorView) {
+        // Unbind from the old editor
+        this.viewModel.parsedProgramProperty().unbind();
+        this.viewModel.setParsedProgram(null);
+
+        // Bind to the new editor
+        if (newEditorView != null)
+            this.viewModel.parsedProgramProperty().bind(newEditorView.getViewModel().parsedProgramProperty());
+    }
+
+    private void parsedProgramChanged(final ParsedProgram newParsedProgram) {
         // Remove the old items
         this.dataRoot.getChildren().clear();
         this.codeRoot.getChildren().clear();
 
-        if (program != null) {
+        if (newParsedProgram != null) {
 
             // Update the data section
-            this.dataRoot.getChildren().setAll(program.data().stream()
+            this.dataRoot.getChildren().setAll(newParsedProgram.data().stream()
                     .map(OutlineItem::data)
                     .map(TreeItem::new)
                     .toList());
 
             // Update the code section
-            this.codeRoot.getChildren().setAll(program.code().stream()
+            this.codeRoot.getChildren().setAll(newParsedProgram.code().stream()
                     .map(OutlineItem::instruction)
                     .map(TreeItem::new)
                     .toList());

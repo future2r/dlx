@@ -42,6 +42,10 @@ public final class LogViewModel {
         applySnapshot(this.logStore);
     }
 
+    void dispose() {
+        this.logStore.removeListener(this.storeListener);
+    }
+
     /// {@return the read-only log entries property}
     public ReadOnlyListProperty<LogEntry> entriesProperty() {
         return this.entries.getReadOnlyProperty();

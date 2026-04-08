@@ -1,22 +1,22 @@
 package name.ulbricht.dlx.ui.view.main;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 
-import javafx.scene.Scene;
-import javafx.scene.paint.Color;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.scene.Parent;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.stage.Stages;
+import name.ulbricht.dlx.ui.view.View;
 
 /// The main view of the application, defined in an FXML file.
-public final class MainView {
+public final class MainView implements View<Parent, MainController> {
 
     /// The window identifier used for persisting the main window state.
     static final String WINDOW_ID = "main";
-
-    private MainView() {
-    }
 
     /// Loads the main view, configures the given stage, and shows it.
     ///
@@ -35,21 +35,34 @@ public final class MainView {
             throw new IllegalStateException("Failed to load MainView FXML", ex);
         }
 
-        // Configure the scene
-        final var scene = new Scene(fxmlLoader.getRoot());
-        scene.setFill(Color.TRANSPARENT);
+        final var controller = fxmlLoader.<MainController>getController();
+        final var view = new MainView(controller);
 
-        // Configure the stage
-        Stages.initStageIcons(stage);
-        stage.setScene(scene);
+        // Use the provided stage
+        Stages.useStage(stage, view);
 
         // Forward window events to the controller
-        final var controller = fxmlLoader.<MainController>getController();
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, controller::windowShown);
         stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, controller::windowCloseRequest);
         stage.addEventHandler(WindowEvent.WINDOW_HIDING, controller::windowHiding);
 
         // Show the stage
         stage.show();
+    }
+
+    private final MainController controller;
+
+    private MainView(final MainController controller) {
+        this.controller = requireNonNull(controller);
+    }
+
+    @Override
+    public ReadOnlyStringProperty titleProperty() {
+        return this.controller.titleProperty();
+    }
+
+    @Override
+    public Parent getRoot() {
+        return this.controller.getRoot();
     }
 }

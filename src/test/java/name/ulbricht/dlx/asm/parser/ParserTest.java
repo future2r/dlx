@@ -16,7 +16,7 @@ import name.ulbricht.dlx.asm.lexer.LexerMode;
 import name.ulbricht.dlx.asm.lexer.TokenizedProgram;
 import name.ulbricht.dlx.util.TextPosition;
 
-@SuppressWarnings({ "static-method", "boxing" })
+@SuppressWarnings("boxing")
 @DisplayName("Parser")
 final class ParserTest {
 
@@ -64,7 +64,8 @@ final class ParserTest {
                                                         new ParsedDataDeclaration(pos(0, 0), null, "word", List.of(2))),
                                         // note: positions differ — normalise to a fixed pos for comparison
                                         program.data().stream()
-                                                        .map(d -> new ParsedDataDeclaration(pos(0, 0), null, d.directive(),
+                                                        .map(d -> new ParsedDataDeclaration(pos(0, 0), null,
+                                                                        d.directive(),
                                                                         d.values()))
                                                         .toList());
                         assertEquals(1, program.code().size());
@@ -139,7 +140,8 @@ final class ParserTest {
                                         .data
                                         .ascii "Hello, World!" \s""");
                         assertIterableEquals(
-                                        List.of(new ParsedDataDeclaration(pos(1, 0), null, "ascii", List.of("Hello, World!"))),
+                                        List.of(new ParsedDataDeclaration(pos(1, 0), null, "ascii",
+                                                        List.of("Hello, World!"))),
                                         program.data());
                 }
 
@@ -317,7 +319,8 @@ final class ParserTest {
                                         lw r1, op(r0)""");
                         assertIterableEquals(
                                         List.of(new ParsedInstruction(pos(1, 0), null, "lw",
-                                                        List.of(new RegisterOperand(1), new LabelMemoryOperand("op", 0)))),
+                                                        List.of(new RegisterOperand(1),
+                                                                        new LabelMemoryOperand("op", 0)))),
                                         program.code());
                 }
 
@@ -353,7 +356,8 @@ final class ParserTest {
                                         sw op(r0), r2""");
                         assertIterableEquals(
                                         List.of(new ParsedInstruction(pos(1, 0), null, "sw",
-                                                        List.of(new LabelMemoryOperand("op", 0), new RegisterOperand(2)))),
+                                                        List.of(new LabelMemoryOperand("op", 0),
+                                                                        new RegisterOperand(2)))),
                                         program.code());
                 }
 
@@ -377,7 +381,8 @@ final class ParserTest {
                                         lhi r1, str""");
                         assertIterableEquals(
                                         List.of(new ParsedInstruction(pos(1, 0), null, "lhi",
-                                                        List.of(new RegisterOperand(1), new LabelImmediateOperand("str")))),
+                                                        List.of(new RegisterOperand(1),
+                                                                        new LabelImmediateOperand("str")))),
                                         program.code());
                 }
 
@@ -493,9 +498,11 @@ final class ParserTest {
                                         List.of(
                                                         new ParsedInstruction(pos(5, 4), "main", "lw",
                                                                         List.of(new RegisterOperand(1),
-                                                                                        new LabelMemoryOperand("op", 0))),
+                                                                                        new LabelMemoryOperand("op",
+                                                                                                        0))),
                                                         new ParsedInstruction(pos(6, 4), null, "addi",
-                                                                        List.of(new RegisterOperand(2), new RegisterOperand(1),
+                                                                        List.of(new RegisterOperand(2),
+                                                                                        new RegisterOperand(1),
                                                                                         new ImmediateOperand(10))),
                                                         new ParsedInstruction(pos(7, 4), null, "sw",
                                                                         List.of(new LabelMemoryOperand("op", 0),

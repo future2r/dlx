@@ -5,8 +5,9 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -17,20 +18,26 @@ import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.scene.control.BinaryTableCell;
 import name.ulbricht.dlx.ui.scene.control.DecimalTableCell;
 import name.ulbricht.dlx.ui.scene.control.HexadecimalTableCell;
-import name.ulbricht.dlx.ui.view.ViewPart;
+import name.ulbricht.dlx.ui.view.View;
 
 /// View for the internals of the processor.
-public final class RegistersView implements ViewPart<RegistersViewModel> {
+public final class RegistersView implements View<Parent, RegistersViewModel> {
 
     /// Loads the registers view from the FXML file.
     /// 
+    /// @param activeProcessor the observable value providing the currently active
+    ///                        processor
     /// @return The configured registers view with the loaded content.
-    public static RegistersView load() {
+    public static RegistersView load(final ObservableValue<CPU> activeProcessor) {
 
         // Configure the FXML loader
         final var resources = Messages.BUNDLE;
         final var fxmlLocation = RegistersView.class.getResource("RegistersView.fxml");
-        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources);
+        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources, null, controllerClass -> {
+            if (controllerClass == RegistersController.class)
+                return new RegistersController(activeProcessor);
+            return null;
+        });
 
         // Load the view layout
         try {
@@ -90,13 +97,12 @@ public final class RegistersView implements ViewPart<RegistersViewModel> {
     }
 
     @Override
-    public Node getRoot() {
+    public Parent getRoot() {
         return this.controller.getRoot();
     }
 
-    /// {@return the view model of the registers view}
     @Override
-    public RegistersViewModel getViewModel() {
-        return this.controller.getViewModel();
+    public void dispose() {
+        this.controller.dispose();
     }
 }

@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Scene;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.image.Image;
@@ -15,9 +16,27 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import name.ulbricht.dlx.config.WindowState;
+import name.ulbricht.dlx.ui.view.View;
 
 /// Stage utilities.
 public final class Stages {
+
+    /// Configures the given stage to use the given view.
+    ///
+    /// @param stage the stage to configure, must not be `null`
+    /// @param view  the view to use, must not be `null`
+    public static void useStage(final Stage stage, final View<?, ?> view) {
+        requireNonNull(stage);
+        requireNonNull(view);
+
+        // Configure the scene
+        final var scene = new Scene(view.getRoot());
+
+        // Configure the stage
+        Stages.initStageIcons(stage);
+        stage.setScene(scene);
+        stage.titleProperty().bind(view.titleProperty());
+    }
 
     private static List<Image> stageIcons;
 
@@ -40,22 +59,20 @@ public final class Stages {
 
     /// Creates a new dialog.
     ///
-    /// @param <R>        the result type of the dialog
-    /// @param owner      the owner window of the dialog, may be `null`
-    /// @param title      the dialog title, may be `null`
-    /// @param dialogPane the dialog pane to be shown in the dialog, must not be
-    ///                   `null`
+    /// @param <R>   the result type of the dialog
+    /// @param owner the owner window of the dialog, may be `null`
+    /// @param view  the view to set as the dialog pane, must not be `null`
     /// @return a new dialog
-    public static <R> Dialog<R> createDialog(final Window owner, final String title, final DialogPane dialogPane) {
-        requireNonNull(dialogPane);
+    public static <R> Dialog<R> createDialog(final Window owner, final View<? extends DialogPane, ?> view) {
+        requireNonNull(view);
 
         // Create and configure the dialog
         final var dialog = new Dialog<R>();
         Optional.ofNullable(owner).ifPresent(dialog::initOwner);
-        Optional.ofNullable(title).ifPresent(dialog::setTitle);
+        dialog.titleProperty().bind(view.titleProperty());
 
         // Set the dialog pane to the dialog
-        dialog.setDialogPane(dialogPane);
+        dialog.setDialogPane(view.getRoot());
 
         return dialog;
     }

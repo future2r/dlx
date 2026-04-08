@@ -16,6 +16,11 @@ public interface ReadOnlyMemory {
             }
 
             @Override
+            public byte[] snapshot() {
+                return memory.snapshot();
+            }
+
+            @Override
             public int loadWord(final int addr) {
                 return memory.loadWord(addr);
             }
@@ -39,6 +44,9 @@ public interface ReadOnlyMemory {
 
     /// {@return the total size of this memory in bytes}
     int size();
+
+    /// {@return a snapshot of the memory contents as a byte array}
+    byte[] snapshot();
 
     /// {@return a 32-bit word from `addr`}
     ///

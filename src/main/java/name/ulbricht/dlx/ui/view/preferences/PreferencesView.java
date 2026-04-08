@@ -1,7 +1,11 @@
 package name.ulbricht.dlx.ui.view.preferences;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -15,9 +19,10 @@ import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.scene.Theme;
 import name.ulbricht.dlx.ui.stage.Stages;
 import name.ulbricht.dlx.ui.util.FormatUtil;
+import name.ulbricht.dlx.ui.view.View;
 
 /// View for the application preferences.
-public final class PreferencesView {
+public final class PreferencesView implements View<DialogPane, PreferencesViewModel> {
 
     /// Creates a new preferences dialog.
     ///
@@ -37,10 +42,11 @@ public final class PreferencesView {
             throw new IllegalStateException("Failed to load PreferencesView FXML", ex);
         }
 
-        final var view = fxmlLoader.<DialogPane>getRoot();
+        final var controller = fxmlLoader.<PreferencesController>getController();
+        final var view = new PreferencesView(controller);
 
         // Create the dialog
-        final var dialog = Stages.<Boolean>createDialog(owner, Messages.getString("preferences.title"), view);
+        final var dialog = Stages.<Boolean>createDialog(owner, view);
 
         // React on dialog events
         dialog.setResultConverter(button -> button == ButtonType.OK ? Boolean.TRUE : null);
@@ -123,7 +129,21 @@ public final class PreferencesView {
         return new ButtonType(Messages.getString("preferences.restoreDefaults.text"), ButtonBar.ButtonData.LEFT);
     }
 
+    private final PreferencesController controller;
+    private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper(Messages.getString("preferences.title"));
+
     /// Private constructor to prevent instantiation.
-    private PreferencesView() {
+    private PreferencesView(final PreferencesController controller) {
+        this.controller = requireNonNull(controller);
+    }
+
+    @Override
+    public ReadOnlyStringProperty titleProperty() {
+        return this.title.getReadOnlyProperty();
+    }
+
+    @Override
+    public DialogPane getRoot() {
+        return this.controller.getRoot();
     }
 }

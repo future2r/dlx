@@ -11,13 +11,13 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
+import javafx.scene.Parent;
 import name.ulbricht.dlx.ui.i18n.Messages;
-import name.ulbricht.dlx.ui.view.ViewPart;
+import name.ulbricht.dlx.ui.view.View;
 import name.ulbricht.dlx.util.TextPosition;
 
 /// View for the editor.
-public final class EditorView implements ViewPart<EditorViewModel> {
+public final class EditorView implements View<Parent, EditorViewModel> {
 
     /// Loads the editor view from the FXML file.
     /// 
@@ -106,7 +106,7 @@ public final class EditorView implements ViewPart<EditorViewModel> {
     }
 
     @Override
-    public Node getRoot() {
+    public Parent getRoot() {
         return this.controller.getRoot();
     }
 

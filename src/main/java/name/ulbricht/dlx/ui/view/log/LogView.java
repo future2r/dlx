@@ -8,17 +8,17 @@ import java.util.logging.Level;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
 import name.ulbricht.dlx.ui.i18n.Messages;
-import name.ulbricht.dlx.ui.view.ViewPart;
+import name.ulbricht.dlx.ui.view.View;
 
 /// View for displaying application logs.
-public final class LogView implements ViewPart<LogViewModel> {
+public final class LogView implements View<Parent, LogViewModel> {
 
     /// Loads the log view from FXML.
     ///
@@ -79,12 +79,12 @@ public final class LogView implements ViewPart<LogViewModel> {
     }
 
     @Override
-    public Node getRoot() {
+    public Parent getRoot() {
         return this.controller.getRoot();
     }
 
     @Override
-    public LogViewModel getViewModel() {
-        return this.controller.getViewModel();
+    public void dispose() {
+        this.controller.getViewModel().dispose();
     }
 }

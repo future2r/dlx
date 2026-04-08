@@ -1,12 +1,17 @@
 package name.ulbricht.dlx.ui.view.registers;
 
-import javafx.beans.binding.Bindings;
+import static java.util.Objects.requireNonNull;
+
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.TableView;
+import name.ulbricht.dlx.simulator.CPU;
 
 /// Controller for the internals view.
 public final class RegistersController {
+
+    private final ObservableValue<CPU> activeProcessor;
 
     @FXML
     private Parent registersRoot;
@@ -18,15 +23,16 @@ public final class RegistersController {
     private TableView<RegisterItem> registersTable;
 
     /// Creates a new registers controller instance.
-    public RegistersController() {
+    /// 
+    /// @param activeProcessor the observable value providing the currently
+    ///                        active processor
+    public RegistersController(final ObservableValue<CPU> activeProcessor) {
+        this.activeProcessor = requireNonNull(activeProcessor);
     }
 
     @FXML
     private void initialize() {
-        // Bind the registers table to the view model's registers list.
-        // The property types are not quite compatible, so we have to use a binding here
-        // instead of just setting the items property in the FXML file.
-        Bindings.bindContent(this.registersTable.getItems(), this.viewModel.getRegisters());
+        this.viewModel.processorProperty().bind(this.activeProcessor);
     }
 
     Parent getRoot() {
@@ -36,5 +42,9 @@ public final class RegistersController {
     /// {@return the view model associated with this controller}
     RegistersViewModel getViewModel() {
         return this.viewModel;
+    }
+
+    void dispose() {
+        this.viewModel.processorProperty().unbind();
     }
 }

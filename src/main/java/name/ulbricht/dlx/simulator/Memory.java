@@ -44,6 +44,10 @@ final class Memory {
         return this.data.length;
     }
 
+    byte[] snapshot() {
+        return Arrays.copyOf(this.data, this.data.length);
+    }
+
     /// Loads a 32-bit word from `addr` (big-endian).
     ///
     /// @param addr the byte address of the most-significant byte; must be a valid

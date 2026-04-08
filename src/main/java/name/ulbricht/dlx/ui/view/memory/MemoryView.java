@@ -8,7 +8,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
@@ -16,20 +16,26 @@ import javafx.util.Callback;
 import name.ulbricht.dlx.simulator.CPU;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.util.FormatUtil;
-import name.ulbricht.dlx.ui.view.ViewPart;
+import name.ulbricht.dlx.ui.view.View;
 
 /// View for displaying the memory state of the DLX simulator as a hex viewer.
-public final class MemoryView implements ViewPart<MemoryViewModel> {
+public final class MemoryView implements View<Parent, MemoryViewModel> {
 
     /// Loads the memory view from the FXML file.
-    ///
+    /// 
+    /// @param activeProcessor the observable value providing the currently active
+    ///                        processor
     /// @return The configured memory view with the loaded content.
-    public static MemoryView load() {
+    public static MemoryView load(final ObservableValue<CPU> activeProcessor) {
 
         // Configure the FXML loader
         final var resources = Messages.BUNDLE;
         final var fxmlLocation = MemoryView.class.getResource("MemoryView.fxml");
-        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources);
+        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources, null, controllerClass -> {
+            if (controllerClass == MemoryController.class)
+                return new MemoryController(activeProcessor);
+            return null;
+        });
 
         // Load the view layout
         try {
@@ -116,12 +122,12 @@ public final class MemoryView implements ViewPart<MemoryViewModel> {
     }
 
     @Override
-    public Node getRoot() {
+    public Parent getRoot() {
         return this.controller.getRoot();
     }
 
     @Override
-    public MemoryViewModel getViewModel() {
-        return this.controller.getViewModel();
+    public void dispose() {
+        this.controller.dispose();
     }
 }

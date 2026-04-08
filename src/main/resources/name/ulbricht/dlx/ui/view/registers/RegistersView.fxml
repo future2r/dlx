@@ -24,7 +24,7 @@
         </RegistersViewModel>
     </fx:define>
 
-    <TableView fx:id="registersTable">
+    <TableView fx:id="registersTable" items="${viewModel.registers}">
         <rowFactory>
             <RegistersView fx:factory="registerTableRowFactory"/>
         </rowFactory>

@@ -17,8 +17,10 @@ public final class RegisterItem {
     /// Creates a new register item with the specified index.
     /// 
     /// @param index the index of the register
-    public RegisterItem(final int index) {
+    /// @param value the initial value of the register
+    public RegisterItem(final int index, final int value) {
         this.index.set(index);
+        this.value.set(value);
     }
 
     /// {@return a property representing the register index}

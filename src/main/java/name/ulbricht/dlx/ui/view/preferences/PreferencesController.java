@@ -35,6 +35,10 @@ public final class PreferencesController {
     public PreferencesController() {
     }
 
+    DialogPane getRoot() {
+        return this.preferencesRoot;
+    }
+
     @FXML
     private void initialize() {
 

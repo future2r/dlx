@@ -6,30 +6,38 @@ import java.io.IOException;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
 import name.ulbricht.dlx.asm.Diagnostic;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
-import name.ulbricht.dlx.ui.view.ViewPart;
+import name.ulbricht.dlx.ui.view.View;
+import name.ulbricht.dlx.ui.view.editor.EditorView;
 import name.ulbricht.dlx.util.TextPosition;
 
 /// View for displaying the problems detected in the loaded DLX program.
-public final class ProblemsView implements ViewPart<ProblemsViewModel> {
+public final class ProblemsView implements View<Parent, ProblemsViewModel> {
 
     /// Loads the problems view from the FXML file.
     /// 
+    /// @param activeEditorView the observable value providing the currently active
+    ///                         editor view
     /// @return The configured problems view with the loaded content.
-    public static ProblemsView load() {
+    public static ProblemsView load(final ObservableValue<EditorView> activeEditorView) {
 
         // Configure the FXML loader
         final var resources = Messages.BUNDLE;
         final var fxmlLocation = ProblemsView.class.getResource("ProblemsView.fxml");
-        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources);
+        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources, null, controllerClass -> {
+            if (controllerClass == ProblemsController.class)
+                return new ProblemsController(activeEditorView);
+            return null;
+        });
 
         // Load the view layout
         try {
@@ -81,13 +89,13 @@ public final class ProblemsView implements ViewPart<ProblemsViewModel> {
     }
 
     @Override
-    public Node getRoot() {
+    public Parent getRoot() {
         return this.controller.getRoot();
     }
 
     @Override
-    public ProblemsViewModel getViewModel() {
-        return this.controller.getViewModel();
+    public void dispose() {
+        this.controller.dispose();
     }
 
     /// {@return the event handler property for text position events triggered by
