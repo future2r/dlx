@@ -96,7 +96,7 @@ public final class PreferencesView implements View<DialogPane, PreferencesViewMo
         return new StringConverter<>() {
             @Override
             public String toString(final System.Logger.Level level) {
-                return Messages.getString("logLevel." + level.name().toLowerCase());
+                return Messages.getString("logLevel.system." + level.name().toLowerCase());
             }
 
             @Override

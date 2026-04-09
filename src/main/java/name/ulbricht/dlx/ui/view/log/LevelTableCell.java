@@ -20,7 +20,7 @@ public final class LevelTableCell extends TableCell<LogEntry, Level> {
         if (empty || item == null) {
             setText(null);
         } else {
-            setText(Messages.getString("log.level." + item.getName().toLowerCase()));
+            setText(Messages.getString("logLevel.util." + item.getName().toLowerCase()));
         }
     }
 }
