@@ -7,6 +7,7 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.util.Subscription;
 import name.ulbricht.dlx.asm.Diagnostic;
 
 /// View model for the problems view.
@@ -40,10 +41,12 @@ public final class ProblemsViewModel {
         }
     };
 
+    private final Subscription diagnosticsSubscription;
+
     /// Creates a new problems view model instance.
     public ProblemsViewModel() {
         // Subscribe for changes to the diagnostics property (list replacement)
-        this.diagnostics.subscribe((oldList, newList) -> {
+        this.diagnosticsSubscription = this.diagnostics.subscribe((oldList, newList) -> {
             if (oldList != null)
                 oldList.removeListener(this.diagnosticsListListener);
 
@@ -100,5 +103,14 @@ public final class ProblemsViewModel {
     /// {@return the list of problems}
     public ObservableList<ProblemItem> getProblems() {
         return problemsProperty().get();
+    }
+
+    /// Disposes of the view model and releases any resources it holds.
+    void dispose() {
+        final var currentList = this.diagnostics.get();
+        if (currentList != null) {
+            currentList.removeListener(this.diagnosticsListListener);
+        }
+        this.diagnosticsSubscription.unsubscribe();
     }
 }

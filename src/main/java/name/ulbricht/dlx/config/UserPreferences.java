@@ -110,7 +110,7 @@ public final class UserPreferences {
         });
     }
 
-    private <T> void notofyPreferenceChangeListeners(final String name, final T newValue) {
+    private <T> void notifyPreferenceChangeListeners(final String name, final T newValue) {
         final List<Consumer<?>> currentListeners;
         synchronized (this.listeners) {
             if (this.listeners.isEmpty())
@@ -138,7 +138,7 @@ public final class UserPreferences {
     /// @param directory the directory to set, or null to remove the preference
     public void putMostRecentlyUsedDirectory(final Path directory) {
         putPath(RECENT_DIRECTORY_KEY, directory);
-        notofyPreferenceChangeListeners(RECENT_DIRECTORY_PROPERTY, getRecentDirectory());
+        notifyPreferenceChangeListeners(RECENT_DIRECTORY_PROPERTY, getRecentDirectory());
     }
 
     /// {@return the memory size, or [MemorySize#SMALL] if not set or invalid}
@@ -151,7 +151,7 @@ public final class UserPreferences {
     /// @param newMemorySize the memory size to set, or null to remove the preference
     public void putMemorySize(final MemorySize newMemorySize) {
         putEnum(MEMORY_SIZE_KEY, newMemorySize);
-        notofyPreferenceChangeListeners(MEMORY_SIZE_PROPERTY, getMemorySize());
+        notifyPreferenceChangeListeners(MEMORY_SIZE_PROPERTY, getMemorySize());
     }
 
     /// {@return the processor speed, or [ProcessorSpeed#MEDIUM] if not set
@@ -166,7 +166,7 @@ public final class UserPreferences {
     ///                          the preference
     public void putProcessorSpeed(final ProcessorSpeed newProcessorSpeed) {
         putEnum(PROCESSOR_SPEED_KEY, newProcessorSpeed);
-        notofyPreferenceChangeListeners(PROCESSOR_SPEED_PROPERTY, getProcessorSpeed());
+        notifyPreferenceChangeListeners(PROCESSOR_SPEED_PROPERTY, getProcessorSpeed());
     }
 
     /// {@return the theme, or [Theme#LIGHT] if not set or invalid.}
@@ -179,7 +179,7 @@ public final class UserPreferences {
     /// @param newTheme the theme to set, or null to remove the preference
     public void putTheme(final Theme newTheme) {
         putEnum(THEME_KEY, newTheme);
-        notofyPreferenceChangeListeners(THEME_PROPERTY, getTheme());
+        notifyPreferenceChangeListeners(THEME_PROPERTY, getTheme());
     }
 
     /// {@return the log level, or [System.Logger.Level#INFO] if not set
@@ -193,7 +193,7 @@ public final class UserPreferences {
     /// @param newLogLevel the log level to set, or null to remove the preference
     public void putLogLevel(final System.Logger.Level newLogLevel) {
         putEnum(LOG_LEVEL_KEY, newLogLevel);
-        notofyPreferenceChangeListeners(LOG_LEVEL_PROPERTY, getLogLevel());
+        notifyPreferenceChangeListeners(LOG_LEVEL_PROPERTY, getLogLevel());
     }
 
     /// {@return an unmodifiable view of the recently opened files}
@@ -212,7 +212,7 @@ public final class UserPreferences {
         while (this.recentFiles.size() > MAX_RECENT_FILES)
             this.recentFiles.removeLast();
         persistRecentFiles();
-        notofyPreferenceChangeListeners(RECENT_FILES_PROPERTY, getRecentFiles());
+        notifyPreferenceChangeListeners(RECENT_FILES_PROPERTY, getRecentFiles());
     }
 
     /// Removes a file from the recent files list.
@@ -222,7 +222,7 @@ public final class UserPreferences {
         requireNonNull(file);
         if (this.recentFiles.remove(file)) {
             persistRecentFiles();
-            notofyPreferenceChangeListeners(RECENT_FILES_PROPERTY, getRecentFiles());
+            notifyPreferenceChangeListeners(RECENT_FILES_PROPERTY, getRecentFiles());
         }
     }
 
@@ -231,7 +231,7 @@ public final class UserPreferences {
         if (!this.recentFiles.isEmpty()) {
             this.recentFiles.clear();
             persistRecentFiles();
-            notofyPreferenceChangeListeners(RECENT_FILES_PROPERTY, getRecentFiles());
+            notifyPreferenceChangeListeners(RECENT_FILES_PROPERTY, getRecentFiles());
         }
     }
 

@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
@@ -55,8 +56,8 @@ public final class OutlineView implements View<Parent, OutlineViewModel> {
     }
 
     @Override
-    public ReadOnlyStringWrapper titleProperty() {
-        return this.title;
+    public ReadOnlyStringProperty titleProperty() {
+        return this.title.getReadOnlyProperty();
     }
 
     @Override

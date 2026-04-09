@@ -120,7 +120,6 @@ public final class MainViewModel implements ProcessingListener {
     private CPU createProcessor() {
         final var cpu = new CPU(this.userPreferences.getMemorySize().sizeInBytes());
         cpu.setStageDuration(this.userPreferences.getProcessorSpeed().duration());
-        cpu.addProcessingListener(this);
         return cpu;
     }
 

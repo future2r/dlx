@@ -56,6 +56,7 @@ public final class ProblemsController {
 
     void dispose() {
         activeEditorChanged(null);
+        this.viewModel.dispose();
     }
 
     private void activeEditorChanged(final EditorView newEditorView) {

@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.logging.Level;
 
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.util.Subscription;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.TableCell;
@@ -58,10 +60,12 @@ public final class LogView implements View<Parent, LogViewModel> {
 
     private final LogController controller;
     private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper(Messages.getString("log.title"));
+    private final Subscription titleSubscription;
 
     private LogView(final LogController controller) {
         this.controller = requireNonNull(controller);
-        this.controller.getViewModel().entriesProperty().sizeProperty().subscribe(this::updateTitle);
+        this.titleSubscription = this.controller.getViewModel().entriesProperty().sizeProperty()
+                .subscribe(this::updateTitle);
     }
 
     private void updateTitle(final Number size) {
@@ -74,8 +78,8 @@ public final class LogView implements View<Parent, LogViewModel> {
     }
 
     @Override
-    public ReadOnlyStringWrapper titleProperty() {
-        return this.title;
+    public ReadOnlyStringProperty titleProperty() {
+        return this.title.getReadOnlyProperty();
     }
 
     @Override
@@ -85,6 +89,7 @@ public final class LogView implements View<Parent, LogViewModel> {
 
     @Override
     public void dispose() {
+        this.titleSubscription.unsubscribe();
         this.controller.getViewModel().dispose();
     }
 }

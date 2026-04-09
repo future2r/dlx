@@ -9,6 +9,7 @@ import java.util.logging.LogRecord;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 
 /// UI model for a single log entry displayed in the Log view.
@@ -55,8 +56,8 @@ public final class LogEntry {
     }
 
     /// {@return the property for the log entry source}
-    public ReadOnlyStringWrapper sourceProperty() {
-        return this.source;
+    public ReadOnlyStringProperty sourceProperty() {
+        return this.source.getReadOnlyProperty();
     }
 
     /// {@return the log entry source}
@@ -65,8 +66,8 @@ public final class LogEntry {
     }
 
     /// {@return the property for the log entry message}
-    public ReadOnlyStringWrapper messageProperty() {
-        return this.message;
+    public ReadOnlyStringProperty messageProperty() {
+        return this.message.getReadOnlyProperty();
     }
 
     /// {@return the log entry message}

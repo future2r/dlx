@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
@@ -13,6 +14,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
+import javafx.util.Subscription;
 import name.ulbricht.dlx.simulator.CPU;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.scene.control.BinaryTableCell;
@@ -74,12 +76,13 @@ public final class RegistersView implements View<Parent, RegistersViewModel> {
 
     private final RegistersController controller;
     private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper(Messages.getString("registers.title"));
+    private final Subscription titleSubscription;
 
     private RegistersView(final RegistersController controller) {
         this.controller = requireNonNull(controller);
 
         // Update the title when the processor changes to show the register count.
-        this.controller.getViewModel().processorProperty().subscribe(this::updateTitle);
+        this.titleSubscription = this.controller.getViewModel().processorProperty().subscribe(this::updateTitle);
     }
 
     private void updateTitle(final CPU processor) {
@@ -92,8 +95,8 @@ public final class RegistersView implements View<Parent, RegistersViewModel> {
     }
 
     @Override
-    public ReadOnlyStringWrapper titleProperty() {
-        return this.title;
+    public ReadOnlyStringProperty titleProperty() {
+        return this.title.getReadOnlyProperty();
     }
 
     @Override
@@ -103,6 +106,7 @@ public final class RegistersView implements View<Parent, RegistersViewModel> {
 
     @Override
     public void dispose() {
+        this.titleSubscription.unsubscribe();
         this.controller.dispose();
     }
 }

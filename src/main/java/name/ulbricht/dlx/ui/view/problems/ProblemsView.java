@@ -5,7 +5,9 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.util.Subscription;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -66,12 +68,14 @@ public final class ProblemsView implements View<Parent, ProblemsViewModel> {
 
     private final ProblemsController controller;
     private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper(Messages.getString("problems.title"));
+    private final Subscription titleSubscription;
 
     private ProblemsView(final ProblemsController controller) {
         this.controller = requireNonNull(controller);
 
         // Update the title when the problem count changes.
-        this.controller.getViewModel().problemsProperty().sizeProperty().subscribe(this::updateTitle);
+        this.titleSubscription = this.controller.getViewModel().problemsProperty().sizeProperty()
+                .subscribe(this::updateTitle);
     }
 
     private void updateTitle(final Number size) {
@@ -84,8 +88,8 @@ public final class ProblemsView implements View<Parent, ProblemsViewModel> {
     }
 
     @Override
-    public ReadOnlyStringWrapper titleProperty() {
-        return this.title;
+    public ReadOnlyStringProperty titleProperty() {
+        return this.title.getReadOnlyProperty();
     }
 
     @Override
@@ -95,6 +99,7 @@ public final class ProblemsView implements View<Parent, ProblemsViewModel> {
 
     @Override
     public void dispose() {
+        this.titleSubscription.unsubscribe();
         this.controller.dispose();
     }
 

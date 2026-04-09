@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
@@ -13,6 +14,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.util.Callback;
+import javafx.util.Subscription;
 import name.ulbricht.dlx.simulator.CPU;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.util.FormatUtil;
@@ -99,12 +101,13 @@ public final class MemoryView implements View<Parent, MemoryViewModel> {
 
     private final MemoryController controller;
     private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper(Messages.getString("memory.title"));
+    private final Subscription titleSubscription;
 
     private MemoryView(final MemoryController controller) {
         this.controller = requireNonNull(controller);
 
         // Update the title when the processor changes to show the memory size.
-        this.controller.getViewModel().processorProperty().subscribe(this::updateTitle);
+        this.titleSubscription = this.controller.getViewModel().processorProperty().subscribe(this::updateTitle);
     }
 
     private void updateTitle(final CPU processor) {
@@ -117,8 +120,8 @@ public final class MemoryView implements View<Parent, MemoryViewModel> {
     }
 
     @Override
-    public ReadOnlyStringWrapper titleProperty() {
-        return this.title;
+    public ReadOnlyStringProperty titleProperty() {
+        return this.title.getReadOnlyProperty();
     }
 
     @Override
@@ -128,6 +131,7 @@ public final class MemoryView implements View<Parent, MemoryViewModel> {
 
     @Override
     public void dispose() {
+        this.titleSubscription.unsubscribe();
         this.controller.dispose();
     }
 }
