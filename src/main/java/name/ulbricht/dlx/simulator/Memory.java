@@ -178,11 +178,11 @@ final class Memory {
         notifyWriteAccess(addr, Arrays.copyOfRange(this.data, addr, addr + 1));
     }
 
-    /// Copies `bytes` into memory starting at `startAddr`.
+    /// Stores `bytes` into memory starting at `startAddr`.
     ///
     /// @param dataToLoad the raw bytes to load; must not be `null`
     /// @param startAddr  the byte address at which to begin writing; typically 0
-    void loadProgram(final byte[] dataToLoad, final int startAddr) {
+    void storeProgram(final byte[] dataToLoad, final int startAddr) {
         requireNonNull(dataToLoad, "bytes must not be null");
 
         for (var i = 0; i < dataToLoad.length; i++) {

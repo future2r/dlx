@@ -80,9 +80,9 @@ public final class Compiler {
             instrAddr += 4;
         }
 
-        if (hasErrors()) {
-            return new CompiledProgram(parsed.id(), null, 0, this.diagnostics);
-        }
+        if (hasErrors())
+            return new CompiledProgram(parsed.id(), new byte[0], 0, this.diagnostics);
+
         return new CompiledProgram(parsed.id(), program, dataSize, this.diagnostics);
     }
 
@@ -179,15 +179,15 @@ public final class Compiler {
             return 0;
         }
         return switch (def.format) {
-            case R        -> encodeRFormat(instr, def.functionCode);
-            case I_ARITH  -> encodeIArith(instr, def.operationCode);
-            case LOAD     -> encodeILoad(instr, def.operationCode);
-            case STORE    -> encodeIStore(instr, def.operationCode);
-            case RD_IMM   -> encodeILhi(instr);
+            case R -> encodeRFormat(instr, def.functionCode);
+            case I_ARITH -> encodeIArith(instr, def.operationCode);
+            case LOAD -> encodeILoad(instr, def.operationCode);
+            case STORE -> encodeIStore(instr, def.operationCode);
+            case RD_IMM -> encodeILhi(instr);
             case RS_LABEL -> encodeIBranch(instr, def.operationCode, addr);
-            case LABEL    -> encodeJFormat(instr, def.operationCode, addr);
-            case RS       -> encodeIJumpReg(instr, def.operationCode);
-            case NONE     -> encodeIHalt();
+            case LABEL -> encodeJFormat(instr, def.operationCode, addr);
+            case RS -> encodeIJumpReg(instr, def.operationCode);
+            case NONE -> encodeIHalt();
         };
     }
 

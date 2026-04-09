@@ -3,8 +3,6 @@ package name.ulbricht.dlx.asm.compiler;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
@@ -370,7 +368,7 @@ final class CompilerTest {
                                         x: .word 1
                                         x: .word 2""");
                         assertTrue(compiled.hasErrors());
-                        assertNull(compiled.program());
+                        assertEquals(0, compiled.program().length);
                         assertTrue(compiled.diagnostics().stream()
                                         .anyMatch(d -> d.message().contains("Duplicate label")));
                 }
@@ -382,7 +380,7 @@ final class CompilerTest {
                                         .text
                                         j nowhere""");
                         assertTrue(compiled.hasErrors());
-                        assertNull(compiled.program());
+                        assertEquals(0, compiled.program().length);
                         assertTrue(compiled.diagnostics().stream()
                                         .anyMatch(d -> d.message().contains("Undefined label")));
                 }
@@ -394,9 +392,10 @@ final class CompilerTest {
                                         .data
                                         .align -1""");
                         assertTrue(compiled.hasErrors());
-                        assertNull(compiled.program());
+                        assertEquals(0, compiled.program().length);
                         assertTrue(compiled.diagnostics().stream()
-                                        .anyMatch(d -> d.message().contains("Alignment exponent must be between 0 and 8")));
+                                        .anyMatch(d -> d.message()
+                                                        .contains("Alignment exponent must be between 0 and 8")));
                 }
 
                 @Test
@@ -406,9 +405,10 @@ final class CompilerTest {
                                         .data
                                         .align 9""");
                         assertTrue(compiled.hasErrors());
-                        assertNull(compiled.program());
+                        assertEquals(0, compiled.program().length);
                         assertTrue(compiled.diagnostics().stream()
-                                        .anyMatch(d -> d.message().contains("Alignment exponent must be between 0 and 8")));
+                                        .anyMatch(d -> d.message()
+                                                        .contains("Alignment exponent must be between 0 and 8")));
                 }
 
                 @Test
@@ -471,7 +471,6 @@ final class CompilerTest {
                 void emptyProgram() {
                         final var compiled = compile("");
                         assertNoErrors(compiled);
-                        assertNotNull(compiled.program());
                         assertEquals(0, compiled.program().length);
                 }
         }
@@ -505,7 +504,6 @@ final class CompilerTest {
         }
 
         private static void assertNoErrors(final CompiledProgram compiled) {
-                assertNotNull(compiled.program(), "Program should not be null");
                 assertFalse(compiled.hasErrors(),
                                 "Expected no errors but got: " + compiled.diagnostics());
         }

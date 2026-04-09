@@ -196,7 +196,7 @@ public final class CPU {
         notifyProcessingListeners();
 
         // Write the program bytes into memory.
-        this.memory.loadProgram(program, 0);
+        this.memory.storeProgram(program, 0);
     }
 
     /// Advances the simulation by exactly one clock cycle.

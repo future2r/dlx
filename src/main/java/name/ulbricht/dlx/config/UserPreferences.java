@@ -238,15 +238,15 @@ public final class UserPreferences {
     /// Returns the saved window state for the given window identifier.
     ///
     /// @param windowId identifies the window, must not be `null`
-    /// @return the saved window state, or `null` if not previously saved
-    public WindowState getWindowState(final String windowId) {
+    /// @return the saved window state, or an empty optional if not previously saved
+    public Optional<WindowState> getWindowState(final String windowId) {
         requireNonNull(windowId);
 
         final var node = this.preferences.node(WINDOWS_NODE).node(windowId);
         final var maximized = node.getBoolean(WINDOW_MAXIMIZED_KEY, false);
 
         if (maximized)
-            return new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN);
+            return Optional.of(new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN));
 
         final var x = node.getDouble(WINDOW_X_KEY, Double.NaN);
         final var y = node.getDouble(WINDOW_Y_KEY, Double.NaN);
@@ -254,9 +254,9 @@ public final class UserPreferences {
         final var height = node.getDouble(WINDOW_HEIGHT_KEY, Double.NaN);
 
         if (Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(width) || Double.isNaN(height))
-            return null;
+            return Optional.empty();
 
-        return new WindowState(false, x, y, width, height);
+        return Optional.of(new WindowState(false, x, y, width, height));
     }
 
     /// Save the window state for the given window identifier, or remove the sub

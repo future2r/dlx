@@ -14,7 +14,7 @@ import name.ulbricht.dlx.util.TextPosition;
 public record Diagnostic(Stage stage, Severity severity, TextPosition pos, String message) {
 
     /// The severity level of a diagnostic.
-    public enum Severity{
+    public enum Severity {
 
         /// Diagnostic produced for informational purposes, not indicating any problem.
         INFO,
@@ -34,7 +34,6 @@ public record Diagnostic(Stage stage, Severity severity, TextPosition pos, Strin
             };
         }
     }
-
 
     /// The stage of the compilation process where the diagnostic was produced.
     public enum Stage {

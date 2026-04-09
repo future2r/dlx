@@ -135,7 +135,7 @@ final class MemoryTest {
                     0x22, 0x22, 0x22, 0x22,
                     0x33, 0x33, 0x33, 0x33
             };
-            MemoryTest.this.mem.loadProgram(program, 0);
+            MemoryTest.this.mem.storeProgram(program, 0);
             assertEquals(0x11111111, MemoryTest.this.mem.loadWord(0));
             assertEquals(0x22222222, MemoryTest.this.mem.loadWord(4));
             assertEquals(0x33333333, MemoryTest.this.mem.loadWord(8));
@@ -144,7 +144,7 @@ final class MemoryTest {
         @Test
         void loadProgramAtNonZeroAddress() {
             final byte[] program = { (byte) 0xAB, (byte) 0xCD, (byte) 0xEF, 0x01 };
-            MemoryTest.this.mem.loadProgram(program, 16);
+            MemoryTest.this.mem.storeProgram(program, 16);
             assertEquals(0xABCDEF01, MemoryTest.this.mem.loadWord(16));
         }
     }
