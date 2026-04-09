@@ -2,22 +2,21 @@ package name.ulbricht.dlx.ui.view.log;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.logging.Level;
 
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.util.Subscription;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
+import javafx.util.Subscription;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.view.View;
+import name.ulbricht.dlx.ui.view.Views;
 
 /// View for displaying application logs.
 public final class LogView implements View<Parent, LogViewModel> {
@@ -26,19 +25,7 @@ public final class LogView implements View<Parent, LogViewModel> {
     ///
     /// @return loaded log view
     public static LogView load() {
-
-        final var resources = Messages.BUNDLE;
-        final var fxmlLocation = LogView.class.getResource("LogView.fxml");
-        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources);
-
-        try {
-            fxmlLoader.load();
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to load LogView FXML", ex);
-        }
-
-        final var controller = fxmlLoader.<LogController>getController();
-        return new LogView(controller);
+        return new LogView(Views.loadController(LogView.class));
     }
 
     /// {@return a row factory for log table rows}

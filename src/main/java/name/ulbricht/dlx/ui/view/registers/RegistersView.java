@@ -2,12 +2,9 @@ package name.ulbricht.dlx.ui.view.registers;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.IOException;
-
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -21,37 +18,21 @@ import name.ulbricht.dlx.ui.scene.control.BinaryTableCell;
 import name.ulbricht.dlx.ui.scene.control.DecimalTableCell;
 import name.ulbricht.dlx.ui.scene.control.HexadecimalTableCell;
 import name.ulbricht.dlx.ui.view.View;
+import name.ulbricht.dlx.ui.view.Views;
 
 /// View for the internals of the processor.
 public final class RegistersView implements View<Parent, RegistersViewModel> {
 
     /// Loads the registers view from the FXML file.
-    /// 
+    ///
     /// @param activeProcessor the observable value providing the currently active
     ///                        processor
     /// @return The configured registers view with the loaded content.
     public static RegistersView load(final ObservableValue<CPU> activeProcessor) {
-
-        // Configure the FXML loader
-        final var resources = Messages.BUNDLE;
-        final var fxmlLocation = RegistersView.class.getResource("RegistersView.fxml");
-        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources, null, controllerClass -> {
-            if (controllerClass == RegistersController.class)
-                return new RegistersController(activeProcessor);
-            return null;
-        });
-
-        // Load the view layout
-        try {
-            fxmlLoader.load();
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to load RegistersView FXML", ex);
-        }
-
-        final var controller = fxmlLoader.<RegistersController>getController();
-
-        // Create and return the view
-        return new RegistersView(controller);
+        return new RegistersView(Views.loadController(RegistersView.class,
+                controllerClass -> controllerClass == RegistersController.class
+                        ? new RegistersController(activeProcessor)
+                        : null));
     }
 
     /// {@return a row factory for register table rows}

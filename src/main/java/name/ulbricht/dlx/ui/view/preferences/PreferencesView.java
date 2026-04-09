@@ -2,11 +2,8 @@ package name.ulbricht.dlx.ui.view.preferences;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.IOException;
-
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -20,6 +17,7 @@ import name.ulbricht.dlx.ui.scene.Theme;
 import name.ulbricht.dlx.ui.stage.Stages;
 import name.ulbricht.dlx.ui.util.FormatUtil;
 import name.ulbricht.dlx.ui.view.View;
+import name.ulbricht.dlx.ui.view.Views;
 
 /// View for the application preferences.
 public final class PreferencesView implements View<DialogPane, PreferencesViewModel> {
@@ -29,26 +27,10 @@ public final class PreferencesView implements View<DialogPane, PreferencesViewMo
     /// @param owner the owner window of the dialog, may be `null`
     /// @return a new preferences dialog
     public static Dialog<Boolean> dialog(final Window owner) {
-
-        // Configure the FXML loader
-        final var resources = Messages.BUNDLE;
-        final var fxmlLocation = PreferencesView.class.getResource("PreferencesView.fxml");
-        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources);
-
-        // Load the view layout
-        try {
-            fxmlLoader.load();
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to load PreferencesView FXML", ex);
-        }
-
-        final var controller = fxmlLoader.<PreferencesController>getController();
+        final var controller = Views.<PreferencesController>loadController(PreferencesView.class);
         final var view = new PreferencesView(controller);
 
-        // Create the dialog
         final var dialog = Stages.<Boolean>createDialog(owner, view);
-
-        // React on dialog events
         dialog.setResultConverter(button -> button == ButtonType.OK ? Boolean.TRUE : null);
 
         return dialog;

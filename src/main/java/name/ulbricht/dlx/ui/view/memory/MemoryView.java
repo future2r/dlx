@@ -2,13 +2,10 @@ package name.ulbricht.dlx.ui.view.memory;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.IOException;
-
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -19,37 +16,21 @@ import name.ulbricht.dlx.simulator.CPU;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.util.FormatUtil;
 import name.ulbricht.dlx.ui.view.View;
+import name.ulbricht.dlx.ui.view.Views;
 
 /// View for displaying the memory state of the DLX simulator as a hex viewer.
 public final class MemoryView implements View<Parent, MemoryViewModel> {
 
     /// Loads the memory view from the FXML file.
-    /// 
+    ///
     /// @param activeProcessor the observable value providing the currently active
     ///                        processor
     /// @return The configured memory view with the loaded content.
     public static MemoryView load(final ObservableValue<CPU> activeProcessor) {
-
-        // Configure the FXML loader
-        final var resources = Messages.BUNDLE;
-        final var fxmlLocation = MemoryView.class.getResource("MemoryView.fxml");
-        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources, null, controllerClass -> {
-            if (controllerClass == MemoryController.class)
-                return new MemoryController(activeProcessor);
-            return null;
-        });
-
-        // Load the view layout
-        try {
-            fxmlLoader.load();
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to load MemoryView FXML", ex);
-        }
-
-        final var controller = fxmlLoader.<MemoryController>getController();
-
-        // Create and return the view
-        return new MemoryView(controller);
+        return new MemoryView(Views.loadController(MemoryView.class,
+                controllerClass -> controllerClass == MemoryController.class
+                        ? new MemoryController(activeProcessor)
+                        : null));
     }
 
     /// {@return a cell factory for the hex address column}

@@ -2,23 +2,21 @@ package name.ulbricht.dlx.ui.view.problems;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.IOException;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.util.Subscription;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
+import javafx.util.Subscription;
 import name.ulbricht.dlx.asm.Diagnostic;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.view.View;
+import name.ulbricht.dlx.ui.view.Views;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
 import name.ulbricht.dlx.util.TextPosition;
 
@@ -26,32 +24,15 @@ import name.ulbricht.dlx.util.TextPosition;
 public final class ProblemsView implements View<Parent, ProblemsViewModel> {
 
     /// Loads the problems view from the FXML file.
-    /// 
+    ///
     /// @param activeEditorView the observable value providing the currently active
     ///                         editor view
     /// @return The configured problems view with the loaded content.
     public static ProblemsView load(final ObservableValue<EditorView> activeEditorView) {
-
-        // Configure the FXML loader
-        final var resources = Messages.BUNDLE;
-        final var fxmlLocation = ProblemsView.class.getResource("ProblemsView.fxml");
-        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources, null, controllerClass -> {
-            if (controllerClass == ProblemsController.class)
-                return new ProblemsController(activeEditorView);
-            return null;
-        });
-
-        // Load the view layout
-        try {
-            fxmlLoader.load();
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to load ProblemsView FXML", ex);
-        }
-
-        final var controller = fxmlLoader.<ProblemsController>getController();
-
-        // Create and return the view
-        return new ProblemsView(controller);
+        return new ProblemsView(Views.loadController(ProblemsView.class,
+                controllerClass -> controllerClass == ProblemsController.class
+                        ? new ProblemsController(activeEditorView)
+                        : null));
     }
 
     /// {@return a cell factory for the source column that creates cells displaying

@@ -2,50 +2,31 @@ package name.ulbricht.dlx.ui.view.outline;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.IOException;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.view.View;
+import name.ulbricht.dlx.ui.view.Views;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
 
 /// View for displaying the outline of the loaded DLX program.
 public final class OutlineView implements View<Parent, OutlineViewModel> {
 
     /// Loads the outline view from the FXML file.
-    /// 
+    ///
     /// @param activeEditorView the observable value providing the currently active
     ///                         editor view
     /// @return The configured outline view with the loaded content.
     public static OutlineView load(final ObservableValue<EditorView> activeEditorView) {
-
-        // Configure the FXML loader
-        final var resources = Messages.BUNDLE;
-        final var fxmlLocation = OutlineView.class.getResource("OutlineView.fxml");
-        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources, null, controllerClass -> {
-            if (controllerClass == OutlineController.class)
-                return new OutlineController(activeEditorView);
-            return null;
-        });
-
-        // Load the view layout
-        try {
-            fxmlLoader.load();
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to load OutlineView FXML", ex);
-        }
-
-        final var controller = fxmlLoader.<OutlineController>getController();
-
-        // Create and return the view
-        return new OutlineView(controller);
+        return new OutlineView(Views.loadController(OutlineView.class,
+                controllerClass -> controllerClass == OutlineController.class
+                        ? new OutlineController(activeEditorView)
+                        : null));
     }
 
     private final OutlineController controller;

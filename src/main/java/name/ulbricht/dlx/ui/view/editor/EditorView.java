@@ -10,10 +10,10 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.view.View;
+import name.ulbricht.dlx.ui.view.Views;
 import name.ulbricht.dlx.util.TextPosition;
 
 /// View for the editor.
@@ -31,32 +31,18 @@ public final class EditorView implements View<Parent, EditorViewModel> {
     }
 
     /// Loads the editor view from the FXML file.
-    /// 
+    ///
     /// @param file the file to load into the editor, or null for an empty editor
     /// @return The configured editor view with the loaded content.
     /// @throws IOException if an I/O error occurs while loading the file
     public static EditorView load(final Path file) throws IOException {
-
-        // Configure the FXML loader
-        final var resources = Messages.BUNDLE;
-        final var fxmlLocation = EditorView.class.getResource("EditorView.fxml");
-        final var fxmlLoader = new FXMLLoader(fxmlLocation, resources);
-
-        // Load the view layout
-        try {
-            fxmlLoader.load();
-        } catch (final IOException ex) {
-            throw new IllegalStateException("Failed to load EditorView FXML", ex);
-        }
-
-        final var controller = fxmlLoader.<EditorController>getController();
+        final var controller = Views.<EditorController>loadController(EditorView.class);
 
         if (file != null)
             controller.getViewModel().loadFile(file);
         else
             controller.getViewModel().newFile();
 
-        // Create and return the view
         return new EditorView(controller);
     }
 
