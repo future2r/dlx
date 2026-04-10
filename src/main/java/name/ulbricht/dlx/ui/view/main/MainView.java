@@ -16,7 +16,7 @@ import name.ulbricht.dlx.ui.view.Views;
 public final class MainView implements View<Parent, MainViewModel> {
 
     /// The window identifier used for persisting the main window state.
-    static final String WINDOW_ID = "main";
+    static final String STAGE_ID = "main";
 
     /// Loads the main view from the associated FXML file.
     ///
@@ -32,26 +32,17 @@ public final class MainView implements View<Parent, MainViewModel> {
 
         final var view = load();
         final var controller = view.controller;
-        final var windowState = ViewServices.userPreferences().getWindowState(WINDOW_ID);
 
         // Create the scene
-        final var scene = windowState.isPresent() && !windowState.get().maximized()
-                ? new Scene(view.getRoot(), windowState.get().width(), windowState.get().height())
-                : new Scene(view.getRoot());
+        final var scene = new Scene(view.getRoot());
 
         // Configure the stage
         stage.setScene(scene);
         Stages.initStageIcons(stage);
         stage.titleProperty().bind(view.titleProperty());
 
-        windowState.ifPresent(state -> {
-            if (state.maximized())
-                stage.setMaximized(true);
-            else {
-                stage.setX(state.x());
-                stage.setY(state.y());
-            }
-        });
+        ViewServices.userPreferences().getStageState(STAGE_ID)
+                .ifPresentOrElse(state -> Stages.restoreStageState(stage, state), () -> stage.centerOnScreen());
 
         // Forward window events to the controller
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, controller::windowShown);

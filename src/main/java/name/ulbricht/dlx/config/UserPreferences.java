@@ -62,12 +62,12 @@ public final class UserPreferences {
     private static final String RECENT_FILES_COUNT_KEY = "count";
     private static final int MAX_RECENT_FILES = 5;
 
-    private static final String WINDOWS_NODE = "windows";
-    private static final String WINDOW_X_KEY = "x";
-    private static final String WINDOW_Y_KEY = "y";
-    private static final String WINDOW_WIDTH_KEY = "width";
-    private static final String WINDOW_HEIGHT_KEY = "height";
-    private static final String WINDOW_MAXIMIZED_KEY = "maximized";
+    private static final String STAGES_NODE = "stages";
+    private static final String STAGE_MAXIMIZED_KEY = "maximized";
+    private static final String STAGE_X_KEY = "x";
+    private static final String STAGE_Y_KEY = "y";
+    private static final String STAGE_WIDTH_KEY = "width";
+    private static final String STAGE_HEIGHT_KEY = "height";
 
     private final Preferences preferences;
 
@@ -235,59 +235,56 @@ public final class UserPreferences {
         }
     }
 
-    /// Returns the saved window state for the given window identifier.
+    /// Returns the saved stage state for the given stage identifier.
     ///
-    /// @param windowId identifies the window, must not be `null`
-    /// @return the saved window state, or an empty optional if not previously saved
-    public Optional<WindowState> getWindowState(final String windowId) {
-        requireNonNull(windowId);
+    /// @param stageId identifies the stage, must not be `null`
+    /// @return the saved stage state, or an empty optional if not previously saved
+    public Optional<StageState> getStageState(final String stageId) {
+        requireNonNull(stageId);
 
-        final var node = this.preferences.node(WINDOWS_NODE).node(windowId);
-        final var maximized = node.getBoolean(WINDOW_MAXIMIZED_KEY, false);
+        final var node = this.preferences.node(STAGES_NODE).node(stageId);
+        final var maximized = node.getBoolean(STAGE_MAXIMIZED_KEY, false);
 
         if (maximized)
-            return Optional.of(new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN));
+            return Optional.of(StageState.ofMaximized());
 
-        final var x = node.getDouble(WINDOW_X_KEY, Double.NaN);
-        final var y = node.getDouble(WINDOW_Y_KEY, Double.NaN);
-        final var width = node.getDouble(WINDOW_WIDTH_KEY, Double.NaN);
-        final var height = node.getDouble(WINDOW_HEIGHT_KEY, Double.NaN);
+        final var x = node.getInt(STAGE_X_KEY, StageState.UNDEFINED);
+        final var y = node.getInt(STAGE_Y_KEY, StageState.UNDEFINED);
+        final var width = node.getInt(STAGE_WIDTH_KEY, StageState.UNDEFINED);
+        final var height = node.getInt(STAGE_HEIGHT_KEY, StageState.UNDEFINED);
 
-        if (Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(width) || Double.isNaN(height))
-            return Optional.empty();
-
-        return Optional.of(new WindowState(false, x, y, width, height));
+        return Optional.of(StageState.ofNormal(x, y, width, height));
     }
 
-    /// Save the window state for the given window identifier, or remove the sub
-    /// node if `windowState` is `null`.
+    /// Save the stage state for the given stage identifier, or remove the sub node
+    /// if `stageState` is `null`.
     ///
-    /// @param windowId    identifies the window, must not be `null`
-    /// @param windowState the window state to save, or `null` to remove
-    public void putWindowState(final String windowId, final WindowState windowState) {
-        requireNonNull(windowId);
+    /// @param stageId    identifies the stage, must not be `null`
+    /// @param stageState the stage state to save, or `null` to remove
+    public void putStageState(final String stageId, final StageState stageState) {
+        requireNonNull(stageId);
 
-        final var node = this.preferences.node(WINDOWS_NODE).node(windowId);
-        if (windowState != null) {
-            if (windowState.maximized()) {
-                node.putBoolean(WINDOW_MAXIMIZED_KEY, true);
-                node.remove(WINDOW_X_KEY);
-                node.remove(WINDOW_Y_KEY);
-                node.remove(WINDOW_WIDTH_KEY);
-                node.remove(WINDOW_HEIGHT_KEY);
+        final var node = this.preferences.node(STAGES_NODE).node(stageId);
+        if (stageState != null) {
+            if (stageState.maximized()) {
+                node.putBoolean(STAGE_MAXIMIZED_KEY, true);
+                node.remove(STAGE_X_KEY);
+                node.remove(STAGE_Y_KEY);
+                node.remove(STAGE_WIDTH_KEY);
+                node.remove(STAGE_HEIGHT_KEY);
             } else {
-                node.putBoolean(WINDOW_MAXIMIZED_KEY, false);
-                node.putDouble(WINDOW_X_KEY, windowState.x());
-                node.putDouble(WINDOW_Y_KEY, windowState.y());
-                node.putDouble(WINDOW_WIDTH_KEY, windowState.width());
-                node.putDouble(WINDOW_HEIGHT_KEY, windowState.height());
+                node.putBoolean(STAGE_MAXIMIZED_KEY, false);
+                node.putInt(STAGE_X_KEY, stageState.x());
+                node.putInt(STAGE_Y_KEY, stageState.y());
+                node.putInt(STAGE_WIDTH_KEY, stageState.width());
+                node.putInt(STAGE_HEIGHT_KEY, stageState.height());
             }
         } else {
-            node.remove(WINDOW_MAXIMIZED_KEY);
-            node.remove(WINDOW_X_KEY);
-            node.remove(WINDOW_Y_KEY);
-            node.remove(WINDOW_WIDTH_KEY);
-            node.remove(WINDOW_HEIGHT_KEY);
+            node.remove(STAGE_MAXIMIZED_KEY);
+            node.remove(STAGE_X_KEY);
+            node.remove(STAGE_Y_KEY);
+            node.remove(STAGE_WIDTH_KEY);
+            node.remove(STAGE_HEIGHT_KEY);
         }
     }
 

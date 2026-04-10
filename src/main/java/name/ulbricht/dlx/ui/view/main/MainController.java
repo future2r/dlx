@@ -36,7 +36,6 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import name.ulbricht.dlx.asm.compiler.CompiledProgram;
 import name.ulbricht.dlx.config.UserPreferences;
-import name.ulbricht.dlx.config.WindowState;
 import name.ulbricht.dlx.io.SourceFile;
 import name.ulbricht.dlx.ui.DlxApplication;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
@@ -44,6 +43,7 @@ import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.scene.Theme;
 import name.ulbricht.dlx.ui.scene.ThemeManager;
 import name.ulbricht.dlx.ui.scene.control.Alerts;
+import name.ulbricht.dlx.ui.stage.Stages;
 import name.ulbricht.dlx.ui.util.FormatUtil;
 import name.ulbricht.dlx.ui.view.View;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
@@ -298,11 +298,7 @@ public final class MainController {
 
     void windowHiding(final WindowEvent event) {
         if (event.getSource() instanceof final Stage stage) {
-            final var windowState = stage.isMaximized()
-                    ? new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN)
-                    : new WindowState(false, stage.getX(), stage.getY(), stage.getScene().getWidth(),
-                            stage.getScene().getHeight());
-            this.userPreferences.putWindowState(MainView.WINDOW_ID, windowState);
+            this.userPreferences.putStageState(MainView.STAGE_ID, Stages.getStageState(stage));
         }
     }
 

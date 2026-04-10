@@ -10,8 +10,10 @@ import java.util.stream.IntStream;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.image.Image;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import name.ulbricht.dlx.config.StageState;
 import name.ulbricht.dlx.ui.view.View;
 
 /// Stage utilities.
@@ -54,6 +56,49 @@ public final class Stages {
         dialog.setDialogPane(view.getRoot());
 
         return dialog;
+    }
+
+    /// Retrieves the current state of the given stage.
+    /// 
+    /// @param stage the stage to retrieve the state from, must not be `null`
+    /// @return the current state of the stage
+    public static StageState getStageState(final Stage stage) {
+        requireNonNull(stage);
+
+        if (stage.isMaximized())
+            return new StageState(true, 0, 0, 0, 0);
+
+        return new StageState(false, (int) stage.getX(), (int) stage.getY(), (int) stage.getWidth(),
+                (int) stage.getHeight());
+    }
+
+    /// Restores the state of the given stage.
+    /// 
+    /// @param stage the stage to restore the state for, must not be `null`
+    /// @param state the state to restore, must not be `null`
+    public static void restoreStageState(final Stage stage, final StageState state) {
+        requireNonNull(stage);
+        requireNonNull(state);
+
+        if (state.maximized())
+            stage.setMaximized(true);
+        else {
+            // Set the stage position only if it is on a valid screen, otherwise use the
+            // default position
+            final var x = state.x();
+            final var y = state.y();
+            Screen.getScreensForRectangle(x, y, 1, 1).stream().findFirst().ifPresent(_ -> {
+                stage.setX(x);
+                stage.setY(y);
+            });
+
+            final var width = state.width();
+            final var height = state.height();
+            if (width != StageState.UNDEFINED)
+                stage.setWidth(width);
+            if (height != StageState.UNDEFINED)
+                stage.setHeight(height);
+        }
     }
 
     /// Private constructor to prevent instantiation.

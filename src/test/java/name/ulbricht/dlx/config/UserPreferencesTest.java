@@ -24,58 +24,70 @@ final class UserPreferencesTest {
     }
 
     @Test
-    @DisplayName("getWindowState returns empty when nothing saved")
-    void windowStateEmptyByDefault() {
-        assertTrue(this.prefs.getWindowState("main").isEmpty());
+    @DisplayName("getStageState returns default normal state when nothing saved")
+    void stageStateDefaultByDefault() {
+        final var result = this.prefs.getStageState("main");
+        assertTrue(result.isPresent());
+        assertFalse(result.get().maximized());
+        assertEquals(StageState.UNDEFINED, result.get().x());
+        assertEquals(StageState.UNDEFINED, result.get().y());
+        assertEquals(StageState.UNDEFINED, result.get().width());
+        assertEquals(StageState.UNDEFINED, result.get().height());
     }
 
     @Test
-    @DisplayName("putWindowState then getWindowState round-trips correctly")
-    void windowStateRoundTrip() {
-        final var expected = new WindowState(false, 100, 200, 800, 600);
-        this.prefs.putWindowState("main", expected);
+    @DisplayName("putStageState then getStageState round-trips correctly")
+    void stageStateRoundTrip() {
+        final var expected = StageState.ofNormal(100, 200, 800, 600);
+        this.prefs.putStageState("main", expected);
 
-        final var restored = this.prefs.getWindowState("main");
+        final var restored = this.prefs.getStageState("main");
         assertTrue(restored.isPresent());
         assertEquals(expected, restored.get());
         assertFalse(restored.get().maximized());
     }
 
     @Test
-    @DisplayName("putWindowState with maximized stores only the maximized flag")
-    void windowStateMaximized() {
-        this.prefs.putWindowState("main", new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN));
+    @DisplayName("putStageState with maximized stores only the maximized flag")
+    void stageStateMaximized() {
+        this.prefs.putStageState("main", StageState.ofMaximized());
 
-        final var restored = this.prefs.getWindowState("main");
+        final var restored = this.prefs.getStageState("main");
         assertTrue(restored.isPresent());
         assertTrue(restored.get().maximized());
-        assertTrue(Double.isNaN(restored.get().x()));
-        assertTrue(Double.isNaN(restored.get().y()));
-        assertTrue(Double.isNaN(restored.get().width()));
-        assertTrue(Double.isNaN(restored.get().height()));
+        assertEquals(StageState.UNDEFINED, restored.get().x());
+        assertEquals(StageState.UNDEFINED, restored.get().y());
+        assertEquals(StageState.UNDEFINED, restored.get().width());
+        assertEquals(StageState.UNDEFINED, restored.get().height());
     }
 
     @Test
-    @DisplayName("putWindowState with null removes the sub-node")
-    void windowStateRemoval() {
-        this.prefs.putWindowState("main", new WindowState(false, 10, 20, 640, 480));
+    @DisplayName("putStageState with null removes the saved values")
+    void stageStateRemoval() {
+        this.prefs.putStageState("main", StageState.ofNormal(10, 20, 640, 480));
 
-        this.prefs.putWindowState("main", null);
+        this.prefs.putStageState("main", null);
 
-        assertTrue(this.prefs.getWindowState("main").isEmpty());
+        final var restored = this.prefs.getStageState("main");
+        assertTrue(restored.isPresent());
+        assertFalse(restored.get().maximized());
+        assertEquals(StageState.UNDEFINED, restored.get().x());
+        assertEquals(StageState.UNDEFINED, restored.get().y());
+        assertEquals(StageState.UNDEFINED, restored.get().width());
+        assertEquals(StageState.UNDEFINED, restored.get().height());
     }
 
     @Test
-    @DisplayName("Different window IDs are independent")
-    void windowStateIndependentIds() {
-        final var stateA = new WindowState(false, 0, 0, 500, 400);
-        final var stateB = new WindowState(true, Double.NaN, Double.NaN, Double.NaN, Double.NaN);
+    @DisplayName("Different stage IDs are independent")
+    void stageStateIndependentIds() {
+        final var stateA = StageState.ofNormal(0, 0, 500, 400);
+        final var stateB = StageState.ofMaximized();
 
-        this.prefs.putWindowState("main", stateA);
-        this.prefs.putWindowState("other", stateB);
+        this.prefs.putStageState("main", stateA);
+        this.prefs.putStageState("other", stateB);
 
-        final var restoredA = this.prefs.getWindowState("main");
-        final var restoredB = this.prefs.getWindowState("other");
+        final var restoredA = this.prefs.getStageState("main");
+        final var restoredB = this.prefs.getStageState("other");
 
         assertTrue(restoredA.isPresent());
         assertEquals(stateA, restoredA.get());
