@@ -29,11 +29,14 @@ import static java.util.Objects.requireNonNull;
 ///                  `ctrl.memRead()` was `true`)
 /// @param rd        index of the destination register (0–31); 0 means no
 ///                  register write-back will occur
+/// @param immediate the sign-extended 16-bit immediate from the ID stage;
+///                  used by the CPU for trap dispatch after WB retires
 public record MemWbLatch(
         ControlSignals ctrl,
         int aluResult,
         int memData,
-        int rd) {
+        int rd,
+        int immediate) {
     /// Validates that `ctrl` is not `null`.
     ///
     /// @throws NullPointerException if `ctrl` is `null`
@@ -44,5 +47,5 @@ public record MemWbLatch(
     /// Canonical pipeline bubble for the MEM/WB latch.
     ///
     /// `ctrl` is [ControlSignals#NOP]; all integer fields are zero.
-    public static final MemWbLatch BUBBLE = new MemWbLatch(ControlSignals.NOP, 0, 0, 0);
+    public static final MemWbLatch BUBBLE = new MemWbLatch(ControlSignals.NOP, 0, 0, 0, 0);
 }

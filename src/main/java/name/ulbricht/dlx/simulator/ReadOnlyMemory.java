@@ -31,6 +31,11 @@ public interface ReadOnlyMemory {
             }
 
             @Override
+            public int loadByteU(final int addr) {
+                return memory.loadByteU(addr);
+            }
+
+            @Override
             public void addAccessListener(final MemoryAccessListener listener) {
                 memory.addAccessListener(listener);
             }
@@ -53,6 +58,11 @@ public interface ReadOnlyMemory {
     /// @param addr the byte address of the most-significant byte; must be a valid
     ///             address with at least 4 bytes remaining
     int loadWord(final int addr);
+
+    /// {@return a 32-bit zero-extended byte from `addr`}
+    ///
+    /// @param addr the byte address; must be a valid address
+    int loadByteU(final int addr);
 
     /// {@return a 32-bit sign-extended half-word from `addr`}
     ///

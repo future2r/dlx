@@ -96,12 +96,15 @@ public final class CPU {
     /// Listeners for processing steps.
     private final List<ProcessingListener> processingListeners = new ArrayList<>();
 
+    /// Listeners for non-halt trap retirement.
+    private final List<TrapListener> trapListeners = new ArrayList<>();
+
     /// The program counter - the byte address of the **next** instruction to be
     /// fetched by the IF stage. Updated at the end of every `step()`.
     private int programCounter = 0;
 
-    /// Set to `true` once a `trap 0` instruction retires through WB. [#step()]
-    /// becomes a no-op after this point.
+    /// Set to `true` once a `trap 0` instruction retires through WB.
+    /// [#step()] becomes a no-op after this point.
     private boolean halted = false;
 
     /// Total number of clock cycles executed since the last [#loadProgram].
@@ -246,22 +249,22 @@ public final class CPU {
         final var newExMem = exResult.exMem();
 
         // -----------------------------------------------------------------
-        // Halt / flush flag: when a trap is in EX or a branch/jump redirects
-        // the PC, the younger instructions in IF and ID must be discarded.
-        // This flag is checked before ID and IF run so that the decoder
-        // never sees garbage bytes and IF never issues a spurious fetch.
+        // Trap / fetch-suppress flag: when a trap is in EX, IF must not issue
+        // another fetch. The already-fetched next instruction in IF/ID is
+        // still allowed to advance so sequences like `trap 1` / `trap 0`
+        // continue to work.
         // -----------------------------------------------------------------
-        final var haltFlush = this.idEx.ctrl().halt();
+        final var trapFlush = this.idEx.ctrl().trap();
 
         // -----------------------------------------------------------------
         // ID stage: decode and read registers.
-        // Suppressed (bubble injected) during a stall, a trap flush, or a
-        // branch/jump redirect.
+        // Suppressed (bubble injected) only during a stall. Trap handling is
+        // done in IF so the already-fetched next instruction can still enter EX.
         // -----------------------------------------------------------------
         // newIdEx cannot use 'var' here because it is assigned in a branch.
         // It cannot be 'final' because it may be reassigned in the IF block.
         IdExLatch newIdEx;
-        if (stall || haltFlush) {
+        if (stall) {
             newIdEx = IdExLatch.BUBBLE;
         } else {
             newIdEx = InstructionDecodeStage.execute(this.ifId, this.registers);
@@ -281,9 +284,10 @@ public final class CPU {
             newIfId = IfIdLatch.BUBBLE;
             newIdEx = IdExLatch.BUBBLE; // also flush the instruction in ID
             newPc = exResult.newPc();
-        } else if (haltFlush) {
-            // Trap detected in EX: suppress IF so no spurious memory fetch
-            // occurs past the program end.
+        } else if (trapFlush) {
+            // Trap detected in EX: suppress IF so no younger instruction is
+            // fetched this cycle. The current IF/ID instruction has already
+            // been decoded above and is preserved.
             newIfId = IfIdLatch.BUBBLE;
             newPc = this.programCounter;
         } else if (stall) {
@@ -308,18 +312,24 @@ public final class CPU {
         this.cycles++;
 
         // -----------------------------------------------------------------
-        // Halt check: the trap instruction has now retired through WB.
+        // Trap dispatch: the trap instruction has now retired through WB.
+        // trap 0 halts the simulator; all others notify trap listeners.
         // -----------------------------------------------------------------
-        if (newMemWb.ctrl().halt()) {
-            this.halted = true;
+        if (newMemWb.ctrl().trap()) {
+            final var trapNumber = newMemWb.immediate();
+            if (trapNumber == 0) {
+                this.halted = true;
+            } else {
+                notifyTrapListeners(trapNumber);
+            }
         }
 
         // Wait to simulate processing time
         Thread.sleep(this.stageDuration);
     }
 
-    /// Runs the simulation until a `trap 0` instruction retires or `maxCycles` clock
-    /// cycles have been executed.
+    /// Runs the simulation until a `trap 0` instruction retires or `maxCycles`
+    /// clock cycles have been executed.
     ///
     /// Use [Long#MAX_VALUE] for `maxCycles` to run without a cycle limit, but be
     /// aware that a program without a `trap 0` instruction will then loop forever.
@@ -340,7 +350,8 @@ public final class CPU {
         }
     }
 
-    /// Runs the simulation until a `trap 0` instruction retires, with no cycle limit.
+    /// Runs the simulation until a `trap 0` instruction retires, with no cycle
+    /// limit.
     ///
     /// Equivalent to `run(Long.MAX_VALUE)`. A program that never executes a `trap 0`
     /// instruction will cause this method to loop indefinitely.
@@ -393,15 +404,29 @@ public final class CPU {
     }
 
     /// Unregisters a previously registered processing listener.
-    /// 
+    ///
     /// @param listener the listener to unregister; must not be `null`
     public synchronized void removeProcessingListener(final ProcessingListener listener) {
         this.processingListeners.remove(listener);
     }
 
+    /// Registers a listener to be notified when a non-halt trap retires.
+    ///
+    /// @param listener the listener to register; must not be `null`
+    public synchronized void addTrapListener(final TrapListener listener) {
+        this.trapListeners.add(listener);
+    }
+
+    /// Unregisters a previously registered trap listener.
+    ///
+    /// @param listener the listener to unregister; must not be `null`
+    public synchronized void removeTrapListener(final TrapListener listener) {
+        this.trapListeners.remove(listener);
+    }
+
     private void notifyProcessingListeners() {
         final List<ProcessingListener> currentListeners;
-        synchronized (this.processingListeners) {
+        synchronized (this) {
             if (this.processingListeners.isEmpty())
                 return;
             currentListeners = List.copyOf(this.processingListeners);
@@ -409,6 +434,19 @@ public final class CPU {
 
         final var step = new ProcessingListener.ProcessStep(this.cycles, this.programCounter, this.halted);
         currentListeners.forEach(listener -> listener.processing(step));
+    }
+
+    private void notifyTrapListeners(final int trapNumber) {
+        final List<TrapListener> currentListeners;
+        synchronized (this) {
+            if (this.trapListeners.isEmpty())
+                return;
+            currentListeners = List.copyOf(this.trapListeners);
+        }
+
+        final var event = new TrapListener.TrapEvent(trapNumber, this.registers.asReadOnly(),
+                this.memory.asReadOnly());
+        currentListeners.forEach(listener -> listener.trapRetired(event));
     }
 
     /// Returns an immutable snapshot of all four pipeline latches at the current

@@ -7,6 +7,7 @@ public final class Services {
 
     private static UserPreferences userPreferences;
     private static Logging logging;
+    private static Console console;
 
     /// {@return the shared user preferences instance}
     public static UserPreferences userPreferences() {
@@ -20,6 +21,13 @@ public final class Services {
         if (logging == null)
             logging = new Logging();
         return logging;
+    }
+
+    /// {@return the shared console service instance}
+    public static Console console() {
+        if (console == null)
+            console = new Console();
+        return console;
     }
 
     /// Private constructor to prevent instantiation.

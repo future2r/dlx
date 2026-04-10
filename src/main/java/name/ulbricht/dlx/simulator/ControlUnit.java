@@ -166,7 +166,7 @@ final class ControlUnit {
                     MemWidth.WORD, false,
                     Operation.ADD, false);
 
-            // -- TRAP: halt=true; all other signals inactive.
+            // -- TRAP: trap=true; all other signals inactive.
             case TRAP -> new ControlSignals(
                     false, false, false, false,
                     false, false, false, false,

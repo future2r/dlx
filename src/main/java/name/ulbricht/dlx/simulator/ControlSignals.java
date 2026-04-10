@@ -46,8 +46,9 @@ import name.ulbricht.dlx.simulator.ALU.Operation;
 ///                       them; only relevant for byte and half-word loads
 /// @param aluOp          the operation the ALU must perform in the EX stage;
 ///                       must not be `null`
-/// @param halt           signals the simulator to stop once this instruction
-///                       retires through WB
+/// @param trap           this instruction is a trap; the pipeline flushes
+///                       behind it and the CPU dispatches by trap number
+///                       once it retires through WB
 public record ControlSignals(
         boolean regWrite,
         boolean memRead,
@@ -63,7 +64,7 @@ public record ControlSignals(
         MemWidth memWidth,
         boolean memUnsigned,
         Operation aluOp,
-        boolean halt
+        boolean trap
 ) {
 
     /// Validates that `memWidth` and `aluOp` are not `null`.
@@ -88,7 +89,7 @@ public record ControlSignals(
     }
 
     /// Canonical pipeline bubble - all control signals are inactive, the
-    /// ALU operation is [Operation#ADD] (a benign default), and `halt` is
+    /// ALU operation is [Operation#ADD] (a benign default), and `trap` is
     /// `false`.
     ///
     /// Use this constant whenever a stage must be flushed or a stall bubble

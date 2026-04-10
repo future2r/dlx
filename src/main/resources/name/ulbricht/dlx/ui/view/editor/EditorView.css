@@ -1,5 +1,5 @@
 #sourceCodeArea {
-    -fx-font-family: monospace;
+    -fx-font-family: "Consolas", "Courier New", monospace;
     -fx-font-size: 1.2em;
     -fx-highlight-current-paragraph: true;
 }

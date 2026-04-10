@@ -46,6 +46,7 @@ import name.ulbricht.dlx.ui.scene.control.Alerts;
 import name.ulbricht.dlx.ui.stage.Stages;
 import name.ulbricht.dlx.ui.util.FormatUtil;
 import name.ulbricht.dlx.ui.view.View;
+import name.ulbricht.dlx.ui.view.console.ConsoleView;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
 import name.ulbricht.dlx.ui.view.log.LogView;
 import name.ulbricht.dlx.ui.view.memory.MemoryView;
@@ -528,6 +529,11 @@ public final class MainController {
     }
 
     @FXML
+    private void handleShowConsole() {
+        showView(ConsoleView.class, this::createConsoleView);
+    }
+
+    @FXML
     private void handleCompile() {
         if (isCanCompile())
             compile();
@@ -593,6 +599,7 @@ public final class MainController {
         showView(RegistersView.class, this::createRegistersView);
         showView(MemoryView.class, this::createMemoryView);
         showView(ProblemsView.class, this::createProblemsView);
+        showView(ConsoleView.class, this::createConsoleView);
         showView(LogView.class, this::createLogView);
     }
 
@@ -623,6 +630,11 @@ public final class MainController {
         return view;
     }
 
+    private ConsoleView createConsoleView() {
+        final var view = ConsoleView.load();
+        return view;
+    }
+
     private void showView(final Class<? extends View<?, ?>> viewClass,
             final Supplier<? extends View<?, ?>> viewSupplier) {
         // Try to find the view in any of the view tab panes
@@ -642,7 +654,7 @@ public final class MainController {
         final var tabPane = switch (view) {
             case final OutlineView _ -> this.primarySideBarTabPane;
             case final RegistersView _,final MemoryView _ -> this.secondarySideBarTabPane;
-            case final ProblemsView _,final LogView _ -> this.panelTabPane;
+            case final ProblemsView _,final LogView _,final ConsoleView _ -> this.panelTabPane;
             default -> this.primarySideBarTabPane;
         };
         tabPane.getTabs().add(tab);

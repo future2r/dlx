@@ -126,7 +126,7 @@ final class ExecuteStage {
         // Pack the outputs into the EX/MEM latch.
         // bVal (the forwarded rs2 value) is carried forward as the store-data
         // value; the MEM stage will write it to memory if this is a store.
-        final var newExMem = new ExMemLatch(ctrl, result, bVal, idEx.rd());
+        final var newExMem = new ExMemLatch(ctrl, result, bVal, idEx.rd(), idEx.immediate());
         return new ExecuteResult(newExMem, taken, newPc);
     }
 

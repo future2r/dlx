@@ -121,6 +121,7 @@
             <MenuItem text="%main.menu.view.memory.text" onAction="#handleShowMemory"/>
             <SeparatorMenuItem/>
             <MenuItem text="%main.menu.view.problems.text" onAction="#handleShowProblems"/>
+            <MenuItem text="%main.menu.view.console.text" onAction="#handleShowConsole"/>
             <MenuItem text="%main.menu.view.log.text" onAction="#handleShowLog"/>
         </Menu>
 

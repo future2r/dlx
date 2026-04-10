@@ -30,11 +30,14 @@ import static java.util.Objects.requireNonNull;
 ///                  used by the MEM stage for store instructions
 /// @param rd        index of the destination register (0–31); 0 means no
 ///                  register write-back will occur in WB
+/// @param immediate the sign-extended 16-bit immediate from the ID stage;
+///                  carried through for trap dispatch in WB
 public record ExMemLatch(
         ControlSignals ctrl,
         int aluResult,
         int rs2Val,
-        int rd) {
+        int rd,
+        int immediate) {
     /// Validates that `ctrl` is not `null`.
     ///
     /// @throws NullPointerException if `ctrl` is `null`
@@ -45,5 +48,5 @@ public record ExMemLatch(
     /// Canonical pipeline bubble for the EX/MEM latch.
     ///
     /// `ctrl` is [ControlSignals#NOP]; all integer fields are zero.
-    public static final ExMemLatch BUBBLE = new ExMemLatch(ControlSignals.NOP, 0, 0, 0);
+    public static final ExMemLatch BUBBLE = new ExMemLatch(ControlSignals.NOP, 0, 0, 0, 0);
 }

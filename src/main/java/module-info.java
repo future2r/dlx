@@ -17,6 +17,7 @@ module name.ulbricht.dlx {
     opens name.ulbricht.dlx.ui to javafx.graphics;
     opens name.ulbricht.dlx.ui.scene.layout to javafx.fxml;
     opens name.ulbricht.dlx.ui.view to javafx.fxml;
+    opens name.ulbricht.dlx.ui.view.console to javafx.base, javafx.fxml;
     opens name.ulbricht.dlx.ui.view.editor to javafx.base, javafx.fxml;
     opens name.ulbricht.dlx.ui.view.main to javafx.fxml;
     opens name.ulbricht.dlx.ui.view.memory to javafx.fxml;

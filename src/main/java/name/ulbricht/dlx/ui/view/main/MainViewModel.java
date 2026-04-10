@@ -16,6 +16,8 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import name.ulbricht.dlx.asm.compiler.CompiledProgram;
 import name.ulbricht.dlx.config.UserPreferences;
+import name.ulbricht.dlx.service.Services;
+import name.ulbricht.dlx.service.TrapHandler;
 import name.ulbricht.dlx.simulator.CPU;
 import name.ulbricht.dlx.simulator.ProcessingListener;
 
@@ -30,6 +32,7 @@ public final class MainViewModel implements ProcessingListener {
 
     private final Executor uiExecutor;
     private final UserPreferences userPreferences;
+    private final TrapHandler trapHandler = new TrapHandler(Services.console());
 
     /// Creates a new main view model instance.
     ///
@@ -88,6 +91,7 @@ public final class MainViewModel implements ProcessingListener {
     private void processorChanged(final CPU oldProcessor, final CPU newProcessor) {
         if (oldProcessor != null) {
             oldProcessor.removeProcessingListener(this);
+            oldProcessor.removeTrapListener(this.trapHandler);
         }
 
         this.programId.set(null);
@@ -97,6 +101,7 @@ public final class MainViewModel implements ProcessingListener {
 
         if (newProcessor != null) {
             newProcessor.addProcessingListener(this);
+            newProcessor.addTrapListener(this.trapHandler);
             this.cycles.set(newProcessor.getCycles());
             this.programCounter.set(newProcessor.getProgramCounter());
             this.halted.set(newProcessor.isHalted());
@@ -132,6 +137,7 @@ public final class MainViewModel implements ProcessingListener {
 
     void reset() {
         this.programId.set(null);
+        Services.console().clear();
         this.processor.set(createProcessor());
     }
 

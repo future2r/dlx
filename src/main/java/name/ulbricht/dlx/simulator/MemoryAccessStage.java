@@ -75,6 +75,6 @@ final class MemoryAccessStage {
 
         // Propagate the ALU result and control signals into the MEM/WB latch.
         // For loads: memData contains the value to write; for others: unused.
-        return new MemWbLatch(ctrl, exMem.aluResult(), memData, exMem.rd());
+        return new MemWbLatch(ctrl, exMem.aluResult(), memData, exMem.rd(), exMem.immediate());
     }
 }
