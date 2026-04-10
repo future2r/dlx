@@ -76,7 +76,7 @@ final class ControlUnit {
     /// Maps an I-format opcode to its control signals.
     ///
     /// This covers arithmetic/logic immediates, shifts, set-if immediates, LHI,
-    /// loads, stores, branches, jump-register instructions, and HALT.
+    /// loads, stores, branches, jump-register instructions, and trap.
     ///
     /// @param opcode an I-format opcode (not SPECIAL, J, or JAL)
     /// @return the corresponding control signals
@@ -166,8 +166,8 @@ final class ControlUnit {
                     MemWidth.WORD, false,
                     Operation.ADD, false);
 
-            // -- HALT: halt=true; all other signals inactive.
-            case HALT -> new ControlSignals(
+            // -- TRAP: halt=true; all other signals inactive.
+            case TRAP -> new ControlSignals(
                     false, false, false, false,
                     false, false, false, false,
                     false, false, false,

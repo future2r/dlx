@@ -173,7 +173,7 @@ final class CompilerTest {
                                         .text
                                         lw r1, a(r0)
                                         lw r2, b(r0)
-                                        halt""");
+                                        trap 0""");
                         assertNoErrors(compiled);
                         assertEquals(8, compiled.entryPoint());
                         // Check instruction at offset 8: lw r1, 0(r0)
@@ -269,7 +269,7 @@ final class CompilerTest {
                                         .text
                                         beqz r1, end
                                         addi r2, r0, 1
-                                        end: halt""");
+                                        end: trap 0""");
                         assertNoErrors(compiled);
                         // beqz at addr 0, end at addr 8: offset = 8
                         // BEQZ=0x04<<26 | rs1=1<<21 | rd=0<<16 | imm=8
@@ -315,11 +315,11 @@ final class CompilerTest {
                 }
 
                 @Test
-                @DisplayName("halt encodes to 0xFC000000")
-                void haltEncoding() {
+                @DisplayName("trap 0 encodes to 0xFC000000")
+                void trapEncoding() {
                         final var compiled = compile("""
                                         .text
-                                        halt""");
+                                        trap 0""");
                         assertNoErrors(compiled);
                         final var word = readWord(compiled.program(), 0);
                         assertEquals(0xFC000000, word);
@@ -332,7 +332,7 @@ final class CompilerTest {
                                         .text
                                         j end
                                         addi r1, r0, 1
-                                        end: halt""");
+                                        end: trap 0""");
                         assertNoErrors(compiled);
                         // j at addr 0, end at addr 8: distance = 8
                         // J=0x02<<26 | dist=8
@@ -346,7 +346,7 @@ final class CompilerTest {
                         final var compiled = compile("""
                                         .text
                                         jal func
-                                        halt
+                                        trap 0
                                         func: jr r31""");
                         assertNoErrors(compiled);
                         // jal at addr 0, func at addr 8: distance = 8
@@ -441,7 +441,7 @@ final class CompilerTest {
                                         lw r2, b(r0)
                                         add r3, r1, r2
                                         sw res(r0), r3
-                                        halt""");
+                                        trap 0""");
                         assertNoErrors(compiled);
 
                         // Verify structure
@@ -453,7 +453,7 @@ final class CompilerTest {
                         assertEquals(0x8C020004, readWord(compiled.program(), 16)); // lw r2, 4(r0)
                         assertEquals(0x00221820, readWord(compiled.program(), 20)); // add r3, r1, r2
                         assertEquals(0xAC030008, readWord(compiled.program(), 24)); // sw 8(r0), r3
-                        assertEquals(0xFC000000, readWord(compiled.program(), 28)); // halt
+                        assertEquals(0xFC000000, readWord(compiled.program(), 28)); // trap 0
 
                         // Run on CPU and verify results
                         final var cpu = new CPU();

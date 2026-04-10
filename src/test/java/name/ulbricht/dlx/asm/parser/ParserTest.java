@@ -55,7 +55,7 @@ final class ParserTest {
                                         .data
                                         .word 1
                                         .text
-                                        halt
+                                        trap 0
                                         .data
                                         .word 2""");
                         assertIterableEquals(
@@ -69,7 +69,7 @@ final class ParserTest {
                                                                         d.values()))
                                                         .toList());
                         assertEquals(1, program.code().size());
-                        assertEquals("halt", program.code().get(0).opcode());
+                        assertEquals("trap", program.code().get(0).opcode());
                 }
         }
 
@@ -200,9 +200,10 @@ final class ParserTest {
                         final var program = parse("""
                                         .text
                                         main:
-                                        halt""");
+                                        trap 0""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(2, 0), "main", "halt", List.of())),
+                                        List.of(new ParsedInstruction(pos(2, 0), "main", "trap",
+                                                        List.of(new ImmediateOperand(0)))),
                                         program.code());
                 }
 
@@ -212,9 +213,10 @@ final class ParserTest {
                         final var program = parse("""
                                         .text
                                         foo:
-                                        bar: halt""");
+                                        bar: trap 0""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(2, 5), "bar", "halt", List.of())),
+                                        List.of(new ParsedInstruction(pos(2, 5), "bar", "trap",
+                                                        List.of(new ImmediateOperand(0)))),
                                         program.code());
                 }
         }
@@ -224,13 +226,14 @@ final class ParserTest {
         class Instructions {
 
                 @Test
-                @DisplayName("halt instruction — no operands")
-                void haltInstruction() {
+                @DisplayName("trap instruction — single immediate operand")
+                void trapInstruction() {
                         final var program = parse("""
                                         .text
-                                        halt""");
+                                        trap 0""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "halt", List.of())),
+                                        List.of(new ParsedInstruction(pos(1, 0), null, "trap",
+                                                        List.of(new ImmediateOperand(0)))),
                                         program.code());
                 }
 
@@ -488,7 +491,7 @@ final class ParserTest {
                                             lw r1, op(r0)
                                             addi r2, r1, 10
                                             sw op(r0), r2
-                                            halt""");
+                                            trap 0""");
 
                         assertIterableEquals(
                                         List.of(new ParsedDataDeclaration(pos(2, 4), "op", "word", List.of(42))),
@@ -507,7 +510,8 @@ final class ParserTest {
                                                         new ParsedInstruction(pos(7, 4), null, "sw",
                                                                         List.of(new LabelMemoryOperand("op", 0),
                                                                                         new RegisterOperand(2))),
-                                                        new ParsedInstruction(pos(8, 4), null, "halt", List.of())),
+                                                        new ParsedInstruction(pos(8, 4), null, "trap",
+                                                                        List.of(new ImmediateOperand(0)))),
                                         program.code());
                 }
         }
@@ -533,11 +537,11 @@ final class ParserTest {
                         final var program = new Parser().parse(lex("""
                                         .text
                                         42
-                                        halt"""));
+                                        trap 0"""));
 
                         assertEquals(1, program.diagnostics().size());
                         assertEquals(1, program.code().size());
-                        assertEquals("halt", program.code().get(0).opcode());
+                        assertEquals("trap", program.code().get(0).opcode());
                 }
 
                 @Test

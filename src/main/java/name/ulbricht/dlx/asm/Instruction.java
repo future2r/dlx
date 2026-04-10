@@ -221,8 +221,8 @@ public enum Instruction {
     // Simulator-specific
     // -------------------------------------------------------------------------
 
-    /// Stop simulation.
-    HALT("halt", OperandFormat.NONE, OperationCode.HALT, "Stop simulation");
+    /// Trap: `trap 0` halts the simulator.
+    TRAP("trap", OperandFormat.IMM, OperationCode.TRAP, "Trap: trap 0 halts the simulator");
 
     // -------------------------------------------------------------------------
     // Fields and lookup

@@ -176,7 +176,7 @@ public final class Parser {
             case RS_LABEL -> parseRsLabel(rest, it);
             case LABEL    -> parseLabel(rest, it);
             case RS       -> parseRs(rest, it);
-            case NONE     -> parseNone(rest);
+            case IMM      -> parseImm(rest, it);
         };
 
         if (operands != null) {
@@ -304,10 +304,14 @@ public final class Parser {
         return List.of(rs);
     }
 
-    /// (none)
-    private List<Operand> parseNone(final List<Token> tokens) {
-        expectEnd(new Cursor(tokens));
-        return List.of();
+    /// Imm
+    private List<Operand> parseImm(final List<Token> tokens, final Token ctx) {
+        final var cursor = new Cursor(tokens);
+        final var imm = expectImmediate(cursor, ctx);
+        if (imm == null)
+            return null;
+        expectEnd(cursor);
+        return List.of(imm);
     }
 
     private RegisterOperand expectRegister(final Cursor cursor, final Token ctx) {

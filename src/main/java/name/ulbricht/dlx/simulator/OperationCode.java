@@ -244,12 +244,12 @@ public enum OperationCode {
     // Simulator-specific
     // -------------------------------------------------------------------------
 
-    /// Simulator halt pseudo-instruction (I-format, 0x3F).
+    /// Trap instruction (I-format, 0x3F).
     ///
-    /// Not part of the real DLX ISA. Once this instruction retires through
-    /// the WB stage the simulation stops. The canonical encoding is
-    /// `0xFC000000` (all opcode bits set, all remaining bits zero).
-    HALT(0x3F);
+    /// The 16-bit immediate selects the trap number. `trap 0` halts the
+    /// simulator once the instruction retires through the WB stage. Other
+    /// trap numbers are reserved for future use.
+    TRAP(0x3F);
 
     // -------------------------------------------------------------------------
     // Fields and factory

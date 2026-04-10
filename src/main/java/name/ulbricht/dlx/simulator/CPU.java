@@ -53,10 +53,10 @@ import java.util.List;
 /// All other RAW hazards are resolved transparently by [Forwarding] inside
 /// [ExecuteStage]. No stall is needed.
 ///
-/// ### HALT flush
-/// When HALT reaches the EX stage, the IF/ID and ID/EX latches are flushed with
-/// bubbles. This prevents instructions fetched from beyond the program end from
-/// advancing into MEM, where a spurious load or store (decoded from
+/// ### Trap flush
+/// When a trap reaches the EX stage, the IF/ID and ID/EX latches are flushed
+/// with bubbles. This prevents instructions fetched from beyond the program end
+/// from advancing into MEM, where a spurious load or store (decoded from
 /// uninitialised memory) could cause out-of-bounds access or data corruption.
 ///
 /// ### Control hazards (branch / jump)
@@ -66,8 +66,8 @@ import java.util.List;
 /// - The PC is set to the target address.
 /// - The IF/ID and ID/EX latches are flushed with bubbles (2-cycle penalty).
 ///
-/// ## HALT
-/// The simulator-specific `HALT` instruction (opcode `0x3F`) sets
+/// ## Trap
+/// The `trap` instruction (opcode `0x3F`) with immediate `0` sets
 /// [#isHalted()] to `true` once it reaches the WB stage. At that point the
 /// entire pipeline has drained past the instruction, ensuring that all preceding
 /// stores and register writes have committed.
@@ -100,8 +100,8 @@ public final class CPU {
     /// fetched by the IF stage. Updated at the end of every `step()`.
     private int programCounter = 0;
 
-    /// Set to `true` once a HALT instruction retires through WB. [#step()] becomes
-    /// a no-op after this point.
+    /// Set to `true` once a `trap 0` instruction retires through WB. [#step()]
+    /// becomes a no-op after this point.
     private boolean halted = false;
 
     /// Total number of clock cycles executed since the last [#loadProgram].
@@ -246,7 +246,7 @@ public final class CPU {
         final var newExMem = exResult.exMem();
 
         // -----------------------------------------------------------------
-        // Halt / flush flag: when HALT is in EX or a branch/jump redirects
+        // Halt / flush flag: when a trap is in EX or a branch/jump redirects
         // the PC, the younger instructions in IF and ID must be discarded.
         // This flag is checked before ID and IF run so that the decoder
         // never sees garbage bytes and IF never issues a spurious fetch.
@@ -255,7 +255,7 @@ public final class CPU {
 
         // -----------------------------------------------------------------
         // ID stage: decode and read registers.
-        // Suppressed (bubble injected) during a stall, a HALT flush, or a
+        // Suppressed (bubble injected) during a stall, a trap flush, or a
         // branch/jump redirect.
         // -----------------------------------------------------------------
         // newIdEx cannot use 'var' here because it is assigned in a branch.
@@ -282,7 +282,7 @@ public final class CPU {
             newIdEx = IdExLatch.BUBBLE; // also flush the instruction in ID
             newPc = exResult.newPc();
         } else if (haltFlush) {
-            // HALT detected in EX: suppress IF so no spurious memory fetch
+            // Trap detected in EX: suppress IF so no spurious memory fetch
             // occurs past the program end.
             newIfId = IfIdLatch.BUBBLE;
             newPc = this.programCounter;
@@ -308,7 +308,7 @@ public final class CPU {
         this.cycles++;
 
         // -----------------------------------------------------------------
-        // Halt check: the HALT instruction has now retired through WB.
+        // Halt check: the trap instruction has now retired through WB.
         // -----------------------------------------------------------------
         if (newMemWb.ctrl().halt()) {
             this.halted = true;
@@ -318,15 +318,15 @@ public final class CPU {
         Thread.sleep(this.stageDuration);
     }
 
-    /// Runs the simulation until a HALT instruction retires or `maxCycles` clock
+    /// Runs the simulation until a `trap 0` instruction retires or `maxCycles` clock
     /// cycles have been executed.
     ///
     /// Use [Long#MAX_VALUE] for `maxCycles` to run without a cycle limit, but be
-    /// aware that a program without a HALT instruction will then loop forever.
+    /// aware that a program without a `trap 0` instruction will then loop forever.
     ///
     /// @param maxCycles the maximum number of cycles to execute before throwing;
     ///                  must be positive
-    /// @throws IllegalStateException if the cycle limit is reached before a HALT
+    /// @throws IllegalStateException if the cycle limit is reached before a `trap 0`
     ///                               instruction retires
     /// @throws InterruptedException  if the thread is interrupted while sleeping to
     ///                               simulate stage processing time
@@ -340,9 +340,9 @@ public final class CPU {
         }
     }
 
-    /// Runs the simulation until a HALT instruction retires, with no cycle limit.
+    /// Runs the simulation until a `trap 0` instruction retires, with no cycle limit.
     ///
-    /// Equivalent to `run(Long.MAX_VALUE)`. A program that never executes a HALT
+    /// Equivalent to `run(Long.MAX_VALUE)`. A program that never executes a `trap 0`
     /// instruction will cause this method to loop indefinitely.
     /// 
     /// @throws InterruptedException if the thread is interrupted while sleeping to
@@ -355,7 +355,7 @@ public final class CPU {
     // Observability
     // -------------------------------------------------------------------------
 
-    /// Returns `true` once a HALT instruction has retired through the WB stage.
+    /// Returns `true` once a `trap 0` instruction has retired through the WB stage.
     /// [#step()] is a no-op when `isHalted()` returns `true`.
     ///
     /// @return `true` if the simulation has completed
@@ -366,8 +366,8 @@ public final class CPU {
     /// Returns the current program counter - the address of the instruction that
     /// will be fetched on the **next** call to [#step()].
     ///
-    /// After a HALT retires this value points to the instruction immediately
-    /// following the HALT.
+    /// After a trap retires this value points to the instruction immediately
+    /// following the trap.
     ///
     /// @return the PC as a byte address
     public int getProgramCounter() {

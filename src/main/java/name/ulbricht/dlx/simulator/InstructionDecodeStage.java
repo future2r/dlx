@@ -137,7 +137,7 @@ final class InstructionDecodeStage {
     /// @return the destination register index (0 = no write-back)
     private static int destinationReg(final ImmediateInstruction i, final ControlSignals ctrl) {
         if (!ctrl.regWrite())
-            return 0; // store / branch / JR / HALT
+            return 0; // store / branch / JR / trap
         if (ctrl.jalLink())
             return 31; // JALR implicitly links to R31
         return i.rd();

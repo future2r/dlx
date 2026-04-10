@@ -275,7 +275,7 @@ final class LexerTest {
                         lw r1, op(r0)
                         addi r2, r1, 10
                         sw r2, op(r0)
-                        halt""";
+                        trap 0""";
 
             assertLexer(program,
                     new CommentToken(pos(0, 0), "; My program"),
@@ -334,8 +334,10 @@ final class LexerTest {
                     new EOLToken(pos(7, 17)),
 
                     new WhitespaceToken(pos(8, 0), "    "),
-                    new InstructionToken(pos(8, 4), "halt", "halt"),
-                    new EOLToken(pos(8, 8)));
+                    new InstructionToken(pos(8, 4), "trap", "trap"),
+                    new WhitespaceToken(pos(8, 8), " "),
+                    new IntLiteralToken(pos(8, 9), "0", 0),
+                    new EOLToken(pos(8, 10)));
         }
     }
 

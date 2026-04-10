@@ -31,6 +31,6 @@ public enum OperandFormat {
     /// Register only: `Rs` (indirect jumps).
     RS,
 
-    /// No operands (halt).
-    NONE
+    /// Single immediate operand (trap).
+    IMM
 }

@@ -187,7 +187,7 @@ public final class Compiler {
             case RS_LABEL -> encodeIBranch(instr, def.operationCode, addr);
             case LABEL -> encodeJFormat(instr, def.operationCode, addr);
             case RS -> encodeIJumpReg(instr, def.operationCode);
-            case NONE -> encodeIHalt();
+            case IMM -> encodeTrap(instr);
         };
     }
 
@@ -265,9 +265,11 @@ public final class Compiler {
         return encodeI(OperationCode.LHI.code, 0, rd, imm);
     }
 
-    @SuppressWarnings("static-method")
-    private int encodeIHalt() {
-        return encodeI(OperationCode.HALT.code, 0, 0, 0);
+    private int encodeTrap(final ParsedInstruction instr) {
+        if (!checkOperandCount(instr, 1))
+            return 0;
+        final var imm = resolveImmediate(instr, 0);
+        return encodeI(OperationCode.TRAP.code, 0, 0, imm);
     }
 
     private int encodeJFormat(final ParsedInstruction instr, final OperationCode opcode, final int addr) {

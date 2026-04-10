@@ -19,7 +19,7 @@ import static java.util.Objects.requireNonNull;
 ///
 /// ## When WB does nothing
 /// Instructions with `ctrl.regWrite() == false` pass through silently: stores,
-/// branches, unconditional jumps without link, NOP bubbles, and HALT.
+/// branches, unconditional jumps without link, NOP bubbles, and trap.
 ///
 /// ## Ordering inside a clock cycle
 /// The [CPU][name.ulbricht.dlx.simulator.CPU] calls `execute` as the very first

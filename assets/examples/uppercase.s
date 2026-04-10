@@ -15,4 +15,4 @@ loop:   lb      r2, 0(r1)         ; load current character
         sb      0(r1), r2         ; store uppercase character back
 skip:   addi    r1, r1, 1         ; advance pointer to next character
         j       loop              ; repeat
-done:   halt                      ; all characters converted
+done:   trap	0                 ; all characters converted

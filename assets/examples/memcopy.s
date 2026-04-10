@@ -17,4 +17,4 @@ loop:   lb      r3, 0(r1)         ; load byte from source
         addi    r2, r2, 1         ; advance destination pointer
         j       loop              ; repeat
 
-done:   halt
+done:   trap	0
