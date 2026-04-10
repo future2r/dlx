@@ -1,66 +1,10 @@
 package name.ulbricht.dlx.ui.view.problems;
 
-import static java.util.Objects.requireNonNull;
+/// Represents an item in the problems tree view. This is a sealed interface
+/// with two permitted implementations: {@link SourceOriginItem} for editor group
+/// nodes and {@link DiagnosticItem} for individual diagnostic entries.
+public sealed interface ProblemItem permits SourceOriginItem, DiagnosticItem {
 
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
-import name.ulbricht.dlx.asm.Diagnostic;
-import name.ulbricht.dlx.util.TextPosition;
-
-/// Represents a problem in the problem list.
-public final class ProblemItem {
-
-    private final Diagnostic diagnostic;
-
-    private final ReadOnlyObjectWrapper<Diagnostic.Stage> source = new ReadOnlyObjectWrapper<>();
-    private final ReadOnlyObjectWrapper<TextPosition> textPosition = new ReadOnlyObjectWrapper<>();
-    private final ReadOnlyStringWrapper message = new ReadOnlyStringWrapper();
-
-    /// Creates a new problem item from the given diagnostic.
-    /// 
-    /// @param diagnostic the diagnostic to create the problem item from
-    public ProblemItem(final Diagnostic diagnostic) {
-        this.diagnostic = requireNonNull(diagnostic);
-
-        this.source.set(diagnostic.stage());
-        this.textPosition.set(diagnostic.pos());
-        this.message.set(diagnostic.message());
-    }
-
-    /// {@return the diagnostic associated with this problem item}
-    public Diagnostic getDiagnostic() {
-        return this.diagnostic;
-    }
-
-    /// {@return a read-only property representing the source of the problem}
-    public ReadOnlyObjectProperty<Diagnostic.Stage> sourceProperty() {
-        return this.source.getReadOnlyProperty();
-    }
-
-    /// {@return the source of the problem}
-    public Diagnostic.Stage getSource() {
-        return sourceProperty().get();
-    }
-
-    /// {@return a read-only property representing the text position of the problem}
-    public ReadOnlyObjectProperty<TextPosition> textPositionProperty() {
-        return this.textPosition.getReadOnlyProperty();
-    }
-
-    /// {@return the text position of the problem}
-    public TextPosition getTextPosition() {
-        return textPositionProperty().get();
-    }
-
-    /// {@return a read-only property representing the message of the problem}
-    public ReadOnlyStringProperty messageProperty() {
-        return this.message.getReadOnlyProperty();
-    }
-
-    /// {@return the message of the problem}
-    public String getMessage() {
-        return messageProperty().get();
-    }
+    /// {@return the source origin that produced this item}
+    SourceOrigin sourceOrigin();
 }

@@ -4,20 +4,22 @@ import static java.util.Objects.requireNonNull;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.scene.control.TreeCell;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
-import name.ulbricht.dlx.ui.view.editor.EditorView;
 
 /// Controller for the problems view.
 public final class ProblemsController {
 
-    private final ObservableValue<EditorView> activeEditorView;
+    private final ObservableList<SourceOrigin> sourceOrigins;
+    private final ListChangeListener<SourceOrigin> sourceOriginsListener;
 
     @FXML
     private Parent problemsRoot;
@@ -26,22 +28,28 @@ public final class ProblemsController {
     private ProblemsViewModel viewModel;
 
     @FXML
-    private TableView<ProblemItem> problemsTableView;
+    private TreeView<ProblemItem> problemsTreeView;
 
     private final ObjectProperty<EventHandler<TextPositionEvent>> onTextPosition = new SimpleObjectProperty<>();
 
     /// Creates a new problems controller instance.
-    /// 
-    /// @param activeEditorView the observable value providing the currently active
-    ///                         editor view
-    ProblemsController(final ObservableValue<EditorView> activeEditorView) {
-        this.activeEditorView = requireNonNull(activeEditorView);
+    ///
+    /// @param sourceOrigins the observable list of source origins to track
+    ProblemsController(final ObservableList<SourceOrigin> sourceOrigins) {
+        this.sourceOrigins = requireNonNull(sourceOrigins);
+        this.sourceOriginsListener = this::sourceOriginsChanged;
     }
 
     @FXML
     private void initialize() {
-        // React on changes of the active editor view
-        this.activeEditorView.subscribe(this::activeEditorChanged);
+        this.problemsTreeView.setRoot(this.viewModel.getRoot());
+
+        // Add all existing source origins and listen for future changes
+        for (final var source : this.sourceOrigins) {
+            this.viewModel.addSource(source);
+        }
+
+        this.sourceOrigins.addListener(this.sourceOriginsListener);
     }
 
     /// {@return the root node of the problems view}
@@ -55,18 +63,23 @@ public final class ProblemsController {
     }
 
     void dispose() {
-        activeEditorChanged(null);
+        this.sourceOrigins.removeListener(this.sourceOriginsListener);
         this.viewModel.dispose();
     }
 
-    private void activeEditorChanged(final EditorView newEditorView) {
-        // Unbind from the old editor
-        this.viewModel.diagnosticsProperty().unbind();
-        this.viewModel.setDiagnostics(null);
-
-        // Bind to the new editor
-        if (newEditorView != null)
-            this.viewModel.diagnosticsProperty().bind(newEditorView.getViewModel().diagnosticsProperty());
+    private void sourceOriginsChanged(final ListChangeListener.Change<? extends SourceOrigin> change) {
+        while (change.next()) {
+            if (change.wasRemoved()) {
+                for (final var source : change.getRemoved()) {
+                    this.viewModel.removeSource(source);
+                }
+            }
+            if (change.wasAdded()) {
+                for (final var source : change.getAddedSubList()) {
+                    this.viewModel.addSource(source);
+                }
+            }
+        }
     }
 
     ObjectProperty<EventHandler<TextPositionEvent>> onTextPositionProperty() {
@@ -83,14 +96,15 @@ public final class ProblemsController {
 
     @FXML
     private void handleRowAction(final ActionEvent event) {
-        if (event.getSource() instanceof final TableRow<?> row
-                && row.getItem() instanceof final ProblemItem item) {
+        if (event.getSource() instanceof final TreeCell<?> cell
+                && cell.getTreeItem() instanceof final TreeItem<?> treeItem
+                && treeItem.getValue() instanceof final DiagnosticItem item) {
 
-            final var position = item.getTextPosition();
+            final var position = item.textPosition();
             final var handler = getOnTextPosition();
 
             if (position != null && handler != null)
-                handler.handle(new TextPositionEvent(item.getTextPosition()));
+                handler.handle(new TextPositionEvent(position, item.sourceOrigin().id()));
         }
     }
 }

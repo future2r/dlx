@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -14,6 +15,8 @@ import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -27,13 +30,19 @@ import name.ulbricht.dlx.asm.lexer.TokenizedProgram;
 import name.ulbricht.dlx.asm.parser.ParsedProgram;
 import name.ulbricht.dlx.asm.parser.Parser;
 import name.ulbricht.dlx.io.SourceFile;
+import name.ulbricht.dlx.ui.i18n.Messages;
+import name.ulbricht.dlx.ui.view.problems.SourceOrigin;
 
 /// View model for the editor view.
-public final class EditorViewModel {
+public final class EditorViewModel implements SourceOrigin {
+
+    private static final AtomicInteger UNTITLED_COUNTER = new AtomicInteger();
 
     private final UUID programId = UUID.randomUUID();
+    private final int untitledNumber = UNTITLED_COUNTER.incrementAndGet();
 
     private final ReadOnlyObjectWrapper<Path> file = new ReadOnlyObjectWrapper<>();
+    private final ReadOnlyStringWrapper name = new ReadOnlyStringWrapper();
 
     private final StringProperty source = new SimpleStringProperty();
     private final ReadOnlyBooleanWrapper dirty = new ReadOnlyBooleanWrapper();
@@ -48,8 +57,26 @@ public final class EditorViewModel {
 
     /// Creates a new editor view model instance.
     public EditorViewModel() {
+        this.name.bind(this.file.map(f -> f.getFileName().toString())
+                .orElse(Messages.getString("editor.title.untitled") + "-" + this.untitledNumber));
         this.tokenizedProgram.bind(this.source.map(this::tokenize));
         this.parsedProgram.bind(this.tokenizedProgram.map(this::parse));
+    }
+
+    @Override
+    public UUID id() {
+        return this.programId;
+    }
+
+    @Override
+    public ReadOnlyStringProperty nameProperty() {
+        return this.name.getReadOnlyProperty();
+    }
+
+    /// {@return the display name of this editor (file name or "Untitled")}
+    @Override
+    public String getName() {
+        return nameProperty().get();
     }
 
     /// {@return a read-only property representing the currently loaded file, or
@@ -93,6 +120,7 @@ public final class EditorViewModel {
 
     /// {@return a read-only property representing the list of diagnostics produced
     /// during lexing, parsing, and compilation}
+    @Override
     public ReadOnlyListProperty<Diagnostic> diagnosticsProperty() {
         return this.diagnostics.getReadOnlyProperty();
     }

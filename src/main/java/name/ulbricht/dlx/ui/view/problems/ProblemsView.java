@@ -5,46 +5,27 @@ import static java.util.Objects.requireNonNull;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Parent;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.util.Callback;
 import javafx.util.Subscription;
-import name.ulbricht.dlx.asm.Diagnostic;
 import name.ulbricht.dlx.ui.event.TextPositionEvent;
 import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.view.View;
 import name.ulbricht.dlx.ui.view.Views;
-import name.ulbricht.dlx.ui.view.editor.EditorView;
-import name.ulbricht.dlx.util.TextPosition;
 
-/// View for displaying the problems detected in the loaded DLX program.
+/// View for displaying the problems detected in all open DLX programs.
 public final class ProblemsView implements View<Parent, ProblemsViewModel> {
 
     /// Loads the problems view from the FXML file.
     ///
-    /// @param activeEditorView the observable value providing the currently active
-    ///                         editor view
+    /// @param sourceOrigins the observable list of source origins to track
     /// @return The configured problems view with the loaded content.
-    public static ProblemsView load(final ObservableValue<EditorView> activeEditorView) {
+    public static ProblemsView load(final ObservableList<SourceOrigin> sourceOrigins) {
         return new ProblemsView(Views.loadController(ProblemsView.class,
                 controllerClass -> controllerClass == ProblemsController.class
-                        ? new ProblemsController(activeEditorView)
+                        ? new ProblemsController(sourceOrigins)
                         : null));
-    }
-
-    /// {@return a cell factory for the source column that creates cells displaying
-    /// the source of a problem}
-    public static Callback<TableColumn<ProblemItem, Diagnostic.Stage>, TableCell<ProblemItem, Diagnostic.Stage>> sourceCellFactory() {
-        return _ -> new SourceTableCell();
-    }
-
-    /// {@return a cell factory for the text position column that creates cells
-    /// displaying the text position of a problem}
-    public static Callback<TableColumn<ProblemItem, TextPosition>, TableCell<ProblemItem, TextPosition>> textPositionCellFactory() {
-        return _ -> new TextPositionTableCell();
     }
 
     private final ProblemsController controller;
@@ -54,8 +35,8 @@ public final class ProblemsView implements View<Parent, ProblemsViewModel> {
     private ProblemsView(final ProblemsController controller) {
         this.controller = requireNonNull(controller);
 
-        // Update the title when the problem count changes.
-        this.titleSubscription = this.controller.getViewModel().problemsProperty().sizeProperty()
+        // Update the title when the total problem count changes.
+        this.titleSubscription = this.controller.getViewModel().totalProblemsCountProperty()
                 .subscribe(this::updateTitle);
     }
 
@@ -96,7 +77,7 @@ public final class ProblemsView implements View<Parent, ProblemsViewModel> {
     }
 
     /// Sets the event handler for text position events triggered by this view.
-    /// 
+    ///
     /// @param handler the event handler to set
     public void setOnTextPosition(final EventHandler<TextPositionEvent> handler) {
         this.controller.setOnTextPosition(handler);

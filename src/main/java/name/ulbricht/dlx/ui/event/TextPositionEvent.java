@@ -3,6 +3,7 @@ package name.ulbricht.dlx.ui.event;
 import static java.util.Objects.requireNonNull;
 
 import java.io.Serial;
+import java.util.UUID;
 
 import javafx.event.Event;
 import javafx.event.EventType;
@@ -22,17 +23,35 @@ public final class TextPositionEvent extends Event {
             "TEXT_POSITION_EVENT");
 
     private final transient TextPosition textPosition;
+    private final transient UUID sourceId;
 
     /// Creates a new `TextPositionEvent` with the given text position.
-    /// 
+    ///
     /// @param textPosition the text position to be carried by this event
     public TextPositionEvent(final TextPosition textPosition) {
+        this(textPosition, null);
+    }
+
+    /// Creates a new `TextPositionEvent` with the given text position and source
+    /// identifier.
+    ///
+    /// @param textPosition the text position to be carried by this event
+    /// @param sourceId     the identifier of the source origin, or `null` if the
+    ///                     active editor should be used
+    public TextPositionEvent(final TextPosition textPosition, final UUID sourceId) {
         super(TEXT_POSITION_EVENT);
         this.textPosition = requireNonNull(textPosition);
+        this.sourceId = sourceId;
     }
 
     /// {@return the text position carried by this event}
     public TextPosition getTextPosition() {
         return this.textPosition;
+    }
+
+    /// {@return the identifier of the source origin, or `null` if the active editor
+    /// should be used}
+    public UUID getSourceId() {
+        return this.sourceId;
     }
 }

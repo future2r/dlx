@@ -11,7 +11,6 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.Parent;
-import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.view.View;
 import name.ulbricht.dlx.ui.view.Views;
 import name.ulbricht.dlx.util.TextPosition;
@@ -47,7 +46,6 @@ public final class EditorView implements View<Parent, EditorViewModel> {
     }
 
     private final EditorController controller;
-    private final ReadOnlyStringWrapper name = new ReadOnlyStringWrapper();
     private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper();
     private final ReadOnlyStringWrapper description = new ReadOnlyStringWrapper();
 
@@ -56,23 +54,19 @@ public final class EditorView implements View<Parent, EditorViewModel> {
 
         final var vm = this.controller.getViewModel();
 
-        // The plain name: file name or "Untitled"
-        this.name.bind(vm.fileProperty().map(file -> file.getFileName().toString())
-                .orElse(Messages.getString("editor.title.untitled")));
-
         // The tab title: name prefixed with a dot when dirty
-        this.title.bind(Bindings.createStringBinding(() -> vm.isDirty() ? "\u25CF " + this.name.get() : this.name.get(),
-                this.name, vm.dirtyProperty()));
+        this.title.bind(Bindings.createStringBinding(() -> vm.isDirty() ? "\u25CF " + vm.getName() : vm.getName(),
+                vm.nameProperty(), vm.dirtyProperty()));
 
-        // Use the full file path as the description
+        // Use the full file path as the description, or the name for untitled editors
         this.description.bind(vm.fileProperty().map(Path::toString)
-                .orElse(Messages.getString("editor.title.untitled")));
+                .orElse(vm.getName()));
     }
 
     /// {@return a read-only property representing the plain name of the editor
     /// (file name or "Untitled"), without any dirty indicator}
     public ReadOnlyStringProperty nameProperty() {
-        return this.name.getReadOnlyProperty();
+        return this.controller.getViewModel().nameProperty();
     }
 
     /// {@return the plain name of the editor (file name or "Untitled"), without any

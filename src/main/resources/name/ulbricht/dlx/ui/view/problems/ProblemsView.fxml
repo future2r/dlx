@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
-<?import javafx.scene.control.cell.PropertyValueFactory?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.StackPane?>
-<?import name.ulbricht.dlx.ui.view.problems.ProblemsTableRowFactory?>
-<?import name.ulbricht.dlx.ui.view.problems.ProblemsView?>
+<?import name.ulbricht.dlx.ui.view.problems.ProblemsTreeCellFactory?>
 <?import name.ulbricht.dlx.ui.view.problems.ProblemsViewModel?>
 
 <StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
@@ -21,36 +17,10 @@
         <ProblemsViewModel fx:id="viewModel"/>
     </fx:define>
 
-    <TableView fx:id="problemsTableView" items="${viewModel.problems}">
-        <placeholder>
-            <Label text="%problems.placeholder"/>
-        </placeholder>
-        <rowFactory>
-            <ProblemsTableRowFactory onAction="#handleRowAction"/>
-        </rowFactory>
-        <columns>
-            <TableColumn text="%problems.source" prefWidth="100">
-                <cellValueFactory>
-                    <PropertyValueFactory property="source"/>
-                </cellValueFactory>
-                <cellFactory>
-                    <ProblemsView fx:factory="sourceCellFactory"/>
-                </cellFactory>
-            </TableColumn>
-            <TableColumn text="%problems.position" prefWidth="80">
-                <cellValueFactory>
-                    <PropertyValueFactory property="textPosition"/>
-                </cellValueFactory>
-                <cellFactory>
-                    <ProblemsView fx:factory="textPositionCellFactory"/>
-                </cellFactory>
-            </TableColumn>
-            <TableColumn text="%problems.message" prefWidth="400">
-                <cellValueFactory>
-                    <PropertyValueFactory property="message"/>
-                </cellValueFactory>
-            </TableColumn>
-        </columns>
-    </TableView>
+    <TreeView fx:id="problemsTreeView" showRoot="false">
+        <cellFactory>
+            <ProblemsTreeCellFactory onAction="#handleRowAction"/>
+        </cellFactory>
+    </TreeView>
 
 </StackPane>

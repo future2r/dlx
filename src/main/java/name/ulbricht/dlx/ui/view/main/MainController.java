@@ -6,6 +6,7 @@ import java.lang.module.ModuleDescriptor.Version;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import javafx.application.Platform;
@@ -14,6 +15,9 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -48,6 +52,7 @@ import name.ulbricht.dlx.ui.view.memory.MemoryView;
 import name.ulbricht.dlx.ui.view.outline.OutlineView;
 import name.ulbricht.dlx.ui.view.preferences.PreferencesView;
 import name.ulbricht.dlx.ui.view.problems.ProblemsView;
+import name.ulbricht.dlx.ui.view.problems.SourceOrigin;
 import name.ulbricht.dlx.ui.view.registers.RegistersView;
 
 /// Controller for the main application view.
@@ -109,6 +114,7 @@ public final class MainController {
     private final ReadOnlyBooleanWrapper canStop = new ReadOnlyBooleanWrapper();
 
     private final ReadOnlyObjectWrapper<EditorView> activeEditorView = new ReadOnlyObjectWrapper<>();
+    private final ObservableList<SourceOrigin> sourceOrigins = FXCollections.observableArrayList();
 
     /// Creates a new main controller instance.
     public MainController() {
@@ -138,6 +144,11 @@ public final class MainController {
         // Bind the selected editor tab to the active editor view property
         this.activeEditorView.bind(this.editorsTabPane.getSelectionModel().selectedItemProperty()
                 .map(tab -> tab.getUserData() instanceof final EditorView editorView ? editorView : null));
+
+        // Sync source origins list with editor tabs
+        syncSourceOrigins();
+        this.editorsTabPane.getTabs().addListener(
+                (ListChangeListener<Tab>) this::editorTabsChanged);
 
         configureBuildActions();
         configureProcessorActions();
@@ -596,7 +607,7 @@ public final class MainController {
     }
 
     private ProblemsView createProblemsView() {
-        final var view = ProblemsView.load(this.activeEditorView);
+        final var view = ProblemsView.load(this.sourceOrigins);
         view.setOnTextPosition(this::showTextPosition);
         return view;
     }
@@ -780,7 +791,53 @@ public final class MainController {
     }
 
     private void showTextPosition(final TextPositionEvent event) {
-        getActiveEditorView().ifPresent(editorView -> editorView.showEditPosition(event.getTextPosition()));
+        final var sourceId = event.getSourceId();
+        if (sourceId != null) {
+            findEditorTabBySourceId(sourceId).ifPresent(tab -> {
+                this.editorsTabPane.getSelectionModel().select(tab);
+                getEditorView(tab).ifPresent(
+                        editorView -> editorView.showEditPosition(event.getTextPosition()));
+            });
+        } else {
+            getActiveEditorView().ifPresent(
+                    editorView -> editorView.showEditPosition(event.getTextPosition()));
+        }
+    }
+
+    private Optional<Tab> findEditorTabBySourceId(final UUID sourceId) {
+        return this.editorsTabPane.getTabs().stream()
+                .filter(tab -> getEditorView(tab)
+                        .map(view -> Boolean.valueOf(sourceId.equals(view.getViewModel().id())))
+                        .orElse(Boolean.FALSE).booleanValue())
+                .findFirst();
+    }
+
+    private void syncSourceOrigins() {
+        this.sourceOrigins.setAll(
+                this.editorsTabPane.getTabs().stream()
+                        .map(MainController::getEditorView)
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .map(EditorView::getViewModel)
+                        .map(SourceOrigin.class::cast)
+                        .toList());
+    }
+
+    private void editorTabsChanged(final ListChangeListener.Change<? extends Tab> change) {
+        while (change.next()) {
+            if (change.wasRemoved()) {
+                for (final var tab : change.getRemoved()) {
+                    getEditorView(tab).ifPresent(
+                            editorView -> this.sourceOrigins.remove(editorView.getViewModel()));
+                }
+            }
+            if (change.wasAdded()) {
+                for (final var tab : change.getAddedSubList()) {
+                    getEditorView(tab).ifPresent(
+                            editorView -> this.sourceOrigins.add(editorView.getViewModel()));
+                }
+            }
+        }
     }
 
     /// Checks if the editor is dirty and, if so, asks the user whether to save.
