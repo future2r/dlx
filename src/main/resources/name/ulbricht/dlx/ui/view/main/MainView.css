@@ -1,12 +1,25 @@
 @import url("/name/ulbricht/dlx/ui/css/global.css");
 
+#mainRoot {
+    -fx-background-color: transparent;
+    -fx-padding: 0.5em;
+    -fx-spacing: 0.5em;
+}
+
+.menu-bar,
+.tool-bar,
+.status-bar {
+    -fx-background-color: -fx-background;
+    -fx-background-radius: 0.5em;
+    -fx-padding: 0.3em;
+}
+
 /* controls in tool bar shall not get the focus */
 .tool-bar .button {
     -fx-focus-traversable: false;
 }
 
-#statusBar {
-    -fx-padding: 0.5em;
+.status-bar {
     -fx-spacing: 0.5em;
 }
 
@@ -43,4 +56,24 @@
 /* orange icons */
 .fluent-icon-orange .fluent-icon-regular {
     -fx-fill: -dlx-orange;
+}
+
+.content-pane {
+    -fx-background-color: -fx-background;
+    -fx-background-radius: 0.5em;
+    -fx-padding: 0.5em;
+}
+
+.split-pane {
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+}
+
+.split-pane-divider {
+    -fx-background-color: transparent;
+    -fx-padding: 0 0.2em 0 0.2em;
+}
+
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: transparent;
 }

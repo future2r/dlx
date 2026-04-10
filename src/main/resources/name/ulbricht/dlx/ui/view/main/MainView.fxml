@@ -12,15 +12,15 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.stage.FileChooser?>
 <?import name.ulbricht.dlx.ui.view.main.MainViewModel?>
 <?import name.ulbricht.dlx.ui.view.main.RunService?>
 <?import name.ulbricht.dlx.ui.view.ViewServices?>
 
-<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
     fx:id="mainRoot" fx:controller="name.ulbricht.dlx.ui.view.main.MainController"
     prefWidth="1000" prefHeight="650">
 
@@ -44,287 +44,277 @@
         <RunService fx:id="runService" processor="${viewModel.processor}"/>
     </fx:define>
 
-    <top>
+    <!-- main menu bar -->
+    <MenuBar>
 
-        <!-- top navigation area -->
-        <VBox>
+        <!-- file menu -->
+        <Menu text="%main.menu.file.text">
+            <MenuItem text="%main.menu.file.new.text" accelerator="Ctrl+N" onAction="#handleNew">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/document_16_regular.fxml"/>
+                </graphic>
+            </MenuItem>
+            <MenuItem text="%main.menu.file.open.text" accelerator="Ctrl+O" onAction="#handleOpen">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_16_regular.fxml" styleClass="fluent-icon-orange"/>
+                </graphic>
+            </MenuItem>
+            <Menu fx:id="openRecentMenu" text="%main.menu.file.openRecent.text">
+                <SeparatorMenuItem/>
+                <MenuItem text="%main.menu.file.openRecent.clear.text" onAction="#handleClearRecent"/>
+            </Menu>
+            <MenuItem text="%main.menu.file.save.text" accelerator="Ctrl+S" onAction="#handleSave" disable="${!controller.canSave}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/save_16_regular.fxml" styleClass="fluent-icon-blue"/>
+                </graphic>
+            </MenuItem>
+            <MenuItem text="%main.menu.file.saveAs.text" accelerator="Ctrl+Shift+S" onAction="#handleSaveAs" disable="${!controller.canSave}"/>
+            <SeparatorMenuItem/>
+            <MenuItem text="%main.menu.file.preferences.text" onAction="#handlePreferences">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/settings_16_regular.fxml"/>
+                </graphic>
+            </MenuItem>
+            <SeparatorMenuItem/>
+            <MenuItem text="%main.menu.file.exit.text" onAction="#handleExit">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_exit_16_regular.fxml"/>
+                </graphic>
+            </MenuItem>
+        </Menu>
 
-            <!-- main menu bar -->
-            <MenuBar>
+        <!-- edit menu -->
+        <Menu text="%main.menu.edit.text">
+            <MenuItem text="%main.menu.edit.undo.text" accelerator="Ctrl+Z" onAction="#handleUndo" disable="${!controller.canUndo}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_16_regular.fxml" styleClass="fluent-icon-green"/>
+                </graphic>
+            </MenuItem>
+            <MenuItem text="%main.menu.edit.redo.text" accelerator="Ctrl+Y" onAction="#handleRedo" disable="${!controller.canRedo}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_16_regular.fxml" styleClass="fluent-icon-green"/>
+                </graphic>
+            </MenuItem>
+            <SeparatorMenuItem/>
+            <MenuItem text="%main.menu.edit.cut.text" accelerator="Ctrl+X" onAction="#handleCut" disable="${!controller.canCut}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/cut_16_regular.fxml" styleClass="fluent-icon-blue"/>
+                </graphic>
+            </MenuItem>
+            <MenuItem text="%main.menu.edit.copy.text" accelerator="Ctrl+C" onAction="#handleCopy" disable="${!controller.canCopy}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/copy_16_regular.fxml" styleClass="fluent-icon-blue"/>
+                </graphic>
+            </MenuItem>
+            <MenuItem text="%main.menu.edit.paste.text" accelerator="Ctrl+V" onAction="#handlePaste" disable="${!controller.canPaste}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_16_regular.fxml" styleClass="fluent-icon-orange"/>
+                </graphic>
+            </MenuItem>
+        </Menu>
 
-                <!-- file menu -->
-                <Menu text="%main.menu.file.text">
-                    <MenuItem text="%main.menu.file.new.text" accelerator="Ctrl+N" onAction="#handleNew">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/document_16_regular.fxml"/>
-                        </graphic>
-                    </MenuItem>
-                    <MenuItem text="%main.menu.file.open.text" accelerator="Ctrl+O" onAction="#handleOpen">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_16_regular.fxml" styleClass="fluent-icon-orange"/>
-                        </graphic>
-                    </MenuItem>
-                    <Menu fx:id="openRecentMenu" text="%main.menu.file.openRecent.text">
-                        <SeparatorMenuItem/>
-                        <MenuItem text="%main.menu.file.openRecent.clear.text" onAction="#handleClearRecent"/>
-                    </Menu>
-                    <MenuItem text="%main.menu.file.save.text" accelerator="Ctrl+S" onAction="#handleSave" disable="${!controller.canSave}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/save_16_regular.fxml" styleClass="fluent-icon-blue"/>
-                        </graphic>
-                    </MenuItem>
-                    <MenuItem text="%main.menu.file.saveAs.text" accelerator="Ctrl+Shift+S" onAction="#handleSaveAs" disable="${!controller.canSave}"/>
-                    <SeparatorMenuItem/>
-                    <MenuItem text="%main.menu.file.preferences.text" onAction="#handlePreferences">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/settings_16_regular.fxml"/>
-                        </graphic>
-                    </MenuItem>
-                    <SeparatorMenuItem/>
-                    <MenuItem text="%main.menu.file.exit.text" onAction="#handleExit">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_exit_16_regular.fxml"/>
-                        </graphic>
-                    </MenuItem>
-                </Menu>
+        <!-- view menu -->
+        <Menu text="%main.menu.view.text">
+            <MenuItem text="%main.menu.view.outline.text" onAction="#handleShowOutline"/>
+            <SeparatorMenuItem/>
+            <MenuItem text="%main.menu.view.registers.text" onAction="#handleShowRegisters"/>
+            <MenuItem text="%main.menu.view.memory.text" onAction="#handleShowMemory"/>
+            <SeparatorMenuItem/>
+            <MenuItem text="%main.menu.view.problems.text" onAction="#handleShowProblems"/>
+            <MenuItem text="%main.menu.view.log.text" onAction="#handleShowLog"/>
+        </Menu>
 
-                <!-- edit menu -->
-                <Menu text="%main.menu.edit.text">
-                    <MenuItem text="%main.menu.edit.undo.text" accelerator="Ctrl+Z" onAction="#handleUndo" disable="${!controller.canUndo}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_16_regular.fxml" styleClass="fluent-icon-green"/>
-                        </graphic>
-                    </MenuItem>
-                    <MenuItem text="%main.menu.edit.redo.text" accelerator="Ctrl+Y" onAction="#handleRedo" disable="${!controller.canRedo}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_16_regular.fxml" styleClass="fluent-icon-green"/>
-                        </graphic>
-                    </MenuItem>
-                    <SeparatorMenuItem/>
-                    <MenuItem text="%main.menu.edit.cut.text" accelerator="Ctrl+X" onAction="#handleCut" disable="${!controller.canCut}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/cut_16_regular.fxml" styleClass="fluent-icon-blue"/>
-                        </graphic>
-                    </MenuItem>
-                    <MenuItem text="%main.menu.edit.copy.text" accelerator="Ctrl+C" onAction="#handleCopy" disable="${!controller.canCopy}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/copy_16_regular.fxml" styleClass="fluent-icon-blue"/>
-                        </graphic>
-                    </MenuItem>
-                    <MenuItem text="%main.menu.edit.paste.text" accelerator="Ctrl+V" onAction="#handlePaste" disable="${!controller.canPaste}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_16_regular.fxml" styleClass="fluent-icon-orange"/>
-                        </graphic>
-                    </MenuItem>
-                </Menu>
+        <!-- build menu -->
+        <Menu text="%main.menu.build.text">
+            <MenuItem fx:id="compileMenuItem" text="%main.menu.build.compile.text" accelerator="F7" onAction="#handleCompile" disable="${!controller.canCompile}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/flash_16_regular.fxml" styleClass="fluent-icon-orange"/>
+                </graphic>
+            </MenuItem>
+            <MenuItem fx:id="compileAndLoadMenuItem" text="%main.menu.build.compileAndLoad.text" accelerator="F5" onAction="#handleCompileAndLoad" disable="${!controller.canLoad}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/flash_sparkle_16_regular.fxml" styleClass="fluent-icon-orange"/>
+                </graphic>
+            </MenuItem>
+        </Menu>
 
-                <!-- view menu -->
-                <Menu text="%main.menu.view.text">
-                    <MenuItem text="%main.menu.view.outline.text" onAction="#handleShowOutline"/>
-                    <SeparatorMenuItem/>
-                    <MenuItem text="%main.menu.view.registers.text" onAction="#handleShowRegisters"/>
-                    <MenuItem text="%main.menu.view.memory.text" onAction="#handleShowMemory"/>
-                    <SeparatorMenuItem/>
-                    <MenuItem text="%main.menu.view.problems.text" onAction="#handleShowProblems"/>
-                    <MenuItem text="%main.menu.view.log.text" onAction="#handleShowLog"/>
-                </Menu>
+        <!-- run menu -->
+        <Menu text="%main.menu.run.text">
+            <MenuItem text="%main.menu.run.run.text" accelerator="F9" onAction="#handleRun" disable="${!controller.canRun}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/play_16_regular.fxml" styleClass="fluent-icon-green"/>
+                </graphic>
+            </MenuItem>
+            <MenuItem text="%main.menu.run.pause.text" accelerator="F6" onAction="#handlePause" disable="${!controller.canPause}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/pause_16_regular.fxml" styleClass="fluent-icon-blue"/>
+                </graphic>
+            </MenuItem>
+            <MenuItem text="%main.menu.run.step.text" accelerator="F10" onAction="#handleStep" disable="${!controller.canRun}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/next_16_regular.fxml" styleClass="fluent-icon-blue"/>
+                </graphic>
+            </MenuItem>
+            <MenuItem text="%main.menu.run.reset.text" accelerator="Ctrl+Shift+F5" onAction="#handleReset" disable="${!controller.canReset}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_counterclockwise_16_regular.fxml" styleClass="fluent-icon-green"/>
+                </graphic>
+            </MenuItem>
+            <MenuItem text="%main.menu.run.stop.text" accelerator="Shift+F5" onAction="#handleStop" disable="${!controller.canStop}">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/stop_16_regular.fxml" styleClass="fluent-icon-red"/>
+                </graphic>
+            </MenuItem>
+        </Menu>
 
-                <!-- build menu -->
-                <Menu text="%main.menu.build.text">
-                    <MenuItem fx:id="compileMenuItem" text="%main.menu.build.compile.text" accelerator="F7" onAction="#handleCompile" disable="${!controller.canCompile}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/flash_16_regular.fxml" styleClass="fluent-icon-orange"/>
-                        </graphic>
-                    </MenuItem>
-                    <MenuItem fx:id="compileAndLoadMenuItem" text="%main.menu.build.compileAndLoad.text" accelerator="F5" onAction="#handleCompileAndLoad" disable="${!controller.canLoad}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/flash_sparkle_16_regular.fxml" styleClass="fluent-icon-orange"/>
-                        </graphic>
-                    </MenuItem>
-                </Menu>
+        <!-- help menu -->
+        <Menu text="%main.menu.help.text">
+            <MenuItem text="%main.menu.help.about.text" onAction="#handleAbout">
+                <graphic>
+                    <fx:include source="/name/ulbricht/dlx/ui/icon/info_16_regular.fxml"/>
+                </graphic>
+            </MenuItem>
+        </Menu>
 
-                <!-- run menu -->
-                <Menu text="%main.menu.run.text">
-                    <MenuItem text="%main.menu.run.run.text" accelerator="F9" onAction="#handleRun" disable="${!controller.canRun}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/play_16_regular.fxml" styleClass="fluent-icon-green"/>
-                        </graphic>
-                    </MenuItem>
-                    <MenuItem text="%main.menu.run.pause.text" accelerator="F6" onAction="#handlePause" disable="${!controller.canPause}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/pause_16_regular.fxml" styleClass="fluent-icon-blue"/>
-                        </graphic>
-                    </MenuItem>
-                    <MenuItem text="%main.menu.run.step.text" accelerator="F10" onAction="#handleStep" disable="${!controller.canRun}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/next_16_regular.fxml" styleClass="fluent-icon-blue"/>
-                        </graphic>
-                    </MenuItem>
-                    <MenuItem text="%main.menu.run.reset.text" accelerator="Ctrl+Shift+F5" onAction="#handleReset" disable="${!controller.canReset}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_counterclockwise_16_regular.fxml" styleClass="fluent-icon-green"/>
-                        </graphic>
-                    </MenuItem>
-                    <MenuItem text="%main.menu.run.stop.text" accelerator="Shift+F5" onAction="#handleStop" disable="${!controller.canStop}">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/stop_16_regular.fxml" styleClass="fluent-icon-red"/>
-                        </graphic>
-                    </MenuItem>
-                </Menu>
+    </MenuBar>
 
-                <!-- help menu -->
-                <Menu text="%main.menu.help.text">
-                    <MenuItem text="%main.menu.help.about.text" onAction="#handleAbout">
-                        <graphic>
-                            <fx:include source="/name/ulbricht/dlx/ui/icon/info_16_regular.fxml"/>
-                        </graphic>
-                    </MenuItem>
-                </Menu>
+    <!-- main tool bar -->
+    <ToolBar fx:id="toolBar">
 
-            </MenuBar>
+        <!-- file section -->
+        <Button onAction="#handleNew">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/document_20_regular.fxml"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.new.tooltip"/>
+            </tooltip>
+        </Button>
+        <Button onAction="#handleOpen">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_20_regular.fxml" styleClass="fluent-icon-orange"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.open.tooltip"/>
+            </tooltip>
+        </Button>
+        <Button onAction="#handleSave" disable="${!controller.canSave}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/save_20_regular.fxml" styleClass="fluent-icon-blue"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.save.tooltip"/>
+            </tooltip>
+        </Button>
+        <Separator/>
 
-            <!-- main tool bar -->
-            <ToolBar fx:id="toolBar">
+        <!-- edit section -->
+        <Button onAction="#handleUndo" disable="${!controller.canUndo}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_20_regular.fxml" styleClass="fluent-icon-green"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.undo.tooltip"/>
+            </tooltip>
+        </Button>
+        <Button onAction="#handleRedo" disable="${!controller.canRedo}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_20_regular.fxml" styleClass="fluent-icon-green"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.redo.tooltip"/>
+            </tooltip>
+        </Button>
+        <Button onAction="#handleCut" disable="${!controller.canCut}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/cut_20_regular.fxml" styleClass="fluent-icon-blue"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.cut.tooltip"/>
+            </tooltip>
+        </Button>
+        <Button onAction="#handleCopy" disable="${!controller.canCopy}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/copy_20_regular.fxml" styleClass="fluent-icon-blue"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.copy.tooltip"/>
+            </tooltip>
+        </Button>
+        <Button onAction="#handlePaste" disable="${!controller.canPaste}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_20_regular.fxml" styleClass="fluent-icon-orange"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.paste.tooltip"/>
+            </tooltip>
+        </Button>
+        <Separator/>
 
-                <!-- file section -->
-                <Button onAction="#handleNew">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/document_20_regular.fxml"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.new.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Button onAction="#handleOpen">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/folder_open_20_regular.fxml" styleClass="fluent-icon-orange"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.open.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Button onAction="#handleSave" disable="${!controller.canSave}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/save_20_regular.fxml" styleClass="fluent-icon-blue"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.save.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Separator/>
+        <!-- build section -->
+        <Button onAction="#handleCompile" disable="${!controller.canCompile}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/flash_20_regular.fxml" styleClass="fluent-icon-orange"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.compile.tooltip"/>
+            </tooltip>
+        </Button>
+        <Button onAction="#handleCompileAndLoad" disable="${!controller.canLoad}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/flash_sparkle_20_regular.fxml" styleClass="fluent-icon-orange"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.compileAndLoad.tooltip"/>
+            </tooltip>
+        </Button>
+        <Separator/>
 
-                <!-- edit section -->
-                <Button onAction="#handleUndo" disable="${!controller.canUndo}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_undo_20_regular.fxml" styleClass="fluent-icon-green"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.undo.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Button onAction="#handleRedo" disable="${!controller.canRedo}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_redo_20_regular.fxml" styleClass="fluent-icon-green"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.redo.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Button onAction="#handleCut" disable="${!controller.canCut}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/cut_20_regular.fxml" styleClass="fluent-icon-blue"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.cut.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Button onAction="#handleCopy" disable="${!controller.canCopy}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/copy_20_regular.fxml" styleClass="fluent-icon-blue"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.copy.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Button onAction="#handlePaste" disable="${!controller.canPaste}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/clipboard_paste_20_regular.fxml" styleClass="fluent-icon-orange"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.paste.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Separator/>
+        <!-- run section -->
+        <Button onAction="#handleRun" disable="${!controller.canRun}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/play_20_regular.fxml" styleClass="fluent-icon-green"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.run.tooltip"/>
+            </tooltip>
+        </Button>
+        <Button onAction="#handlePause" disable="${!controller.canPause}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/pause_20_regular.fxml" styleClass="fluent-icon-blue"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.pause.tooltip"/>
+            </tooltip>
+        </Button>
+        <Button onAction="#handleStep" disable="${!controller.canRun}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/next_20_regular.fxml" styleClass="fluent-icon-blue"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.step.tooltip"/>
+            </tooltip>
+        </Button>
+        <Button onAction="#handleReset" disable="${!controller.canReset}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_counterclockwise_20_regular.fxml" styleClass="fluent-icon-green"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.reset.tooltip"/>
+            </tooltip>
+        </Button>
+        <Button onAction="#handleStop" disable="${!controller.canStop}">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/stop_20_regular.fxml" styleClass="fluent-icon-red"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="%main.toolbar.stop.tooltip"/>
+            </tooltip>
+        </Button>
 
-                <!-- build section -->
-                <Button onAction="#handleCompile" disable="${!controller.canCompile}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/flash_20_regular.fxml" styleClass="fluent-icon-orange"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.compile.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Button onAction="#handleCompileAndLoad" disable="${!controller.canLoad}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/flash_sparkle_20_regular.fxml" styleClass="fluent-icon-orange"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.compileAndLoad.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Separator/>
+    </ToolBar>
 
-                <!-- run section -->
-                <Button onAction="#handleRun" disable="${!controller.canRun}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/play_20_regular.fxml" styleClass="fluent-icon-green"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.run.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Button onAction="#handlePause" disable="${!controller.canPause}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/pause_20_regular.fxml" styleClass="fluent-icon-blue"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.pause.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Button onAction="#handleStep" disable="${!controller.canRun}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/next_20_regular.fxml" styleClass="fluent-icon-blue"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.step.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Button onAction="#handleReset" disable="${!controller.canReset}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/arrow_counterclockwise_20_regular.fxml" styleClass="fluent-icon-green"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.reset.tooltip"/>
-                    </tooltip>
-                </Button>
-                <Button onAction="#handleStop" disable="${!controller.canStop}">
-                    <graphic>
-                        <fx:include source="/name/ulbricht/dlx/ui/icon/stop_20_regular.fxml" styleClass="fluent-icon-red"/>
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="%main.toolbar.stop.tooltip"/>
-                    </tooltip>
-                </Button>
-
-            </ToolBar>
-
-        </VBox>
-
-    </top>
-
-    <center>
-
+    <StackPane styleClass="content-pane" VBox.vgrow="ALWAYS">
         <!-- Work area-->
         <SplitPane orientation="VERTICAL" dividerPositions="0.7">
 
@@ -332,44 +322,39 @@
             <SplitPane dividerPositions="0.3,0.7">
 
                 <!-- Left panel, used for view parts directly associated with the current editor. -->
-                <TabPane fx:id="primarySideBarTabPane" SplitPane.resizableWithParent="false"/>
+                <TabPane fx:id="primarySideBarTabPane" minWidth="200" SplitPane.resizableWithParent="false"/>
 
                 <!-- Center editor area, used for source editors. -->
-                <TabPane fx:id="editorsTabPane"/>
+                <TabPane fx:id="editorsTabPane" minWidth="200"/>
 
                 <!-- Right panel, used for processor view parts. -->
-                <TabPane fx:id="secondarySideBarTabPane" SplitPane.resizableWithParent="false"/>
+                <TabPane fx:id="secondarySideBarTabPane" minWidth="200" SplitPane.resizableWithParent="false"/>
 
             </SplitPane>
 
             <!-- Bottom panel, used for message view parts. -->
-            <TabPane fx:id="panelTabPane" SplitPane.resizableWithParent="false"/>
+            <TabPane fx:id="panelTabPane" minHeight="100" SplitPane.resizableWithParent="false"/>
 
         </SplitPane>
+    </StackPane>
 
-    </center>
+    <!-- status bar-->
+    <HBox fx:id="statusBar" styleClass="status-bar">
 
-    <bottom>
+        <Label fx:id="statusLabel">
+            <graphic>
+                <fx:include source="/name/ulbricht/dlx/ui/icon/developer_board_16_regular.fxml"/>
+            </graphic>
+        </Label>
 
-        <!-- status bar-->
-        <HBox fx:id="statusBar">
+        <Separator orientation="VERTICAL"/>
+        <Label fx:id="cyclesLabel"/>
 
-            <Label fx:id="statusLabel">
-                <graphic>
-                    <fx:include source="/name/ulbricht/dlx/ui/icon/developer_board_16_regular.fxml"/>
-                </graphic>
-            </Label>
+        <Separator orientation="VERTICAL"/>
+        <Label fx:id="programCounterLabel"/>
 
-            <Separator orientation="VERTICAL"/>
-            <Label fx:id="cyclesLabel"/>
+        <Separator orientation="VERTICAL"/>
+        <Label fx:id="editPositionLabel"/>
+    </HBox>
 
-            <Separator orientation="VERTICAL"/>
-            <Label fx:id="programCounterLabel"/>
-
-            <Separator orientation="VERTICAL"/>
-            <Label fx:id="editPositionLabel"/>
-        </HBox>
-
-    </bottom>
-
-</BorderPane>
+</VBox>
