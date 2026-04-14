@@ -6,7 +6,7 @@
 <?import name.ulbricht.dlx.ui.view.problems.ProblemsTreeCellFactory?>
 <?import name.ulbricht.dlx.ui.view.problems.ProblemsViewModel?>
 
-<StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+<StackPane xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
     fx:id="problemsRoot" fx:controller="name.ulbricht.dlx.ui.view.problems.ProblemsController">
 
     <stylesheets>

@@ -14,7 +14,7 @@
 <?import name.ulbricht.dlx.ui.view.preferences.PreferencesViewModel?>
 <?import name.ulbricht.dlx.ui.view.ViewServices?>
 
-<DialogPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+<DialogPane xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
     fx:id="preferencesRoot" fx:controller="name.ulbricht.dlx.ui.view.preferences.PreferencesController">
 
     <stylesheets>

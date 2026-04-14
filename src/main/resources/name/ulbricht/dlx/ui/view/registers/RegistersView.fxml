@@ -9,7 +9,7 @@
 <?import name.ulbricht.dlx.ui.view.registers.RegistersViewModel?>
 <?import name.ulbricht.dlx.ui.view.ViewServices?>
 
-<StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+<StackPane xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
     fx:id="registersRoot" fx:controller="name.ulbricht.dlx.ui.view.registers.RegistersController">
 
     <stylesheets>
