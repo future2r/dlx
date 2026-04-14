@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+<?import name.ulbricht.dlx.ui.view.pipeline.PipelineViewModel?>
+<?import name.ulbricht.dlx.ui.view.ViewServices?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+    fx:id="pipelineRoot" fx:controller="name.ulbricht.dlx.ui.view.pipeline.PipelineController"
+    fitToWidth="true">
+
+    <stylesheets>
+        <URL value="@PipelineView.css"/>
+    </stylesheets>
+
+    <fx:define>
+        <PipelineViewModel fx:id="viewModel">
+            <uiExecutor>
+                <ViewServices fx:factory="uiExecutor"/>
+            </uiExecutor>
+        </PipelineViewModel>
+    </fx:define>
+
+    <VBox styleClass="pipeline-stages">
+
+        <!-- IF stage -->
+        <TitledPane text="%pipeline.stage.if" maxWidth="Infinity">
+            <GridPane styleClass="stage-grid">
+                <Label text="%pipeline.instruction" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Label text="${viewModel.ifInstruction}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label text="%pipeline.pc" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Label text="${viewModel.ifPc}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label text="%pipeline.word" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Label text="${viewModel.ifWord}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            </GridPane>
+        </TitledPane>
+
+        <!-- ID stage -->
+        <TitledPane text="%pipeline.stage.id" maxWidth="Infinity">
+            <GridPane styleClass="stage-grid">
+                <Label text="%pipeline.instruction" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Label text="${viewModel.idInstruction}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label text="%pipeline.rs1" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Label text="${viewModel.idRs1}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label text="%pipeline.rs2" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Label text="${viewModel.idRs2}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                <Label text="%pipeline.rd" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <Label text="${viewModel.idRd}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+            </GridPane>
+        </TitledPane>
+
+        <!-- EX stage -->
+        <TitledPane text="%pipeline.stage.ex" maxWidth="Infinity">
+            <GridPane styleClass="stage-grid">
+                <Label text="%pipeline.instruction" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Label text="${viewModel.exInstruction}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label text="%pipeline.aluResult" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Label text="${viewModel.exAluResult}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label text="%pipeline.rd" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Label text="${viewModel.exRd}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            </GridPane>
+        </TitledPane>
+
+        <!-- MEM stage -->
+        <TitledPane text="%pipeline.stage.mem" maxWidth="Infinity">
+            <GridPane styleClass="stage-grid">
+                <Label text="%pipeline.instruction" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Label text="${viewModel.memInstruction}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label text="%pipeline.aluResult" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Label text="${viewModel.memAluResult}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label text="%pipeline.memData" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Label text="${viewModel.memData}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                <Label text="%pipeline.rd" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <Label text="${viewModel.memRd}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+            </GridPane>
+        </TitledPane>
+
+        <!-- WB stage -->
+        <TitledPane text="%pipeline.stage.wb" maxWidth="Infinity">
+            <GridPane styleClass="stage-grid">
+                <Label text="%pipeline.instruction" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Label text="${viewModel.wbInstruction}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label text="%pipeline.result" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <Label text="${viewModel.wbResult}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label text="%pipeline.rd" styleClass="stage-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <Label text="${viewModel.wbRd}" styleClass="stage-value" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            </GridPane>
+        </TitledPane>
+
+    </VBox>
+
+</ScrollPane>

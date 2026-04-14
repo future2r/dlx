@@ -51,6 +51,7 @@ import name.ulbricht.dlx.ui.view.editor.EditorView;
 import name.ulbricht.dlx.ui.view.log.LogView;
 import name.ulbricht.dlx.ui.view.memory.MemoryView;
 import name.ulbricht.dlx.ui.view.outline.OutlineView;
+import name.ulbricht.dlx.ui.view.pipeline.PipelineView;
 import name.ulbricht.dlx.ui.view.preferences.PreferencesView;
 import name.ulbricht.dlx.ui.view.problems.ProblemsView;
 import name.ulbricht.dlx.ui.view.problems.SourceOrigin;
@@ -519,6 +520,11 @@ public final class MainController {
     }
 
     @FXML
+    private void handleShowPipeline() {
+        showView(PipelineView.class, this::createPipelineView);
+    }
+
+    @FXML
     private void handleShowProblems() {
         showView(ProblemsView.class, this::createProblemsView);
     }
@@ -598,6 +604,7 @@ public final class MainController {
         showView(OutlineView.class, this::createOutlineView);
         showView(RegistersView.class, this::createRegistersView);
         showView(MemoryView.class, this::createMemoryView);
+        showView(PipelineView.class, this::createPipelineView);
         showView(ProblemsView.class, this::createProblemsView);
         showView(ConsoleView.class, this::createConsoleView);
         showView(LogView.class, this::createLogView);
@@ -622,6 +629,11 @@ public final class MainController {
 
     private MemoryView createMemoryView() {
         final var view = MemoryView.load(this.viewModel.processorProperty());
+        return view;
+    }
+
+    private PipelineView createPipelineView() {
+        final var view = PipelineView.load(this.viewModel.processorProperty());
         return view;
     }
 
@@ -653,7 +665,7 @@ public final class MainController {
         final var tab = createViewTab(view);
         final var tabPane = switch (view) {
             case final OutlineView _ -> this.primarySideBarTabPane;
-            case final RegistersView _,final MemoryView _ -> this.secondarySideBarTabPane;
+            case final RegistersView _,final MemoryView _,final PipelineView _ -> this.secondarySideBarTabPane;
             case final ProblemsView _,final LogView _,final ConsoleView _ -> this.panelTabPane;
             default -> this.primarySideBarTabPane;
         };

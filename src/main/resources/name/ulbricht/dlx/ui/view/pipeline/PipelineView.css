@@ -1,0 +1,13 @@
+.pipeline-stages {
+    -fx-spacing: 0.5em;
+}
+
+.stage-grid {
+    -fx-padding: 0.5em;
+    -fx-hgap: 0.5em;
+    -fx-vgap: 0.5em;
+}
+
+.stage-label {
+    -fx-min-width: 5em;
+}

@@ -432,7 +432,8 @@ public final class CPU {
             currentListeners = List.copyOf(this.processingListeners);
         }
 
-        final var step = new ProcessingListener.ProcessStep(this.cycles, this.programCounter, this.halted);
+        final var pipeline = new PipelineSnapshot(this.ifId, this.idEx, this.exMem, this.memWb);
+        final var step = new ProcessingListener.ProcessStep(this.cycles, this.programCounter, this.halted, pipeline);
         currentListeners.forEach(listener -> listener.processing(step));
     }
 
