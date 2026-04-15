@@ -12,7 +12,7 @@ public final class RegisterTableRow extends TableRow<RegisterItem> {
     private static final PseudoClass READ_PSEUDO_CLASS = PseudoClass.getPseudoClass("read");
     private static final PseudoClass WRITE_PSEUDO_CLASS = PseudoClass.getPseudoClass("write");
 
-    private Subscription accessSubscription;
+    private Subscription accessSubscription = Subscription.EMPTY;
 
     /// Creates a new register table row instance.
     RegisterTableRow() {
@@ -23,10 +23,7 @@ public final class RegisterTableRow extends TableRow<RegisterItem> {
         super.updateItem(item, empty);
 
         // Remove the old subscription from any old row item
-        if (this.accessSubscription != null) {
-            this.accessSubscription.unsubscribe();
-            this.accessSubscription = null;
-        }
+        this.accessSubscription.unsubscribe();
 
         // Subscribe for changes of the "access" property of the row item
         if (!empty && item != null) {
