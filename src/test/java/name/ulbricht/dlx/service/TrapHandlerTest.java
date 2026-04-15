@@ -30,7 +30,7 @@ final class TrapHandlerTest {
         void printInteger() throws InterruptedException {
             final var result = runProgram("""
                     .text
-                    addi r1, r0, 42
+                    addi r4, r0, 42
                     trap 1
                     trap 0""");
 
@@ -43,7 +43,7 @@ final class TrapHandlerTest {
         void printCharacter() throws InterruptedException {
             final var result = runProgram("""
                     .text
-                    addi r1, r0, 65
+                    addi r4, r0, 65
                     trap 2
                     trap 0""");
 
@@ -59,7 +59,7 @@ final class TrapHandlerTest {
                     .word 0
                     msg: .asciiz "Hello"
                     .text
-                    addi r1, r0, msg
+                    addi r4, r0, msg
                     trap 3
                     trap 0""");
 

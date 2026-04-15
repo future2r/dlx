@@ -7,8 +7,8 @@ res:    .word 0     ; result
 
         .text           ; program section
 main:
-        lw r1, a(r0)    ; load 'a' into R1
-        lw r2, b(r0)    ; load 'b' into R2
-        add r3, r1, r2  ; R1 + R2 = R3 
-        sw res(r0), r3  ; store R3 into 'res'
+        lw r2, a(r0)    ; load 'a' into R2
+        lw r3, b(r0)    ; load 'b' into R3
+        add r4, r2, r3  ; R2 + R3 = R4
+        sw res(r0), r4  ; store R4 into 'res'
         trap 0          ; end program

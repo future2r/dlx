@@ -1,0 +1,14 @@
+#referenceRoot {
+    -fx-spacing: 0.5em;
+}
+.reference-filter {
+    -fx-background-radius: 0;
+}
+
+.reference-detail {
+    -fx-font-family: monospace;
+}
+
+.tree-cell:group {
+    -fx-font-weight: bold;
+}

@@ -9,10 +9,10 @@ import name.ulbricht.dlx.simulator.TrapListener;
 ///
 /// Supported trap numbers:
 ///
-/// - **1** - Print integer: writes the signed decimal value of R1.
-/// - **2** - Print character: writes the character whose code is in R1.
+/// - **1** - Print integer: writes the signed decimal value of R4.
+/// - **2** - Print character: writes the character whose code is in R4.
 /// - **3** - Print string: writes a null-terminated string starting at the
-///   memory address in R1.
+///   memory address in R4.
 ///
 /// Unknown trap numbers are silently ignored.
 public final class TrapHandler implements TrapListener {
@@ -32,11 +32,11 @@ public final class TrapHandler implements TrapListener {
 
     @Override
     public void trapRetired(final TrapEvent event) {
-        final var r1 = event.registers().read(1);
+        final var r4 = event.registers().read(4);
         switch (event.trapNumber()) {
-            case TRAP_PRINT_INT -> this.console.append(Integer.toString(r1));
-            case TRAP_PRINT_CHAR -> this.console.append(String.valueOf((char) (r1 & 0xFFFF)));
-            case TRAP_PRINT_STRING -> this.console.append(readString(event.memory(), r1));
+            case TRAP_PRINT_INT -> this.console.append(Integer.toString(r4));
+            case TRAP_PRINT_CHAR -> this.console.append(String.valueOf((char) (r4 & 0xFFFF)));
+            case TRAP_PRINT_STRING -> this.console.append(readString(event.memory(), r4));
             default -> { /* unknown trap — ignored */ }
         }
     }

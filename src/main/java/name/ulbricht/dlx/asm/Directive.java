@@ -5,13 +5,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/// All DLX assembler directives with their name and a human-readable
-/// description.
+/// All DLX assembler directives with their name.
 ///
 /// This enum is the single source of truth for directive names used by the
 /// lexer (token classification), parser (directive dispatch), and compiler
-/// (data emission). The [#description] field can serve as the basis for
-/// in-application help.
+/// (data emission).
 ///
 /// Use [#fromName(String)] for an O(1) lookup by lowercase name, or
 /// [#isKnown(String)] for a fast membership test.
@@ -22,41 +20,35 @@ public enum Directive {
     // -------------------------------------------------------------------------
 
     /// Switch to data segment.
-    DATA("data", "Switch to data segment"),
+    DATA("data"),
 
     /// Switch to text (code) segment.
-    TEXT("text", "Switch to text (code) segment"),
+    TEXT("text"),
 
     // -------------------------------------------------------------------------
     // Data declarations
     // -------------------------------------------------------------------------
 
     /// Declare one or more 32-bit words.
-    WORD("word", "Declare 32-bit word(s)"),
+    WORD("word"),
 
     /// Declare one or more 16-bit half-words.
-    HALF("half", "Declare 16-bit half-word(s)"),
+    HALF("half"),
 
     /// Declare one or more bytes.
-    BYTE("byte", "Declare byte(s)"),
-
-    /// Declare a single-precision floating-point value.
-    FLOAT("float", "Declare single-precision float"),
-
-    /// Declare a double-precision floating-point value.
-    DOUBLE("double", "Declare double-precision float"),
+    BYTE("byte"),
 
     /// Declare an ASCII string (no null terminator).
-    ASCII("ascii", "Declare ASCII string (no null terminator)"),
+    ASCII("ascii"),
 
     /// Declare a null-terminated ASCII string.
-    ASCIIZ("asciiz", "Declare null-terminated ASCII string"),
+    ASCIIZ("asciiz"),
 
     /// Reserve `n` bytes of zero-filled space.
-    SPACE("space", "Reserve n bytes of zero-filled space"),
+    SPACE("space"),
 
     /// Align the next datum to a `2^n` byte boundary.
-    ALIGN("align", "Align next datum to 2^n byte boundary");
+    ALIGN("align");
 
     // -------------------------------------------------------------------------
     // Fields and lookup
@@ -66,13 +58,9 @@ public enum Directive {
     /// (without the leading dot).
     public final String directiveName;
 
-    /// A short human-readable description suitable for in-application help.
-    public final String description;
-
     /// Constructs a directive constant.
-    Directive(final String directiveName, final String description) {
+    Directive(final String directiveName) {
         this.directiveName = directiveName;
-        this.description = description;
     }
 
     /// O(1) lookup table keyed by lowercase directive name.

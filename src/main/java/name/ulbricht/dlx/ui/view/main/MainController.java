@@ -55,6 +55,7 @@ import name.ulbricht.dlx.ui.view.pipeline.PipelineView;
 import name.ulbricht.dlx.ui.view.preferences.PreferencesView;
 import name.ulbricht.dlx.ui.view.problems.ProblemsView;
 import name.ulbricht.dlx.ui.view.problems.SourceOrigin;
+import name.ulbricht.dlx.ui.view.reference.ReferenceView;
 import name.ulbricht.dlx.ui.view.registers.RegistersView;
 
 /// Controller for the main application view.
@@ -510,6 +511,11 @@ public final class MainController {
     }
 
     @FXML
+    private void handleShowReference() {
+        showView(ReferenceView.class, ReferenceView::load);
+    }
+
+    @FXML
     private void handleShowRegisters() {
         showView(RegistersView.class, this::createRegistersView);
     }
@@ -601,13 +607,14 @@ public final class MainController {
     }
 
     private void openDefaultViews() {
+        showView(ReferenceView.class, ReferenceView::load);
         showView(OutlineView.class, this::createOutlineView);
+        showView(PipelineView.class, this::createPipelineView);
         showView(RegistersView.class, this::createRegistersView);
         showView(MemoryView.class, this::createMemoryView);
-        showView(PipelineView.class, this::createPipelineView);
         showView(ProblemsView.class, this::createProblemsView);
-        showView(ConsoleView.class, this::createConsoleView);
         showView(LogView.class, this::createLogView);
+        showView(ConsoleView.class, this::createConsoleView);
     }
 
     private OutlineView createOutlineView() {
@@ -664,7 +671,7 @@ public final class MainController {
         final var view = viewSupplier.get();
         final var tab = createViewTab(view);
         final var tabPane = switch (view) {
-            case final OutlineView _ -> this.primarySideBarTabPane;
+            case final OutlineView _,final ReferenceView _ -> this.primarySideBarTabPane;
             case final RegistersView _,final MemoryView _,final PipelineView _ -> this.secondarySideBarTabPane;
             case final ProblemsView _,final LogView _,final ConsoleView _ -> this.panelTabPane;
             default -> this.primarySideBarTabPane;

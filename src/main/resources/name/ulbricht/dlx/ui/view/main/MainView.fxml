@@ -116,6 +116,7 @@
         <!-- view menu -->
         <Menu text="%main.menu.view.text">
             <MenuItem text="%main.menu.view.outline.text" onAction="#handleShowOutline"/>
+            <MenuItem text="%main.menu.view.reference.text" onAction="#handleShowReference"/>
             <SeparatorMenuItem/>
             <MenuItem text="%main.menu.view.registers.text" onAction="#handleShowRegisters"/>
             <MenuItem text="%main.menu.view.memory.text" onAction="#handleShowMemory"/>

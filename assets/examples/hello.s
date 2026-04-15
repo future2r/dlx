@@ -4,6 +4,6 @@
 msg:    .asciiz "Hello World!\n"
 
         .text
-main:   addi r1, r0, msg
+main:   addi r4, r0, msg
         trap 3
         trap 0

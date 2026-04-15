@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.VBox?>
+<?import name.ulbricht.dlx.ui.view.reference.ReferenceView?>
+<?import name.ulbricht.dlx.ui.view.reference.ReferenceViewModel?>
+
+<VBox xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+    fx:id="referenceRoot" fx:controller="name.ulbricht.dlx.ui.view.reference.ReferenceController">
+
+    <stylesheets>
+        <URL value="@ReferenceView.css"/>
+    </stylesheets>
+
+    <fx:define>
+        <ReferenceViewModel fx:id="viewModel"/>
+    </fx:define>
+
+    <TextField fx:id="filterField" promptText="%reference.filter.prompt" styleClass="reference-filter"/>
+
+    <SplitPane orientation="VERTICAL" dividerPositions="0.5" VBox.vgrow="ALWAYS">
+        <TreeView fx:id="referenceTree" SplitPane.resizableWithParent="false">
+            <cellFactory>
+                <ReferenceView fx:factory="referenceCellFactory"/>
+            </cellFactory>
+        </TreeView>
+        <TextArea fx:id="detailArea" promptText="%reference.detail.prompt" editable="false" wrapText="true" styleClass="reference-detail"/>
+    </SplitPane>
+
+</VBox>
