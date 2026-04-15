@@ -5,7 +5,7 @@
 
     <groupId>name.ulbricht</groupId>
     <artifactId>dlx</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -485,7 +485,7 @@
                                         <!-- jpackage does not like SNAPSHOT versions -->
                                         <argument>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</argument>
                                         <argument>--icon</argument>
-                                        <argument>${project.basedir}/src/design/application.ico</argument>
+                                        <argument>${project.basedir}/assets/design/application.ico</argument>
                                         <argument>--java-options</argument>
                                         <argument>--enable-native-access=javafx.graphics</argument>
                                         <argument>--java-options</argument>
