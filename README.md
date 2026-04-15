@@ -23,18 +23,18 @@ This project is also intended as a programming tutorial. Here is what it demonst
 ### Prerequisites
 
 - **Any JDK** installed and `JAVA_HOME` pointing to it. The Maven wrapper uses this JDK to bootstrap Maven itself.
-- **JDK 25** (OpenJDK) registered in a [Maven toolchain](https://maven.apache.org/guides/mini/guide-using-toolchains.html). The build selects the correct JDK via the `maven-toolchains-plugin`, so your `JAVA_HOME` JDK does not need to be version 25. Add the following to your `~/.m2/toolchains.xml`:
+- **JDK 26** (OpenJDK) registered in a [Maven toolchain](https://maven.apache.org/guides/mini/guide-using-toolchains.html). The build selects the correct JDK via the `maven-toolchains-plugin`, so your `JAVA_HOME` JDK does not need to be version 26. Add the following to your `~/.m2/toolchains.xml`:
 
 ```xml
 <toolchains>
   <toolchain>
     <type>jdk</type>
     <provides>
-      <version>25</version>
+      <version>26</version>
       <vendor>openjdk</vendor>
     </provides>
     <configuration>
-      <jdkHome>C:\path\to\jdk-25</jdkHome>
+      <jdkHome>C:\path\to\jdk-26</jdkHome>
     </configuration>
   </toolchain>
 </toolchains>
