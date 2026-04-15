@@ -24,7 +24,7 @@ final class DirectiveCategoryTest {
         void everyDirectiveCovered() {
             final var covered = EnumSet.noneOf(Directive.class);
             for (final var category : DirectiveCategory.values()) {
-                for (final var directive : category.directives) {
+                for (final var directive : category.directives()) {
                     assertFalse(covered.contains(directive),
                             "Directive " + directive + " appears in multiple categories");
                     covered.add(directive);
@@ -38,7 +38,7 @@ final class DirectiveCategoryTest {
         @DisplayName("no category is empty")
         void noCategoryEmpty() {
             for (final var category : DirectiveCategory.values()) {
-                assertFalse(category.directives.isEmpty(),
+                assertFalse(category.directives().isEmpty(),
                         "Category " + category + " is empty");
             }
         }
@@ -52,7 +52,7 @@ final class DirectiveCategoryTest {
         @DisplayName("returns correct category for every directive")
         void returnsCorrectCategory() {
             for (final var category : DirectiveCategory.values()) {
-                for (final var directive : category.directives) {
+                for (final var directive : category.directives()) {
                     final var result = DirectiveCategory.categoryOf(directive);
                     assertNotNull(result);
                     assertEquals(category, result);

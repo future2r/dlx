@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC "-//Checkstyle//DTD Suppressions Xpath Experimental 1.2//EN" "https://checkstyle.org/dtds/suppressions_1_2_xpath_experimental.dtd">
+<suppressions>
+
+  <!-- Checkstyle complains if the 'final' modifier is used on unnamed parameter in a catch clause. -->
+  <!-- Single exception catch clause -->
+  <suppress-xpath checks="RedundantModifier"
+    query="//LITERAL_CATCH//PARAMETER_DEF
+               [./IDENT[@text='_']]
+             /MODIFIERS/FINAL"/>
+  <!-- Multi exception catch clause -->
+  <suppress-xpath checks="RedundantModifier"
+    query="//LITERAL_CATCH//PARAMETER_DEF
+               [./TYPE/*[self::BOR or self::IDENT]]
+               [./IDENT[@text='_']]
+             /MODIFIERS/FINAL"/>
+
+  <suppress checks="OrderedProperties"
+    files="logging.properties"/>
+
+</suppressions>

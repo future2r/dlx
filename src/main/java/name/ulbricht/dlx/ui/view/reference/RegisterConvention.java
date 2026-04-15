@@ -43,22 +43,30 @@ public enum RegisterConvention {
     /// R31: return address (set by JAL/JALR).
     R31(31, 31);
 
-    /// The first register index in the group (inclusive).
-    public final int startIndex;
+    private final int startIndex;
 
-    /// The last register index in the group (inclusive).
-    public final int endIndex;
+    private final int endIndex;
 
     RegisterConvention(final int startIndex, final int endIndex) {
         this.startIndex = startIndex;
         this.endIndex = endIndex;
     }
 
+    /// {@return the first register index in the group (inclusive)}
+    public int startIndex() {
+        return this.startIndex;
+    }
+
+    /// {@return the last register index in the group (inclusive)}
+    public int endIndex() {
+        return this.endIndex;
+    }
+
     /// {@return a display name like `"R0"` or `"R2\u2013R3"`}
     public String displayName() {
-        if (this.startIndex == this.endIndex) {
-            return "R" + this.startIndex;
+        if (this.startIndex() == this.endIndex()) {
+            return "R" + this.startIndex();
         }
-        return "R" + this.startIndex + "\u2013R" + this.endIndex;
+        return "R" + this.startIndex() + "\u2013R" + this.endIndex();
     }
 }

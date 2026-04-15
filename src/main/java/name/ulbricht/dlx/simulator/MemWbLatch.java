@@ -26,11 +26,11 @@ import static java.util.Objects.requireNonNull;
 /// @param ctrl      the control signals governing the WB stage
 /// @param aluResult the 32-bit ALU result carried from the EX stage
 /// @param memData   the value read from memory in the MEM stage (only valid when
-///                  `ctrl.memRead()` was `true`)
+///                  `ctrl.memory().memRead()` was `true`)
 /// @param rd        index of the destination register (0–31); 0 means no
 ///                  register write-back will occur
-/// @param immediate the sign-extended 16-bit immediate from the ID stage;
-///                  used by the CPU for trap dispatch after WB retires
+/// @param immediate the sign-extended 16-bit immediate from the ID stage; used
+///                  by the CPU for trap dispatch after WB retires
 public record MemWbLatch(
         ControlSignals ctrl,
         int aluResult,

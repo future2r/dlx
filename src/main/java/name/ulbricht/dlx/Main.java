@@ -18,4 +18,8 @@ final class Main {
         // Launch the JavaFX application
         Application.launch(DlxApplication.class, args);
     }
+
+    private Main() {
+        // Hidden constructor to prevent instantiation
+    }
 }

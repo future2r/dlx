@@ -49,17 +49,21 @@ public enum InstructionCategory {
     /// Simulator-specific instructions.
     SPECIAL(List.of(Instruction.TRAP));
 
-    /// The instructions belonging to this category.
-    public final List<Instruction> instructions;
+    private final List<Instruction> instructions;
 
     InstructionCategory(final List<Instruction> instructions) {
         this.instructions = instructions;
     }
 
+    /// {@return the instructions belonging to this category}
+    public List<Instruction> instructions() {
+        return this.instructions;
+    }
+
     /// Reverse lookup from instruction to its category, built once.
     private static final Map<Instruction, InstructionCategory> BY_INSTRUCTION =
             Stream.of(values())
-                    .flatMap(cat -> cat.instructions.stream().map(instr -> Map.entry(instr, cat)))
+                    .flatMap(cat -> cat.instructions().stream().map(instr -> Map.entry(instr, cat)))
                     .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
 
     /// {@return the category that contains the given instruction}

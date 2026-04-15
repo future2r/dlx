@@ -56,23 +56,26 @@ public final class RegistersView implements View<Parent, RegistersViewModel> {
     }
 
     private final RegistersController controller;
-    private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper(Messages.getString("registers.title"));
+    private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper();
     private final Subscription titleSubscription;
 
     private RegistersView(final RegistersController controller) {
         this.controller = requireNonNull(controller);
+        this.title.set(createTitle(null));
 
         // Update the title when the processor changes to show the register count.
         this.titleSubscription = this.controller.getViewModel().processorProperty().subscribe(this::updateTitle);
     }
 
     private void updateTitle(final CPU processor) {
-        if (processor != null) {
-            this.title.set(Messages.getString("registers.title.pattern")
-                    .formatted(Integer.valueOf(processor.getRegisters().size())));
-        } else {
-            this.title.set(Messages.getString("registers.title"));
-        }
+        this.title.set(createTitle(processor));
+    }
+
+    private static String createTitle(final CPU processor) {
+        return processor != null
+                ? Messages.getString("registers.title.pattern")
+                        .formatted(Integer.valueOf(processor.getRegisters().size()))
+                : Messages.getString("registers.title");
     }
 
     @Override

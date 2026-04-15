@@ -81,13 +81,13 @@ final class ExecuteStage {
         // For immediate-mode instructions, use the (possibly shifted) imm.
         // For register-mode instructions, use the (possibly forwarded) bVal.
         // -----------------------------------------------------------------
-        final var immVal = ctrl.loadHighImm() ? (idEx.immediate() << 16) : idEx.immediate();
-        final var aluB = ctrl.aluSrc() ? immVal : bVal;
+        final var immVal = ctrl.alu().loadHighImm() ? (idEx.immediate() << 16) : idEx.immediate();
+        final var aluB = ctrl.alu().aluSrc() ? immVal : bVal;
 
         // -----------------------------------------------------------------
         // Step 3: Execute the ALU operation.
         // -----------------------------------------------------------------
-        final var aluResult = alu.execute(ctrl.aluOp(), aVal, aluB);
+        final var aluResult = alu.execute(ctrl.alu().aluOp(), aVal, aluB);
         // result may be overwritten below for JAL/JALR (link address).
         var result = aluResult.value();
 
@@ -99,27 +99,27 @@ final class ExecuteStage {
         var taken = false;
         var newPc = 0;
 
-        if (ctrl.branch()) {
+        if (ctrl.flow().branch()) {
             // Evaluate the branch condition using the (forwarded) rs1 value.
             // BEQZ: taken when rs1 == 0; BNEZ: taken when rs1 != 0.
-            final var condition = ctrl.branchNotZero() ? (aVal != 0) : (aVal == 0);
+            final var condition = ctrl.flow().branchNotZero() ? (aVal != 0) : (aVal == 0);
             if (condition) {
                 taken = true;
                 // Branch target: PC of the branch instruction + signed byte offset.
                 newPc = idEx.pc() + idEx.immediate();
             }
-        } else if (ctrl.jump()) {
+        } else if (ctrl.flow().jump()) {
             taken = true;
             // JR / JALR: target is the value of rs1 (already forwarded in aVal).
             // J / JAL: target is PC + sign_extend(dist26) stored in immediate.
-            newPc = ctrl.jumpReg() ? aVal : (idEx.pc() + idEx.immediate());
+            newPc = ctrl.flow().jumpReg() ? aVal : (idEx.pc() + idEx.immediate());
         }
 
         // -----------------------------------------------------------------
         // Step 5: For JAL / JALR, override the ALU result with the return
         // address (PC + 4) that will be written to R31 in WB.
         // -----------------------------------------------------------------
-        if (ctrl.jalLink()) {
+        if (ctrl.flow().jalLink()) {
             result = idEx.pc() + 4;
         }
 
@@ -135,8 +135,9 @@ final class ExecuteStage {
     ///
     /// - [Forwarding.Forward#NONE]: use the register-file value read in ID.
     /// - [Forwarding.Forward#FROM_EX_MEM]: use the ALU result from the EX/MEM latch.
-    /// - [Forwarding.Forward#FROM_MEM_WB]: use the write-back value from the MEM/WB latch. For
-    ///   a load instruction this is `memData`; for all others it is `aluResult`.
+    /// - [Forwarding.Forward#FROM_MEM_WB]: use the write-back value from the MEM/WB
+    ///   latch. For a load instruction this is `memData`; for all others it is
+    ///   `aluResult`.
     ///
     /// @param sel    the forwarding decision for this operand
     /// @param regVal the stale register-file value from ID (used when no forwarding

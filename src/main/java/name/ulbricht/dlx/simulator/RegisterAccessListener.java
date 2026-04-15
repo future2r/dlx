@@ -13,7 +13,7 @@ public interface RegisterAccessListener {
     /// @param type  the type of access (read or write)
     /// @param index the index of the accessed register
     /// @param value the value involved in the access
-    public record RegisterAccess(Access type, int index, int value) {
+    record RegisterAccess(Access type, int index, int value) {
 
         /// Create a new register access event.
         public RegisterAccess {

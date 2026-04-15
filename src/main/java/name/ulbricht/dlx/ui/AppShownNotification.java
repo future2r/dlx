@@ -6,6 +6,6 @@ import javafx.application.Preloader.PreloaderNotification;
 final class AppShownNotification implements PreloaderNotification {
 
     /// Creates a new instance.
-    public AppShownNotification() {
+    AppShownNotification() {
     }
 }

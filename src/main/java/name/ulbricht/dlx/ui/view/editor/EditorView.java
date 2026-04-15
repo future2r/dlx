@@ -55,7 +55,7 @@ public final class EditorView implements View<Parent, EditorViewModel> {
         final var vm = this.controller.getViewModel();
 
         // The tab title: name prefixed with a dot when dirty
-        this.title.bind(Bindings.createStringBinding(() -> vm.isDirty() ? "\u25CF " + vm.getName() : vm.getName(),
+        this.title.bind(Bindings.createStringBinding(() -> vm.isDirty() ? "● " + vm.getName() : vm.getName(),
                 vm.nameProperty(), vm.dirtyProperty()));
 
         // Use the full file path as the description, or the name for untitled editors
@@ -93,6 +93,13 @@ public final class EditorView implements View<Parent, EditorViewModel> {
     @Override
     public EditorViewModel getViewModel() {
         return this.controller.getViewModel();
+    }
+
+    @Override
+    public void dispose() {
+        this.title.unbind();
+        this.description.unbind();
+        this.controller.dispose();
     }
 
     /// {@return the current edit position in the editor}

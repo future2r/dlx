@@ -21,17 +21,21 @@ public enum DirectiveCategory {
     /// Memory layout directives.
     MEMORY_LAYOUT(List.of(Directive.SPACE, Directive.ALIGN));
 
-    /// The directives belonging to this category.
-    public final List<Directive> directives;
+    private final List<Directive> directives;
 
     DirectiveCategory(final List<Directive> directives) {
         this.directives = directives;
     }
 
+    /// {@return the directives belonging to this category}
+    public List<Directive> directives() {
+        return this.directives;
+    }
+
     /// Reverse lookup from directive to its category, built once.
     private static final Map<Directive, DirectiveCategory> BY_DIRECTIVE =
             Stream.of(values())
-                    .flatMap(cat -> cat.directives.stream().map(dir -> Map.entry(dir, cat)))
+                    .flatMap(cat -> cat.directives().stream().map(dir -> Map.entry(dir, cat)))
                     .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
 
     /// {@return the category that contains the given directive}

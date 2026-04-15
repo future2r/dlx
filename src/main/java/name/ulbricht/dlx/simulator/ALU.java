@@ -123,7 +123,7 @@ final class ALU {
     ///           the lower 5 bits are used
     /// @return a [Result] containing the 32-bit result and the overflow
     ///         flag (always `false` for non-arithmetic or unsigned operations)
-    @SuppressWarnings("static-method")
+    @SuppressWarnings({"static-method", "checkstyle:CyclomaticComplexity"})
     Result execute(final Operation op, final int a, final int b) {
         requireNonNull(op, "op must not be null");
         

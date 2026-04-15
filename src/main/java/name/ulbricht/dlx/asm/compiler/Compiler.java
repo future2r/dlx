@@ -32,8 +32,8 @@ public final class Compiler {
 
     private static final System.Logger log = System.getLogger(Compiler.class.getName());
 
-    private List<Diagnostic> diagnostics;
-    private Map<String, Integer> symbols;
+    private final List<Diagnostic> diagnostics = new ArrayList<>();
+    private final Map<String, Integer> symbols = new LinkedHashMap<>();
 
     /// Creates a new instance.
     public Compiler() {
@@ -46,8 +46,8 @@ public final class Compiler {
     public CompiledProgram compile(final ParsedProgram parsed) {
         requireNonNull(parsed);
 
-        this.diagnostics = new ArrayList<>();
-        this.symbols = new LinkedHashMap<>();
+        this.diagnostics.clear();
+        this.symbols.clear();
 
         // --- Pass 1: measure sizes and collect labels ---
 
@@ -178,15 +178,15 @@ public final class Compiler {
             addError("Unknown instruction '" + instr.opcode() + "'", instr);
             return 0;
         }
-        return switch (def.format) {
-            case R -> encodeRFormat(instr, def.functionCode);
-            case I_ARITH -> encodeIArith(instr, def.operationCode);
-            case LOAD -> encodeILoad(instr, def.operationCode);
-            case STORE -> encodeIStore(instr, def.operationCode);
+        return switch (def.format()) {
+            case R -> encodeRFormat(instr, def.functionCode());
+            case I_ARITH -> encodeIArith(instr, def.operationCode());
+            case LOAD -> encodeILoad(instr, def.operationCode());
+            case STORE -> encodeIStore(instr, def.operationCode());
             case RD_IMM -> encodeILhi(instr);
-            case RS_LABEL -> encodeIBranch(instr, def.operationCode, addr);
-            case LABEL -> encodeJFormat(instr, def.operationCode, addr);
-            case RS -> encodeIJumpReg(instr, def.operationCode);
+            case RS_LABEL -> encodeIBranch(instr, def.operationCode(), addr);
+            case LABEL -> encodeJFormat(instr, def.operationCode(), addr);
+            case RS -> encodeIJumpReg(instr, def.operationCode());
             case IMM -> encodeTrap(instr);
         };
     }
@@ -199,7 +199,7 @@ public final class Compiler {
         final var rs2 = expectRegister(instr, 2);
         if (rd < 0 || rs1 < 0 || rs2 < 0)
             return 0;
-        return encodeR(rs1, rs2, rd, func.code);
+        return encodeR(rs1, rs2, rd, func.code());
     }
 
     private int encodeIArith(final ParsedInstruction instr, final OperationCode opcode) {
@@ -210,7 +210,7 @@ public final class Compiler {
         final var imm = resolveImmediate(instr, 2);
         if (rd < 0 || rs1 < 0)
             return 0;
-        return encodeI(opcode.code, rs1, rd, imm);
+        return encodeI(opcode.code(), rs1, rd, imm);
     }
 
     private int encodeILoad(final ParsedInstruction instr, final OperationCode opcode) {
@@ -220,7 +220,7 @@ public final class Compiler {
         final var mem = resolveMemory(instr, 1);
         if (rd < 0 || mem == null)
             return 0;
-        return encodeI(opcode.code, mem[1], rd, mem[0]);
+        return encodeI(opcode.code(), mem[1], rd, mem[0]);
     }
 
     private int encodeIStore(final ParsedInstruction instr, final OperationCode opcode) {
@@ -230,7 +230,7 @@ public final class Compiler {
         final var dataReg = expectRegister(instr, 1);
         if (mem == null || dataReg < 0)
             return 0;
-        return encodeI(opcode.code, mem[1], dataReg, mem[0]);
+        return encodeI(opcode.code(), mem[1], dataReg, mem[0]);
     }
 
     private int encodeIBranch(final ParsedInstruction instr, final OperationCode opcode, final int addr) {
@@ -243,7 +243,7 @@ public final class Compiler {
         if (offset < Short.MIN_VALUE || offset > Short.MAX_VALUE) {
             addError("Branch offset out of 16-bit signed range", instr);
         }
-        return encodeI(opcode.code, rs1, 0, offset);
+        return encodeI(opcode.code(), rs1, 0, offset);
     }
 
     private int encodeIJumpReg(final ParsedInstruction instr, final OperationCode opcode) {
@@ -252,7 +252,7 @@ public final class Compiler {
         final var rs1 = expectRegister(instr, 0);
         if (rs1 < 0)
             return 0;
-        return encodeI(opcode.code, rs1, 0, 0);
+        return encodeI(opcode.code(), rs1, 0, 0);
     }
 
     private int encodeILhi(final ParsedInstruction instr) {
@@ -262,14 +262,14 @@ public final class Compiler {
         final var imm = resolveImmediate(instr, 1);
         if (rd < 0)
             return 0;
-        return encodeI(OperationCode.LHI.code, 0, rd, imm);
+        return encodeI(OperationCode.LHI.code(), 0, rd, imm);
     }
 
     private int encodeTrap(final ParsedInstruction instr) {
         if (!checkOperandCount(instr, 1))
             return 0;
         final var imm = resolveImmediate(instr, 0);
-        return encodeI(OperationCode.TRAP.code, 0, 0, imm);
+        return encodeI(OperationCode.TRAP.code(), 0, 0, imm);
     }
 
     private int encodeJFormat(final ParsedInstruction instr, final OperationCode opcode, final int addr) {
@@ -281,11 +281,11 @@ public final class Compiler {
         if (distance < minDist || distance > maxDist) {
             addError("Jump distance out of 26-bit signed range", instr);
         }
-        return encodeJ(opcode.code, distance);
+        return encodeJ(opcode.code(), distance);
     }
 
     private static int encodeR(final int rs1, final int rs2, final int rd, final int func) {
-        return (OperationCode.SPECIAL.code << 26) | (rs1 << 21) | (rs2 << 16) | (rd << 11) | func;
+        return (OperationCode.SPECIAL.code() << 26) | (rs1 << 21) | (rs2 << 16) | (rd << 11) | func;
     }
 
     private static int encodeI(final int opcode, final int rs1, final int rd, final int imm16) {

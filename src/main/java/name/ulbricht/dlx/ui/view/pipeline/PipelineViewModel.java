@@ -357,7 +357,7 @@ public final class PipelineViewModel implements ProcessingListener {
         } else {
             this.memInstruction.set(describeFromControl(memWb.ctrl()));
             this.memAluResult.set("0x%08X".formatted(Integer.valueOf(memWb.aluResult())));
-            if (memWb.ctrl().memRead()) {
+            if (memWb.ctrl().memory().memRead()) {
                 this.memData.set("0x%08X".formatted(Integer.valueOf(memWb.memData())));
             } else {
                 this.memData.set("");
@@ -367,8 +367,9 @@ public final class PipelineViewModel implements ProcessingListener {
     }
 
     /// Derives a short instruction description from control signals. This is used
-    /// for stages past ID where the original instruction word is no longer
-    /// available.
+    /// for stages past ID where the original instruction word is no
+    /// longer available.
+    @SuppressWarnings("checkstyle:NPathComplexity")
     private static String describeFromControl(final ControlSignals ctrl) {
         if (ctrl == ControlSignals.NOP) {
             return "NOP";
@@ -376,26 +377,36 @@ public final class PipelineViewModel implements ProcessingListener {
         if (ctrl.trap()) {
             return "TRAP";
         }
-        if (ctrl.jump()) {
-            if (ctrl.jalLink() && ctrl.jumpReg()) return "JALR";
-            if (ctrl.jalLink()) return "JAL";
-            if (ctrl.jumpReg()) return "JR";
+
+        final var flow = ctrl.flow();
+        if (flow.jump()) {
+            if (flow.jalLink() && flow.jumpReg()) {
+                return "JALR";
+            }
+            if (flow.jalLink()) {
+                return "JAL";
+            }
+            if (flow.jumpReg()) {
+                return "JR";
+            }
             return "J";
         }
-        if (ctrl.branch()) {
-            return ctrl.branchNotZero() ? "BNEZ" : "BEQZ";
+        if (flow.branch()) {
+            return flow.branchNotZero() ? "BNEZ" : "BEQZ";
         }
-        if (ctrl.memRead()) {
+
+        final var memory = ctrl.memory();
+        if (memory.memRead()) {
             return "LOAD";
         }
-        if (ctrl.memWrite()) {
+        if (memory.memWrite()) {
             return "STORE";
         }
-        if (ctrl.loadHighImm()) {
+
+        final var alu = ctrl.alu();
+        if (alu.loadHighImm()) {
             return "LHI";
         }
-        // Generic ALU operation — ALU.Operation is package-private, so cast to
-        // Enum<?> to access name() without requiring visibility of the concrete type.
-        return ((Enum<?>) ctrl.aluOp()).name();
+        return alu.displayName();
     }
 }

@@ -1,5 +1,7 @@
 package name.ulbricht.dlx.ui.view.reference;
 
+import static java.util.Objects.requireNonNull;
+
 import name.ulbricht.dlx.asm.Directive;
 import name.ulbricht.dlx.asm.Instruction;
 import name.ulbricht.dlx.ui.i18n.Messages;
@@ -18,6 +20,11 @@ sealed interface ReferenceItem {
     /// @param resourceKey the resource bundle key for the category label
     record TopCategory(String resourceKey) implements ReferenceItem {
 
+        /// Creates a new top-level category.
+        public TopCategory {
+            requireNonNull(resourceKey);
+        }
+
         @Override
         public String label() {
             return Messages.getString(this.resourceKey);
@@ -28,6 +35,11 @@ sealed interface ReferenceItem {
     ///
     /// @param category the instruction category
     record InstructionGroup(InstructionCategory category) implements ReferenceItem {
+
+        /// Creates a new instruction group.
+        public InstructionGroup {
+            requireNonNull(category);
+        }
 
         @Override
         public String label() {
@@ -41,6 +53,11 @@ sealed interface ReferenceItem {
     /// @param category the directive category
     record DirectiveGroup(DirectiveCategory category) implements ReferenceItem {
 
+        /// Creates a new directive group.
+        public DirectiveGroup {
+            requireNonNull(category);
+        }
+
         @Override
         public String label() {
             return Messages.getString("reference.directive.category."
@@ -53,9 +70,14 @@ sealed interface ReferenceItem {
     /// @param instruction the instruction
     record InstructionEntry(Instruction instruction) implements ReferenceItem {
 
+        /// Creates a new instruction entry.
+        public InstructionEntry {
+            requireNonNull(instruction);
+        }
+
         @Override
         public String label() {
-            return this.instruction.mnemonic;
+            return this.instruction.mnemonic();
         }
     }
 
@@ -64,9 +86,14 @@ sealed interface ReferenceItem {
     /// @param directive the directive
     record DirectiveEntry(Directive directive) implements ReferenceItem {
 
+        /// Creates a new directive entry.
+        public DirectiveEntry {
+            requireNonNull(directive);
+        }
+
         @Override
         public String label() {
-            return "." + this.directive.directiveName;
+            return "." + this.directive.directiveName();
         }
     }
 
@@ -74,6 +101,11 @@ sealed interface ReferenceItem {
     ///
     /// @param register the register convention
     record RegisterEntry(RegisterConvention register) implements ReferenceItem {
+
+        /// Creates a new register entry.
+        public RegisterEntry {
+            requireNonNull(register);
+        }
 
         @Override
         public String label() {

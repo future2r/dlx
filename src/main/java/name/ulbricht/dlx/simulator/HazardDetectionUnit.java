@@ -42,7 +42,8 @@ final class HazardDetectionUnit {
     ///
     /// The method checks three conditions that must all be true:
     ///
-    /// 1. The EX-stage instruction is a **load** (`ctrl.memRead() == true`).
+    /// 1. The EX-stage instruction is a **load** (`ctrl.memory().memRead() ==
+    ///    true`).
     /// 2. The load destination register is **not R0** (writes to R0 are always
     ///    discarded, so no stall is needed).
     /// 3. The load destination register **matches rs1 or rs2** of the instruction
@@ -57,7 +58,7 @@ final class HazardDetectionUnit {
         requireNonNull(idEx, "idEx must not be null");
         requireNonNull(ifId, "ifId must not be null");
         // Condition 1: the instruction in EX must be a load.
-        if (!idEx.ctrl().memRead())
+        if (!idEx.ctrl().memory().memRead())
             return false;
 
         // Condition 2: a load to R0 can never cause a hazard.

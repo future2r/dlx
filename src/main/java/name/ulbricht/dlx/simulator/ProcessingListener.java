@@ -13,7 +13,7 @@ public interface ProcessingListener {
     /// @param halted         whether the CPU is halted after this step
     /// @param pipeline       immutable snapshot of all four pipeline latches at
     ///                       this step
-    public record ProcessStep(long cycles, int programCounter, boolean halted,
+    record ProcessStep(long cycles, int programCounter, boolean halted,
             CPU.PipelineSnapshot pipeline) {
 
         /// Validates that `pipeline` is not `null`.

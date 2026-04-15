@@ -100,7 +100,7 @@ final class InstructionDecodeStage {
             case final JumpInstruction j -> {
                 // JAL / JALR implicitly write to R31 (the link register).
                 // All other J-format instructions (plain J) do not write.
-                final var rdIdx = ctrl.jalLink() ? 31 : 0;
+                final var rdIdx = ctrl.flow().jalLink() ? 31 : 0;
                 // No register values to read; pass the sign-extended distance
                 // as the immediate.
                 yield new IdExLatch(ifId.pc(), ctrl, 0, 0, j.distance(),
@@ -128,8 +128,8 @@ final class InstructionDecodeStage {
     ///
     /// - Returns `0` when the instruction does not write a register
     ///   (`ctrl.regWrite() == false`).
-    /// - Returns `31` for JALR (`ctrl.jalLink() == true`), which implicitly targets
-    ///   R31 regardless of the `rd` bit field.
+    /// - Returns `31` for JALR (`ctrl.flow().jalLink() == true`), which implicitly
+    ///   targets R31 regardless of the `rd` bit field.
     /// - Otherwise returns `i.rd()` directly.
     ///
     /// @param i    the decoded I-format instruction
@@ -138,7 +138,7 @@ final class InstructionDecodeStage {
     private static int destinationReg(final ImmediateInstruction i, final ControlSignals ctrl) {
         if (!ctrl.regWrite())
             return 0; // store / branch / JR / trap
-        if (ctrl.jalLink())
+        if (ctrl.flow().jalLink())
             return 31; // JALR implicitly links to R31
         return i.rd();
     }

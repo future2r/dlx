@@ -73,6 +73,10 @@ import java.util.List;
 /// stores and register writes have committed.
 public final class CPU {
 
+    private static final int DEFAULT_MEMORY_SIZE = 1024;
+    private static final String ERROR_IF_ID_NULL = "ifId must not be null";
+    private static final String ERROR_ID_EX_NULL = "idEx must not be null";
+
     /// The register file containing R0–R31.
     ///
     /// R0 is hardwired to zero. Callers may read any register via
@@ -101,14 +105,14 @@ public final class CPU {
 
     /// The program counter - the byte address of the **next** instruction to be
     /// fetched by the IF stage. Updated at the end of every `step()`.
-    private int programCounter = 0;
+    private int programCounter;
 
     /// Set to `true` once a `trap 0` instruction retires through WB.
     /// [#step()] becomes a no-op after this point.
-    private boolean halted = false;
+    private boolean halted;
 
     /// Total number of clock cycles executed since the last [#loadProgram].
-    private long cycles = 0;
+    private long cycles;
 
     // Inter-stage pipeline latches - all initialised to their bubble values
     // so the pipeline starts in a clean, empty state.
@@ -128,7 +132,7 @@ public final class CPU {
     /// Creates a new CPU with a freshly allocated zero-initialised memory of a
     /// default size.
     public CPU() {
-        this(1024); // Default memory size: 1 KB
+        this(DEFAULT_MEMORY_SIZE);
     }
 
     /// Creates a new CPU with a freshly allocated zero-initialised memory.
@@ -255,66 +259,63 @@ public final class CPU {
         // continue to work.
         // -----------------------------------------------------------------
         final var trapFlush = this.idEx.ctrl().trap();
+        final var newIdEx = decodeNextIdEx(stall);
+        final var ifStageDecision = decideIfStage(stall, exResult, trapFlush, newIdEx);
 
-        // -----------------------------------------------------------------
-        // ID stage: decode and read registers.
-        // Suppressed (bubble injected) only during a stall. Trap handling is
-        // done in IF so the already-fetched next instruction can still enter EX.
-        // -----------------------------------------------------------------
-        // newIdEx cannot use 'var' here because it is assigned in a branch.
-        // It cannot be 'final' because it may be reassigned in the IF block.
-        IdExLatch newIdEx;
-        if (stall) {
-            newIdEx = IdExLatch.BUBBLE;
-        } else {
-            newIdEx = InstructionDecodeStage.execute(this.ifId, this.registers);
-        }
+        commitCycle(ifStageDecision, newExMem, newMemWb);
+        handleRetiredTrap(newMemWb);
 
-        // -----------------------------------------------------------------
-        // IF stage: fetch the next instruction - or apply flush / freeze.
-        // -----------------------------------------------------------------
-        // newIfId and newPc are each assigned exactly once across all branches
-        // of the if-else-if-else below, so they can be final.
-        final IfIdLatch newIfId;
-        final int newPc;
+        // Wait to simulate processing time
+        Thread.sleep(this.stageDuration);
+    }
+
+    private IdExLatch decodeNextIdEx(final boolean stall) {
+        if (stall)
+            return IdExLatch.BUBBLE;
+        return InstructionDecodeStage.execute(this.ifId, this.registers);
+    }
+
+    private IfStageDecision decideIfStage(
+            final boolean stall,
+            final ExecuteResult exResult,
+            final boolean trapFlush,
+            final IdExLatch decodedIdEx) {
+        requireNonNull(exResult, "exResult must not be null");
+        requireNonNull(decodedIdEx, "decodedIdEx must not be null");
 
         if (exResult.pcRedirect()) {
-            // A branch was taken or a jump executed: discard the two
-            // incorrectly fetched instructions and redirect the PC.
-            newIfId = IfIdLatch.BUBBLE;
-            newIdEx = IdExLatch.BUBBLE; // also flush the instruction in ID
-            newPc = exResult.newPc();
-        } else if (trapFlush) {
-            // Trap detected in EX: suppress IF so no younger instruction is
-            // fetched this cycle. The current IF/ID instruction has already
-            // been decoded above and is preserved.
-            newIfId = IfIdLatch.BUBBLE;
-            newPc = this.programCounter;
-        } else if (stall) {
-            // Load-use stall: freeze the PC and the IF/ID latch so that the
-            // same instruction is presented to ID again next cycle.
-            newIfId = this.ifId;
-            newPc = this.programCounter;
-        } else {
-            // Normal operation: fetch the next word and advance the PC.
-            newIfId = InstructionFetchStage.execute(this.programCounter, this.memory);
-            newPc = this.programCounter + 4;
+            return new IfStageDecision(IfIdLatch.BUBBLE, IdExLatch.BUBBLE, exResult.newPc());
+        }
+        if (trapFlush) {
+            return new IfStageDecision(IfIdLatch.BUBBLE, decodedIdEx, this.programCounter);
+        }
+        if (stall) {
+            return new IfStageDecision(this.ifId, decodedIdEx, this.programCounter);
         }
 
-        // -----------------------------------------------------------------
-        // Commit: write all new latch values atomically (clock edge).
-        // -----------------------------------------------------------------
-        this.ifId = newIfId;
-        this.idEx = newIdEx;
+        final var fetchedIfId = InstructionFetchStage.execute(this.programCounter, this.memory);
+        return new IfStageDecision(fetchedIfId, decodedIdEx, this.programCounter + 4);
+    }
+
+    private void commitCycle(
+            final IfStageDecision ifStageDecision,
+            final ExMemLatch newExMem,
+            final MemWbLatch newMemWb) {
+        requireNonNull(ifStageDecision, "ifStageDecision must not be null");
+        requireNonNull(newExMem, "newExMem must not be null");
+        requireNonNull(newMemWb, "newMemWb must not be null");
+
+        this.ifId = ifStageDecision.ifId();
+        this.idEx = ifStageDecision.idEx();
         this.exMem = newExMem;
         this.memWb = newMemWb;
-        this.programCounter = newPc;
+        this.programCounter = ifStageDecision.newPc();
         this.cycles++;
+    }
 
-        // -----------------------------------------------------------------
-        // Trap dispatch: the trap instruction has now retired through WB.
-        // trap 0 halts the simulator; all others notify trap listeners.
-        // -----------------------------------------------------------------
+    private void handleRetiredTrap(final MemWbLatch newMemWb) {
+        requireNonNull(newMemWb, "newMemWb must not be null");
+
         if (newMemWb.ctrl().trap()) {
             final var trapNumber = newMemWb.immediate();
             if (trapNumber == 0) {
@@ -323,9 +324,6 @@ public final class CPU {
                 notifyTrapListeners(trapNumber);
             }
         }
-
-        // Wait to simulate processing time
-        Thread.sleep(this.stageDuration);
     }
 
     /// Runs the simulation until a `trap 0` instruction retires or `maxCycles`
@@ -466,6 +464,28 @@ public final class CPU {
     // Nested types
     // -------------------------------------------------------------------------
 
+    /// Immutable decision for the next IF/ID latch, ID/EX latch, and PC.
+    ///
+    /// Used internally by [CPU#step()] to keep fetch/flush logic separate from the
+    /// atomic commit phase.
+    ///
+    /// @param ifId  the next IF/ID latch value
+    /// @param idEx  the next ID/EX latch value
+    /// @param newPc the next program counter value
+    private record IfStageDecision(
+            IfIdLatch ifId,
+            IdExLatch idEx,
+            int newPc) {
+
+        /// Validates that no latch parameter is `null`.
+        ///
+        /// @throws NullPointerException if any latch parameter is `null`
+        private IfStageDecision {
+            requireNonNull(ifId, ERROR_IF_ID_NULL);
+            requireNonNull(idEx, ERROR_ID_EX_NULL);
+        }
+    }
+
     /// Immutable snapshot of all four inter-stage pipeline latches captured at a
     /// single point in simulation time.
     ///
@@ -486,8 +506,8 @@ public final class CPU {
         ///
         /// @throws NullPointerException if any parameter is `null`
         public PipelineSnapshot {
-            requireNonNull(ifId, "ifId must not be null");
-            requireNonNull(idEx, "idEx must not be null");
+            requireNonNull(ifId, ERROR_IF_ID_NULL);
+            requireNonNull(idEx, ERROR_ID_EX_NULL);
             requireNonNull(exMem, "exMem must not be null");
             requireNonNull(memWb, "memWb must not be null");
         }

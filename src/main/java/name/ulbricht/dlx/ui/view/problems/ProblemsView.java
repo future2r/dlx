@@ -29,11 +29,12 @@ public final class ProblemsView implements View<Parent, ProblemsViewModel> {
     }
 
     private final ProblemsController controller;
-    private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper(Messages.getString("problems.title"));
+    private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper();
     private final Subscription titleSubscription;
 
     private ProblemsView(final ProblemsController controller) {
         this.controller = requireNonNull(controller);
+        this.title.set(createTitle(0));
 
         // Update the title when the total problem count changes.
         this.titleSubscription = this.controller.getViewModel().totalProblemsCountProperty()
@@ -42,11 +43,13 @@ public final class ProblemsView implements View<Parent, ProblemsViewModel> {
 
     private void updateTitle(final Number size) {
         final var count = size.intValue();
-        if (count > 0) {
-            this.title.set(Messages.getString("problems.title.pattern").formatted(Integer.valueOf(count)));
-        } else {
-            this.title.set(Messages.getString("problems.title"));
-        }
+        this.title.set(createTitle(count));
+    }
+
+    private static String createTitle(final int problemCount) {
+        return problemCount > 0
+                ? Messages.getString("problems.title.pattern").formatted(Integer.valueOf(problemCount))
+                : Messages.getString("problems.title");
     }
 
     @Override

@@ -29,8 +29,10 @@ import name.ulbricht.dlx.simulator.RegisterAccessListener.RegisterAccess;
 /// responsibility of the programmer or assembler.
 final class Registers {
 
+    private static final int NUM_REGISTERS = 32;
+
     /// The backing storage for the 32 register values.
-    private final int[] regs = new int[32];
+    private final int[] regs = new int[NUM_REGISTERS];
 
     /// Listeners for register access events.
     private final List<RegisterAccessListener> accessListeners = new ArrayList<>();

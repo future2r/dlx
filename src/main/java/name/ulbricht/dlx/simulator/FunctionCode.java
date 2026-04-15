@@ -98,9 +98,7 @@ public enum FunctionCode {
     // Fields and factory
     // -------------------------------------------------------------------------
 
-    /// The 6-bit numeric function code as it appears in bits 5–0 of the
-    /// instruction word.
-    public final int code;
+    private final int code;
 
     /// Constructs a `FunctionCode` constant with the given numeric code.
     ///
@@ -109,18 +107,25 @@ public enum FunctionCode {
         this.code = code;
     }
 
+    /// {@return the 6-bit numeric function code as it appears in bits 5–0 of the
+    /// instruction word}
+    public int code() {
+        return this.code;
+    }
+
+    private static final int MAX_CODE = 0b11_1111; // 6 bits
     /// Fast O(1) lookup table, indexed directly by the 6-bit func value.
     /// Entries for unassigned codes remain `null`.
-    private static final FunctionCode[] BY_CODE = new FunctionCode[64];
+    private static final FunctionCode[] BY_CODE = new FunctionCode[MAX_CODE + 1];
 
     static {
         // Populate the lookup table once at class-load time.
         for (final var f : values()) {
-            BY_CODE[f.code] = f;
+            BY_CODE[f.code()] = f;
         }
     }
 
-    /// Returns the `FunctionCode` whose [#code] equals the lower 6 bits of the
+    /// Returns the `FunctionCode` whose [#code()] equals the lower 6 bits of the
     /// argument.
     ///
     /// @param code a raw value; only the lower 6 bits are examined

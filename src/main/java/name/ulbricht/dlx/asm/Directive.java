@@ -54,13 +54,18 @@ public enum Directive {
     // Fields and lookup
     // -------------------------------------------------------------------------
 
-    /// The lowercase directive name as it appears in assembly source code
-    /// (without the leading dot).
-    public final String directiveName;
+    
+    private final String directiveName;
 
     /// Constructs a directive constant.
     Directive(final String directiveName) {
         this.directiveName = directiveName;
+    }
+
+    /// {@return the lowercase directive name as it appears in assembly source code
+    /// (without the leading dot)}
+    public String directiveName() {
+        return this.directiveName;
     }
 
     /// O(1) lookup table keyed by lowercase directive name.

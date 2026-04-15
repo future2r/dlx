@@ -43,4 +43,9 @@ public final class ReferenceView implements View<Parent, ReferenceViewModel> {
     public Parent getRoot() {
         return this.controller.getRoot();
     }
+
+    @Override
+    public void dispose() {
+        this.controller.dispose();
+    }
 }

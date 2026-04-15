@@ -227,17 +227,13 @@ public enum Instruction {
     // Fields and lookup
     // -------------------------------------------------------------------------
 
-    /// The lowercase mnemonic as it appears in assembly source code.
-    public final String mnemonic;
+    private final String mnemonic;
 
-    /// The operand format that determines how the parser reads this instruction.
-    public final OperandFormat format;
+    private final OperandFormat format;
 
-    /// The I/J-format operation code, or `null` for R-format instructions.
-    public final OperationCode operationCode;
+    private final OperationCode operationCode;
 
-    /// The R-format function code, or `null` for non-R-format instructions.
-    public final FunctionCode functionCode;
+    private final FunctionCode functionCode;
 
     /// Constructs an R-format instruction constant (uses [FunctionCode]).
     Instruction(final String mnemonic, final OperandFormat format,
@@ -257,11 +253,31 @@ public enum Instruction {
         this.functionCode = null;
     }
 
+    /// {@return the lowercase mnemonic as it appears in assembly source code}
+    public String mnemonic() {
+        return this.mnemonic;
+    }
+
+    /// {@return the operand format that determines how the parser reads this instruction}
+    public OperandFormat format() {
+        return this.format;
+    }
+
+    /// {@return the I/J-format operation code, or `null` for R-format instructions}
+    public OperationCode operationCode() {
+        return this.operationCode;
+    }
+
+    /// {@return the R-format function code, or `null` for non-R-format instructions}
+    public FunctionCode functionCode() {
+        return this.functionCode;
+    }
+
     /// O(1) lookup table keyed by lowercase mnemonic.
     private static final Map<String, Instruction> BY_MNEMONIC =
-            Stream.of(values()).collect(Collectors.toUnmodifiableMap(i -> i.mnemonic, i -> i));
+            Stream.of(values()).collect(Collectors.toUnmodifiableMap(Instruction::mnemonic, i -> i));
 
-    /// Returns the instruction whose [#mnemonic] equals the given string.
+    /// Returns the instruction whose [#mnemonic()] equals the given string.
     ///
     /// @param mnemonic a lowercase mnemonic such as `"add"` or `"beqz"`
     /// @return the matching constant, or empty if unknown

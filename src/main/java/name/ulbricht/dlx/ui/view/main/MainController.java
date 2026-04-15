@@ -59,6 +59,7 @@ import name.ulbricht.dlx.ui.view.reference.ReferenceView;
 import name.ulbricht.dlx.ui.view.registers.RegistersView;
 
 /// Controller for the main application view.
+@SuppressWarnings("checkstyle:MethodCount")
 public final class MainController {
 
     private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper();

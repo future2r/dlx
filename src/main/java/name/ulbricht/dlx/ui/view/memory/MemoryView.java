@@ -81,23 +81,26 @@ public final class MemoryView implements View<Parent, MemoryViewModel> {
     }
 
     private final MemoryController controller;
-    private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper(Messages.getString("memory.title"));
+    private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper();
     private final Subscription titleSubscription;
 
     private MemoryView(final MemoryController controller) {
         this.controller = requireNonNull(controller);
+        this.title.set(createTitle(null));
 
         // Update the title when the processor changes to show the memory size.
         this.titleSubscription = this.controller.getViewModel().processorProperty().subscribe(this::updateTitle);
     }
 
     private void updateTitle(final CPU processor) {
-        if (processor != null) {
-            this.title.set(Messages.getString("memory.title.pattern")
-                    .formatted(FormatUtil.formatBytes(processor.getMemory().size())));
-        } else {
-            this.title.set(Messages.getString("memory.title"));
-        }
+        this.title.set(createTitle(processor));
+    }
+
+    private static String createTitle(final CPU processor) {
+        return processor != null
+                ? Messages.getString("memory.title.pattern")
+                        .formatted(FormatUtil.formatBytes(processor.getMemory().size()))
+                : Messages.getString("memory.title");
     }
 
     @Override

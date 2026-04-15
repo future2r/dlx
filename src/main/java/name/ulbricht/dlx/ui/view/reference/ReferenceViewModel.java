@@ -95,7 +95,7 @@ public final class ReferenceViewModel {
                     new ReferenceItem.InstructionGroup(category));
             groupItem.setExpanded(true);
 
-            for (final var instruction : category.instructions) {
+            for (final var instruction : category.instructions()) {
                 if (matchesFilter(instruction, filter)) {
                     groupItem.getChildren().add(new TreeItem<>(
                             new ReferenceItem.InstructionEntry(instruction)));
@@ -120,7 +120,7 @@ public final class ReferenceViewModel {
                     new ReferenceItem.DirectiveGroup(category));
             groupItem.setExpanded(true);
 
-            for (final var directive : category.directives) {
+            for (final var directive : category.directives()) {
                 if (matchesFilter(directive, filter)) {
                     groupItem.getChildren().add(new TreeItem<>(
                             new ReferenceItem.DirectiveEntry(directive)));
@@ -154,11 +154,11 @@ public final class ReferenceViewModel {
         if (filter.isEmpty()) {
             return true;
         }
-        if (instruction.mnemonic.contains(filter)) {
+        if (instruction.mnemonic().contains(filter)) {
             return true;
         }
         final var description = Messages.getOptionalString("reference.instruction."
-                + instruction.mnemonic + ".description");
+                + instruction.mnemonic() + ".description");
         return description.isPresent() && description.get().toLowerCase().contains(filter);
     }
 
@@ -166,11 +166,11 @@ public final class ReferenceViewModel {
         if (filter.isEmpty()) {
             return true;
         }
-        if (directive.directiveName.contains(filter)) {
+        if (directive.directiveName().contains(filter)) {
             return true;
         }
         final var description = Messages.getOptionalString("reference.directive."
-                + directive.directiveName + ".description");
+                + directive.directiveName() + ".description");
         return description.isPresent() && description.get().toLowerCase().contains(filter);
     }
 
@@ -201,14 +201,14 @@ public final class ReferenceViewModel {
 
     private static String formatInstructionDetail(final ReferenceItem.InstructionEntry entry) {
         final var instruction = entry.instruction();
-        final var prefix = "reference.instruction." + instruction.mnemonic;
+        final var prefix = "reference.instruction." + instruction.mnemonic();
         final var sb = new StringBuilder();
 
         appendSection(sb, "reference.detail.description", prefix + ".description");
         appendSection(sb, "reference.detail.syntax", prefix + ".syntax");
         appendSection(sb, "reference.detail.operation", prefix + ".operation");
 
-        final var formatKey = "reference.operandFormat." + instruction.format.name();
+        final var formatKey = "reference.operandFormat." + instruction.format().name();
         final var formatLabel = Messages.getOptionalString("reference.detail.encoding");
         final var formatValue = Messages.getOptionalString(formatKey);
         if (formatLabel.isPresent() && formatValue.isPresent()) {
@@ -222,7 +222,7 @@ public final class ReferenceViewModel {
 
     private static String formatDirectiveDetail(final ReferenceItem.DirectiveEntry entry) {
         final var directive = entry.directive();
-        final var prefix = "reference.directive." + directive.directiveName;
+        final var prefix = "reference.directive." + directive.directiveName();
         final var sb = new StringBuilder();
 
         appendSection(sb, "reference.detail.description", prefix + ".description");

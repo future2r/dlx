@@ -21,7 +21,7 @@ final class RegisterConventionTest {
         void coversAllRegisters() {
             final var covered = new BitSet(32);
             for (final var convention : RegisterConvention.values()) {
-                for (var i = convention.startIndex; i <= convention.endIndex; i++) {
+                for (var i = convention.startIndex(); i <= convention.endIndex(); i++) {
                     assertTrue(i >= 0 && i < 32,
                             "Register index " + i + " out of range in " + convention);
                     assertTrue(!covered.get(i),

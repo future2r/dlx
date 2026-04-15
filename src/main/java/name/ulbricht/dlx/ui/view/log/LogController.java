@@ -21,6 +21,8 @@ public final class LogController {
     @FXML
     private ToggleButton autoScrollToggleButton;
 
+    private final ListChangeListener<LogEntry> entriesListener = this::entriesChanged;
+
     /// Creates a new log controller instance.
     public LogController() {
     }
@@ -29,18 +31,25 @@ public final class LogController {
     private void initialize() {
 
         this.autoScrollToggleButton.selectedProperty().bindBidirectional(this.viewModel.autoScrollProperty());
+        this.viewModel.entriesProperty().addListener(this.entriesListener);
+    }
 
-        this.viewModel.entriesProperty().addListener((ListChangeListener<LogEntry>) change -> {
-            var added = false;
-            while (change.next())
-                added |= change.wasAdded();
+    void dispose() {
+        this.autoScrollToggleButton.selectedProperty().unbindBidirectional(this.viewModel.autoScrollProperty());
+        this.viewModel.entriesProperty().removeListener(this.entriesListener);
+        this.viewModel.dispose();
+    }
 
-            if (added && this.viewModel.isAutoScroll()) {
-                final int lastIndex = this.viewModel.getEntries().size() - 1;
-                if (lastIndex >= 0)
-                    this.logTableView.scrollTo(lastIndex);
-            }
-        });
+    private void entriesChanged(final ListChangeListener.Change<? extends LogEntry> change) {
+        var added = false;
+        while (change.next())
+            added |= change.wasAdded();
+
+        if (added && this.viewModel.isAutoScroll()) {
+            final int lastIndex = this.viewModel.getEntries().size() - 1;
+            if (lastIndex >= 0)
+                this.logTableView.scrollTo(lastIndex);
+        }
     }
 
     /// {@return root node of this view}

@@ -73,58 +73,75 @@ public final class Lexer {
 
     private void scanLine() {
         while (this.pos < this.src.length()) {
-            final int start = this.pos;
-            final char c = this.src.charAt(this.pos);
-
-            if (isWhitespace(c)) {
-                scanWhitespace(start);
-                continue;
-            }
-            if (c == ';') {
-                scanComment(start);
-                continue;
-            }
-            if (c == ',') {
-                scanComma();
-                continue;
-            }
-            if (c == '(') {
-                scanLParen();
-                continue;
-            }
-            if (c == ')') {
-                scanRParen();
-                continue;
-            }
-            if (c == '"') {
-                scanString(start);
-                continue;
-            }
-            if (c == '.') {
-                scanDirective(start);
-                continue;
-            }
-            if (isSign(c) && hasDigitAhead(this.pos + 1)) {
-                scanNumber(start);
-                continue;
-            }
-            if (Character.isDigit(c)) {
-                scanNumber(start);
-                continue;
-            }
-            if (Character.isLetter(c) || c == '_') {
-                scanWord(start);
-                continue;
-            }
-
-            // Unrecognised character
-            addError("Unexpected character '" + c + "'", start, 1);
-            emit(new UnknownToken(new TextPosition(this.line, start), String.valueOf(c)));
-            this.pos++;
+            scanToken();
         }
 
         // End of line marker — always emitted in both modes
         emit(new EOLToken(new TextPosition(this.line, this.pos)));
+    }
+
+    private void scanToken() {
+        final int start = this.pos;
+        final char c = this.src.charAt(this.pos);
+
+        if (scanStructuralToken(start, c) || scanLiteralToken(start, c))
+            return;
+
+        // Unrecognised character
+        addError("Unexpected character '" + c + "'", start, 1);
+        emit(new UnknownToken(new TextPosition(this.line, start), String.valueOf(c)));
+        this.pos++;
+    }
+
+    private boolean scanStructuralToken(final int start, final char c) {
+        if (isWhitespace(c)) {
+            scanWhitespace(start);
+            return true;
+        }
+
+        return switch (c) {
+            case ';' -> {
+                scanComment(start);
+                yield true;
+            }
+            case ',' -> {
+                scanComma();
+                yield true;
+            }
+            case '(' -> {
+                scanLParen();
+                yield true;
+            }
+            case ')' -> {
+                scanRParen();
+                yield true;
+            }
+            default -> false;
+        };
+    }
+
+    private boolean scanLiteralToken(final int start, final char c) {
+        if (c == '"') {
+            scanString(start);
+            return true;
+        }
+        if (c == '.') {
+            scanDirective(start);
+            return true;
+        }
+        if (isSign(c) && hasDigitAhead(this.pos + 1)) {
+            scanNumber(start);
+            return true;
+        }
+        if (Character.isDigit(c)) {
+            scanNumber(start);
+            return true;
+        }
+        if (Character.isLetter(c) || c == '_') {
+            scanWord(start);
+            return true;
+        }
+        return false;
     }
 
     private void scanWhitespace(final int start) {

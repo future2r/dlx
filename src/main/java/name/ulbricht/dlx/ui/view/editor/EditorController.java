@@ -9,8 +9,10 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
+import javafx.util.Subscription;
 import jfx.incubator.scene.control.richtext.CodeArea;
 import jfx.incubator.scene.control.richtext.model.CodeTextModel;
+import jfx.incubator.scene.control.richtext.model.StyledTextModel;
 import name.ulbricht.dlx.util.TextPosition;
 
 /// Controller for the editor view.
@@ -25,18 +27,20 @@ public final class EditorController {
     @FXML
     private CodeArea sourceCodeArea;
     private final CodeTextModel codeModel;
+    private final StyledTextModel.Listener codeModelListener = _ -> editedSourceChanged();
 
     private boolean updatingFromModel;
     private boolean updatingFromView;
 
     private final ReadOnlyObjectWrapper<TextPosition> editPosition = new ReadOnlyObjectWrapper<>();
     private final ReadOnlyBooleanWrapper hasSelection = new ReadOnlyBooleanWrapper();
+    private Subscription sourceSubscription = Subscription.EMPTY;
 
     /// Creates a new editor controller instance.
     public EditorController() {
         this.codeModel = new CodeTextModel();
         this.codeModel.setDecorator(new EditorSyntaxDecorator());
-        this.codeModel.addListener(_ -> editedSourceChanged());
+        this.codeModel.addListener(this.codeModelListener);
     }
 
     @FXML
@@ -55,7 +59,7 @@ public final class EditorController {
                 this.sourceCodeArea.selectionProperty()));
 
         // React on changes of the view model
-        this.viewModel.sourceProperty().subscribe(this::viewModelSourceChanged);
+        this.sourceSubscription = this.viewModel.sourceProperty().subscribe(this::viewModelSourceChanged);
     }
 
     /// {@return the view model of this controller}
@@ -66,6 +70,14 @@ public final class EditorController {
     /// {@return the root node of the editor view}
     Parent getRoot() {
         return this.editorRoot;
+    }
+
+    void dispose() {
+        this.sourceSubscription.unsubscribe();
+        this.editPosition.unbind();
+        this.hasSelection.unbind();
+        this.codeModel.removeListener(this.codeModelListener);
+        this.sourceCodeArea.setModel(null);
     }
 
     void requestFocus() {

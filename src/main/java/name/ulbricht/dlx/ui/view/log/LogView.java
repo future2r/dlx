@@ -46,22 +46,26 @@ public final class LogView implements View<Parent, LogViewModel> {
     }
 
     private final LogController controller;
-    private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper(Messages.getString("log.title"));
+    private final ReadOnlyStringWrapper title = new ReadOnlyStringWrapper();
     private final Subscription titleSubscription;
 
     private LogView(final LogController controller) {
         this.controller = requireNonNull(controller);
+        this.title.set(createTitle(0));
+
         this.titleSubscription = this.controller.getViewModel().entriesProperty().sizeProperty()
                 .subscribe(this::updateTitle);
     }
 
     private void updateTitle(final Number size) {
         final var count = size.intValue();
-        if (count > 0) {
-            this.title.set(Messages.getString("log.title.pattern").formatted(Integer.valueOf(count)));
-        } else {
-            this.title.set(Messages.getString("log.title"));
-        }
+        this.title.set(createTitle(count));
+    }
+
+    private static String createTitle(final int entryCount) {
+        return entryCount > 0
+                ? Messages.getString("log.title.pattern").formatted(Integer.valueOf(entryCount))
+                : Messages.getString("log.title");
     }
 
     @Override
@@ -77,6 +81,6 @@ public final class LogView implements View<Parent, LogViewModel> {
     @Override
     public void dispose() {
         this.titleSubscription.unsubscribe();
-        this.controller.getViewModel().dispose();
+        this.controller.dispose();
     }
 }

@@ -3,7 +3,10 @@ package name.ulbricht.dlx.simulator;
 import static java.util.Objects.requireNonNull;
 
 import name.ulbricht.dlx.simulator.ALU.Operation;
+import name.ulbricht.dlx.simulator.ControlSignals.AluControl;
+import name.ulbricht.dlx.simulator.ControlSignals.FlowControl;
 import name.ulbricht.dlx.simulator.ControlSignals.MemWidth;
+import name.ulbricht.dlx.simulator.ControlSignals.MemoryControl;
 
 /// Translates a decoded [Instruction] into the [ControlSignals] that govern the
 /// rest of its journey through the pipeline.
@@ -80,6 +83,7 @@ final class ControlUnit {
     ///
     /// @param opcode an I-format opcode (not SPECIAL, J, or JAL)
     /// @return the corresponding control signals
+    @SuppressWarnings("checkstyle:CyclomaticComplexity")
     private static ControlSignals decodeI(final OperationCode opcode) {
         return switch (opcode) {
 
@@ -110,11 +114,12 @@ final class ControlUnit {
             // -- LHI: regWrite=true, aluSrc=true, loadHighImm=true, ALU op=PASS_B.
             // The EX stage pre-shifts imm16 << 16 before handing it to the ALU.
             case LHI -> new ControlSignals(
-                    true, false, false, false,
-                    false, false, false, false,
-                    false, true, true,
-                    MemWidth.WORD, false,
-                    Operation.PASS_B, false);
+                    true,
+                    false,
+                    FlowControl.NONE,
+                    new AluControl(true, true, Operation.PASS_B),
+                    MemoryControl.NONE,
+                    false);
 
             // -- Loads: regWrite=true, memRead=true, memToReg=true, aluSrc=true.
             // The ALU computes the effective address rs1 + imm.
@@ -133,46 +138,51 @@ final class ControlUnit {
             // -- BEQZ: branch=true, branchNotZero=false.
             // Branch condition (rs1 == 0) is evaluated in EX.
             case BEQZ -> new ControlSignals(
-                    false, false, false, false,
-                    true, false, false, false,
-                    false, false, false,
-                    MemWidth.WORD, false,
-                    Operation.ADD, false);
+                    false,
+                    false,
+                    FlowControl.branch(false),
+                    AluControl.DEFAULT,
+                    MemoryControl.NONE,
+                    false);
 
             // -- BNEZ: branch=true, branchNotZero=true.
             // Branch condition (rs1 != 0) is evaluated in EX.
             case BNEZ -> new ControlSignals(
-                    false, false, false, false,
-                    true, true, false, false,
-                    false, false, false,
-                    MemWidth.WORD, false,
-                    Operation.ADD, false);
+                    false,
+                    false,
+                    FlowControl.branch(true),
+                    AluControl.DEFAULT,
+                    MemoryControl.NONE,
+                    false);
 
             // -- JR: jump=true, jumpReg=true.
             // PC target = rs1 value; no register write.
             case JR -> new ControlSignals(
-                    false, false, false, false,
-                    false, false, true, true,
-                    false, false, false,
-                    MemWidth.WORD, false,
-                    Operation.ADD, false);
+                    false,
+                    false,
+                    FlowControl.jump(true, false),
+                    AluControl.DEFAULT,
+                    MemoryControl.NONE,
+                    false);
 
             // -- JALR: jump=true, jumpReg=true, jalLink=true, regWrite=true.
             // PC target = rs1; R31 ← PC + 4.
             case JALR -> new ControlSignals(
-                    true, false, false, false,
-                    false, false, true, true,
-                    true, false, false,
-                    MemWidth.WORD, false,
-                    Operation.ADD, false);
+                    true,
+                    false,
+                    FlowControl.jump(true, true),
+                    AluControl.DEFAULT,
+                    MemoryControl.NONE,
+                    false);
 
             // -- TRAP: trap=true; all other signals inactive.
             case TRAP -> new ControlSignals(
-                    false, false, false, false,
-                    false, false, false, false,
-                    false, false, false,
-                    MemWidth.WORD, false,
-                    Operation.ADD, true);
+                    false,
+                    false,
+                    FlowControl.NONE,
+                    AluControl.DEFAULT,
+                    MemoryControl.NONE,
+                    true);
 
             default -> throw new IllegalArgumentException(
                     "Unexpected I-format opcode: " + opcode);
@@ -189,20 +199,22 @@ final class ControlUnit {
             // -- J: jump=true, jumpReg=false; no register write.
             // PC target = PC + sign_extend(dist26).
             case J -> new ControlSignals(
-                    false, false, false, false,
-                    false, false, true, false,
-                    false, false, false,
-                    MemWidth.WORD, false,
-                    Operation.ADD, false);
+                    false,
+                    false,
+                    FlowControl.jump(false, false),
+                    AluControl.DEFAULT,
+                    MemoryControl.NONE,
+                    false);
 
             // -- JAL: jump=true, jalLink=true, regWrite=true.
             // PC target = PC + sign_extend(dist26); R31 ← PC + 4.
             case JAL -> new ControlSignals(
-                    true, false, false, false,
-                    false, false, true, false,
-                    true, false, false,
-                    MemWidth.WORD, false,
-                    Operation.ADD, false);
+                    true,
+                    false,
+                    FlowControl.jump(false, true),
+                    AluControl.DEFAULT,
+                    MemoryControl.NONE,
+                    false);
 
             default -> throw new IllegalArgumentException(
                     "Unexpected J-format opcode: " + opcode);
@@ -220,11 +232,12 @@ final class ControlUnit {
     /// @return the constructed [ControlSignals]
     private static ControlSignals regWrite(final Operation op, final boolean aluSrc) {
         return new ControlSignals(
-                true, false, false, false,
-                false, false, false, false,
-                false, aluSrc, false,
-                MemWidth.WORD, false,
-                op, false);
+                true,
+                false,
+                FlowControl.NONE,
+                new AluControl(aluSrc, false, op),
+                MemoryControl.NONE,
+                false);
     }
 
     /// Builds signals for a load instruction.
@@ -238,11 +251,12 @@ final class ControlUnit {
     /// @return the constructed [ControlSignals]
     private static ControlSignals load(final MemWidth width, final boolean unsigned) {
         return new ControlSignals(
-                true, true, false, true,
-                false, false, false, false,
-                false, true, false,
-                width, unsigned,
-                Operation.ADD, false);
+                true,
+                true,
+                FlowControl.NONE,
+                new AluControl(true, false, Operation.ADD),
+                MemoryControl.load(width, unsigned),
+                false);
     }
 
     /// Builds signals for a store instruction.
@@ -254,10 +268,11 @@ final class ControlUnit {
     /// @return the constructed [ControlSignals]
     private static ControlSignals store(final MemWidth width) {
         return new ControlSignals(
-                false, false, true, false,
-                false, false, false, false,
-                false, true, false,
-                width, false,
-                Operation.ADD, false);
+                false,
+                false,
+                FlowControl.NONE,
+                new AluControl(true, false, Operation.ADD),
+                MemoryControl.store(width),
+                false);
     }
 }

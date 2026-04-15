@@ -134,7 +134,7 @@ final class PipelineTest {
             // ID/EX: LW R1 decoded — rs1=R0, rd=R1, immediate=0
             final var idEx = snap.idEx();
             assertEquals(0x0C, idEx.pc());
-            assertTrue(idEx.ctrl().memRead(), "LW R1 is a load");
+            assertTrue(idEx.ctrl().memory().memRead(), "LW R1 is a load");
             assertTrue(idEx.ctrl().regWrite(), "LW R1 writes a register");
             assertTrue(idEx.ctrl().memToReg(), "LW R1 selects memory data");
             assertEquals(0, idEx.rs1());
@@ -163,14 +163,14 @@ final class PipelineTest {
             // ID/EX: LW R2 decoded — rs1=R0, rd=R2, immediate=4
             final var idEx = snap.idEx();
             assertEquals(0x10, idEx.pc());
-            assertTrue(idEx.ctrl().memRead());
+            assertTrue(idEx.ctrl().memory().memRead());
             assertEquals(0, idEx.rs1());
             assertEquals(2, idEx.rd());
             assertEquals(4, idEx.immediate());
 
             // EX/MEM: LW R1 executed — effective address = R0 + 0 = 0
             final var exMem = snap.exMem();
-            assertTrue(exMem.ctrl().memRead());
+            assertTrue(exMem.ctrl().memory().memRead());
             assertEquals(0x00000000, exMem.aluResult());
             assertEquals(1, exMem.rd());
 
@@ -202,13 +202,13 @@ final class PipelineTest {
 
             // EX/MEM: LW R2 executed — effective address = R0 + 4 = 4
             final var exMem = snap.exMem();
-            assertTrue(exMem.ctrl().memRead());
+            assertTrue(exMem.ctrl().memory().memRead());
             assertEquals(0x00000004, exMem.aluResult());
             assertEquals(2, exMem.rd());
 
             // MEM/WB: LW R1 completed memory read — loaded value 10
             final var memWb = snap.memWb();
-            assertTrue(memWb.ctrl().memRead());
+            assertTrue(memWb.ctrl().memory().memRead());
             assertTrue(memWb.ctrl().memToReg());
             assertEquals(0x00000000, memWb.aluResult());
             assertEquals(10, memWb.memData());
@@ -236,7 +236,7 @@ final class PipelineTest {
             // R1 was just written by WB (=10), R2 still 0 (in MEM, not yet written)
             final var idEx = snap.idEx();
             assertEquals(0x14, idEx.pc());
-            assertFalse(idEx.ctrl().memRead(), "ADD is not a load");
+            assertFalse(idEx.ctrl().memory().memRead(), "ADD is not a load");
             assertTrue(idEx.ctrl().regWrite(), "ADD writes a register");
             assertFalse(idEx.ctrl().memToReg(), "ADD uses ALU result");
             assertEquals(1, idEx.rs1());
@@ -251,7 +251,7 @@ final class PipelineTest {
 
             // MEM/WB: LW R2 completed memory read — loaded value 32
             final var memWb = snap.memWb();
-            assertTrue(memWb.ctrl().memRead());
+            assertTrue(memWb.ctrl().memory().memRead());
             assertEquals(0x00000004, memWb.aluResult());
             assertEquals(32, memWb.memData());
             assertEquals(2, memWb.rd());
@@ -285,7 +285,7 @@ final class PipelineTest {
             // ID/EX: SW decoded — rs1=R0 (base), rs2=R3 (data), rd=R0 (no writeback)
             final var idEx = snap.idEx();
             assertEquals(0x18, idEx.pc());
-            assertTrue(idEx.ctrl().memWrite(), "SW is a store");
+            assertTrue(idEx.ctrl().memory().memWrite(), "SW is a store");
             assertFalse(idEx.ctrl().regWrite(), "SW does not write a register");
             assertEquals(0, idEx.rs1());
             assertEquals(3, idEx.rs2());
@@ -295,8 +295,8 @@ final class PipelineTest {
             // EX/MEM: ADD executed — 10 + 32 = 42 (R2 was forwarded from MEM/WB)
             final var exMem = snap.exMem();
             assertTrue(exMem.ctrl().regWrite());
-            assertFalse(exMem.ctrl().memRead());
-            assertFalse(exMem.ctrl().memWrite());
+            assertFalse(exMem.ctrl().memory().memRead());
+            assertFalse(exMem.ctrl().memory().memWrite());
             assertEquals(42, exMem.aluResult());
             assertEquals(3, exMem.rd());
 
@@ -334,7 +334,7 @@ final class PipelineTest {
             // EX/MEM: SW executed — effective address = R0 + 8 = 8,
             // store data = 42 (forwarded from EX/MEM for R3)
             final var exMem = snap.exMem();
-            assertTrue(exMem.ctrl().memWrite(), "SW writes memory");
+            assertTrue(exMem.ctrl().memory().memWrite(), "SW writes memory");
             assertFalse(exMem.ctrl().regWrite(), "SW does not write a register");
             assertEquals(8, exMem.aluResult());
             assertEquals(42, exMem.rs2Val());
@@ -343,7 +343,7 @@ final class PipelineTest {
             // MEM/WB: ADD result passes through MEM (no memory access)
             final var memWb = snap.memWb();
             assertTrue(memWb.ctrl().regWrite());
-            assertFalse(memWb.ctrl().memRead());
+            assertFalse(memWb.ctrl().memory().memRead());
             assertEquals(42, memWb.aluResult());
             assertEquals(3, memWb.rd());
 
@@ -375,7 +375,7 @@ final class PipelineTest {
 
             // MEM/WB: SW completed — memory write happened this cycle
             final var memWb = snap.memWb();
-            assertTrue(memWb.ctrl().memWrite());
+            assertTrue(memWb.ctrl().memory().memWrite());
             assertFalse(memWb.ctrl().regWrite());
 
             // Verify side effects: R3=42 written by WB, memory[8]=42 written by MEM

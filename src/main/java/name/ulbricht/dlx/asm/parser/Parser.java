@@ -167,16 +167,16 @@ public final class Parser {
             return;
         }
 
-        final var operands = switch (instr.format) {
-            case R        -> parseRdRs1Rs2(rest, it);
-            case I_ARITH  -> parseRdRs1Imm(rest, it);
-            case LOAD     -> parseRdMem(rest, it);
-            case STORE    -> parseRsrcMem(rest, it);
-            case RD_IMM   -> parseRdImm(rest, it);
+        final var operands = switch (instr.format()) {
+            case R -> parseRdRs1Rs2(rest, it);
+            case I_ARITH -> parseRdRs1Imm(rest, it);
+            case LOAD -> parseRdMem(rest, it);
+            case STORE -> parseRsrcMem(rest, it);
+            case RD_IMM -> parseRdImm(rest, it);
             case RS_LABEL -> parseRsLabel(rest, it);
-            case LABEL    -> parseLabel(rest, it);
-            case RS       -> parseRs(rest, it);
-            case IMM      -> parseImm(rest, it);
+            case LABEL -> parseLabel(rest, it);
+            case RS -> parseRs(rest, it);
+            case IMM -> parseImm(rest, it);
         };
 
         if (operands != null) {

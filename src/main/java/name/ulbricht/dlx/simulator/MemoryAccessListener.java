@@ -11,7 +11,7 @@ public interface MemoryAccessListener {
     /// @param type    the type of access (read or write)
     /// @param address the starting address of the access
     /// @param value   the array of accessed bytes
-    public record MemoryAccess(Access type, int address, byte[] value) {
+    record MemoryAccess(Access type, int address, byte[] value) {
 
         /// Constructs a new memory access.
         public MemoryAccess {

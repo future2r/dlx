@@ -255,9 +255,7 @@ public enum OperationCode {
     // Fields and factory
     // -------------------------------------------------------------------------
 
-    /// The 6-bit numeric opcode value as it appears in bits 31–26 of the
-    /// instruction word.
-    public final int code;
+    private final int code;
 
     /// Constructs an `OperationCode` constant with the given numeric code.
     ///
@@ -266,18 +264,25 @@ public enum OperationCode {
         this.code = code;
     }
 
+    /// {@return the 6-bit numeric opcode value as it appears in bits 31–26 of the
+    /// instruction word}
+    public int code() {
+        return this.code;
+    }
+
+    private static final int MAX_CODE = 0b11_1111; // 6 bits
     /// Fast O(1) lookup table, indexed directly by the 6-bit opcode value.
     /// Entries for unassigned codes remain `null`.
-    private static final OperationCode[] BY_CODE = new OperationCode[64];
+    private static final OperationCode[] BY_CODE = new OperationCode[MAX_CODE + 1];
 
     static {
         // Populate the lookup table once at class-load time.
         for (final var op : values()) {
-            BY_CODE[op.code] = op;
+            BY_CODE[op.code()] = op;
         }
     }
 
-    /// Returns the `OperationCode` whose [#code] equals the lower 6 bits of the
+    /// Returns the `OperationCode` whose [#code()] equals the lower 6 bits of the
     /// argument.
     ///
     /// @param code a raw value; only the lower 6 bits are examined

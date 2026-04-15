@@ -1,5 +1,7 @@
 package name.ulbricht.dlx.ui.view.memory;
 
+import static java.util.Objects.requireNonNull;
+
 import name.ulbricht.dlx.simulator.Access;
 
 /// Represents a single row in the hex viewer table.
@@ -10,6 +12,12 @@ import name.ulbricht.dlx.simulator.Access;
 /// @param accessState the per-byte access state array maintained by the
 ///                    view model
 public record MemoryRow(int baseAddress, byte[] shadow, Access[] accessState) {
+
+    /// Creates a new memory row.
+    public MemoryRow {
+        requireNonNull(shadow);
+        requireNonNull(accessState);
+    }
 
     /// The number of bytes displayed per row in the hex viewer.
     public static final int BYTES_PER_ROW = 16;

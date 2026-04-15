@@ -24,7 +24,7 @@ final class InstructionCategoryTest {
         void everyInstructionCovered() {
             final var covered = EnumSet.noneOf(Instruction.class);
             for (final var category : InstructionCategory.values()) {
-                for (final var instruction : category.instructions) {
+                for (final var instruction : category.instructions()) {
                     assertFalse(covered.contains(instruction),
                             "Instruction " + instruction + " appears in multiple categories");
                     covered.add(instruction);
@@ -38,7 +38,7 @@ final class InstructionCategoryTest {
         @DisplayName("no category is empty")
         void noCategoryEmpty() {
             for (final var category : InstructionCategory.values()) {
-                assertFalse(category.instructions.isEmpty(),
+                assertFalse(category.instructions().isEmpty(),
                         "Category " + category + " is empty");
             }
         }
@@ -52,7 +52,7 @@ final class InstructionCategoryTest {
         @DisplayName("returns correct category for every instruction")
         void returnsCorrectCategory() {
             for (final var category : InstructionCategory.values()) {
-                for (final var instruction : category.instructions) {
+                for (final var instruction : category.instructions()) {
                     final var result = InstructionCategory.categoryOf(instruction);
                     assertNotNull(result);
                     assertEquals(category, result);

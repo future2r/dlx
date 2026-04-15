@@ -108,12 +108,18 @@
 				"alias": "Create app image (jpackage)",
 				"command": "clean package -Pjpackage"
 			}
-		]
+		],
+		"java.checkstyle.version": "13.4.0",
+		"java.checkstyle.configuration": ".settings/checkstyle-rules.xml",
+		"java.checkstyle.properties": {
+			"basedir": "${workspaceFolder}"
+		}
 	},
 	"extensions": {
 		"recommendations": [
 			"vscjava.vscode-java-pack",
-			"redhat.vscode-xml"
+			"redhat.vscode-xml",
+			"rianadon.vscode-java-checkstyle"
 		]
 	}
 }
