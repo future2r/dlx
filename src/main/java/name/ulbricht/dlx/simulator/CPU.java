@@ -219,8 +219,6 @@ public final class CPU {
     ///                              simulate stage processing time
     public void step() throws InterruptedException {
 
-        notifyProcessingListeners();
-
         // A halted CPU does nothing.
         if (this.halted)
             return;
@@ -263,6 +261,7 @@ public final class CPU {
         final var ifStageDecision = decideIfStage(stall, exResult, trapFlush, newIdEx);
 
         commitCycle(ifStageDecision, newExMem, newMemWb);
+        notifyProcessingListeners();
         handleRetiredTrap(newMemWb);
 
         // Wait to simulate processing time

@@ -337,16 +337,19 @@ public final class PipelineViewModel implements ProcessingListener {
     }
 
     private void updateMemWb(final MemWbLatch memWb) {
-        // The memWb latch represents the instruction that just completed MEM
-        // and is about to enter WB. We show it as the MEM stage content.
-        // WB is shown from the previous cycle's memWb — but since we get
-        // notified before and after each step, we use a simple approach:
-        // shift the current MEM display to WB before updating MEM.
-
-        // Move current MEM → WB
-        this.wbInstruction.set(this.memInstruction.get());
-        this.wbResult.set(this.memAluResult.get());
-        this.wbRd.set(this.memRd.get());
+        // Shift the current MEM display into WB, then update MEM from the
+        // new latch. When MEM still shows its initial cleared state (empty
+        // string) we display "bubble" in WB instead.
+        final var prevMemInstr = this.memInstruction.get();
+        if (prevMemInstr == null || prevMemInstr.isEmpty()) {
+            this.wbInstruction.set("bubble");
+            this.wbResult.set("");
+            this.wbRd.set("");
+        } else {
+            this.wbInstruction.set(prevMemInstr);
+            this.wbResult.set(this.memAluResult.get());
+            this.wbRd.set(this.memRd.get());
+        }
 
         // Update MEM from the new memWb latch
         if (memWb == MemWbLatch.BUBBLE) {
