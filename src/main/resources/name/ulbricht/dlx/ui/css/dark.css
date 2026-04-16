@@ -1,27 +1,15 @@
-.root {
-    /* Adjust the Modena colors */
-    -fx-base: #222222;
-    -fx-background: #181818;
-    -fx-control-inner-background: #383838;
-    -fx-text-base-color: #e8e8e8;
-    -fx-text-background-color: #e8e8e8;
-    -fx-prompt-text-fill: #666666;
-    -fx-accent: #4d9de0;
-    -fx-focus-color: #4d9de0;
-    -fx-faint-focus-color: #4d9de040;
-    -fx-outer-border: #505050;
-    -fx-inner-border: #333333;
-    -fx-body-color: #2e2e2e;
+@import url("modena-dark.css");
 
+.root {
     /* common colors */
     -dlx-red: #F48771;
     -dlx-green: #88D084;
     -dlx-blue: #6FB3EF;
-    -dlx-orange: #F3A600;
+    -dlx-orange: #FFC040;
 
     /* background colors */
-    -dlx-red-background: derive(-dlx-red, 100%);
-    -dlx-green-background: derive(-dlx-green, 100%);
+    -dlx-red-background: derive(-dlx-red, -50%);
+    -dlx-green-background: derive(-dlx-green, -50%);
 
     /* syntax highlighting colors */
     -dlx-code-default: #D4D4D4;

@@ -1,0 +1,28 @@
+/*
+ * Modena Dark Theme
+ *
+ * A dark theme override for JavaFX's built-in Modena (light) theme.
+ * Only the base palette colors are overridden — all derived colors
+ * (ladder, derive, gradients) are left to Modena's built-in calculations.
+ *
+ * Usage: @import url("modena-dark.css");
+ */
+
+.root {
+    /* Base palette */
+    -fx-base: #3c3c3c;
+    -fx-background: #1e1e1e;
+    -fx-control-inner-background: #2d2d2d;
+
+    /* Accent and focus */
+    -fx-accent: #0078d4;
+    -fx-default-button: #264f78;
+    -fx-focus-color: #0078d4;
+    -fx-faint-focus-color: #0078d433;
+
+    /* Hardcoded colors in Modena that need dark variants */
+    -fx-cell-hover-color: #264f78;
+    -fx-selection-bar-non-focused: #3a3d41;
+    -fx-page-bullet-border: #616161;
+    -fx-page-indicator-hover-border: #0078d4;
+}

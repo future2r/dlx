@@ -46,7 +46,7 @@ public final class UserPreferences {
     public static final MemorySize DEFAULT_MEMORY_SIZE = MemorySize.SMALL;
 
     /// Default value for the theme preference.
-    public static final Theme DEFAULT_THEME = Theme.LIGHT;
+    public static final Theme DEFAULT_THEME = Theme.AUTO;
 
     /// Default value for the log level preference.
     public static final System.Logger.Level DEFAULT_LOG_LEVEL = System.Logger.Level.INFO;
