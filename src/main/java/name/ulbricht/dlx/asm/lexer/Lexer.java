@@ -59,7 +59,10 @@ public final class Lexer {
     ///         diagnostics. In [LexerMode#ASSEMBLER] mode, whitespace and comments
     ///         are excluded from the token list.
     public TokenizedProgram tokenize(final UUID id, final String lines) {
+        requireNonNull(id);
         requireNonNull(lines);
+
+        log.log(System.Logger.Level.INFO, "Starting lexing of program " + id + ".");
 
         final var allTokens = new ArrayList<Token>();
         final var allDiagnostics = new ArrayList<Diagnostic>();
@@ -68,6 +71,16 @@ public final class Lexer {
             allTokens.addAll(tokenizeLine(lineArray[i], i));
             allDiagnostics.addAll(this.diagnostics); // collect before next call clears them
         }
+
+        final var errorCount = allDiagnostics.stream()
+                .filter(d -> d.severity() == Diagnostic.Severity.ERROR).count();
+        if (errorCount == 0) {
+            log.log(System.Logger.Level.INFO, "Lexing of program " + id + " completed successfully.");
+        } else {
+            log.log(System.Logger.Level.WARNING,
+                    "Lexing of program " + id + " completed with " + errorCount + " error(s).");
+        }
+
         return new TokenizedProgram(id, List.copyOf(allTokens), List.copyOf(allDiagnostics));
     }
 
@@ -310,8 +323,6 @@ public final class Lexer {
 
     private void addDiagnostic(final Diagnostic.Severity severity, final String msg, final int col, final int length) {
         requireNonNull(severity);
-
-        log.log(severity.toLogLevel(), msg);
 
         this.diagnostics.add(new Diagnostic(Diagnostic.Stage.LEXING, severity,
                 new TextPosition(this.line, col, length), msg));

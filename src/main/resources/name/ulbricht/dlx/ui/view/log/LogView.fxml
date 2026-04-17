@@ -42,7 +42,7 @@
                 <LogView fx:factory="logTableRowFactory"/>
             </rowFactory>
             <columns>
-                <TableColumn text="%log.column.time" prefWidth="100">
+                <TableColumn text="%log.column.time" prefWidth="120">
                     <cellValueFactory>
                         <PropertyValueFactory property="time"/>
                     </cellValueFactory>

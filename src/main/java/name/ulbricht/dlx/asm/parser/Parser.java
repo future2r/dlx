@@ -59,6 +59,8 @@ public final class Parser {
     public ParsedProgram parse(final TokenizedProgram tokenized) {
         requireNonNull(tokenized);
 
+        log.log(System.Logger.Level.INFO, "Starting parsing of program " + tokenized.id() + ".");
+
         this.data = new ArrayList<>();
         this.code = new ArrayList<>();
         this.diagnostics = new ArrayList<>();
@@ -68,6 +70,16 @@ public final class Parser {
             if (!line.isEmpty()) {
                 parseLine(line);
             }
+        }
+
+        final var errorCount = this.diagnostics.stream()
+                .filter(d -> d.severity() == Diagnostic.Severity.ERROR).count();
+        if (errorCount == 0) {
+            log.log(System.Logger.Level.INFO,
+                    "Parsing of program " + tokenized.id() + " completed successfully.");
+        } else {
+            log.log(System.Logger.Level.WARNING,
+                    "Parsing of program " + tokenized.id() + " completed with " + errorCount + " error(s).");
         }
 
         return new ParsedProgram(tokenized.id(), List.copyOf(this.data), List.copyOf(this.code),
@@ -509,8 +521,6 @@ public final class Parser {
 
     private void addDiagnostic(final Diagnostic.Severity severity, final String msg, final Token token, final int len) {
         requireNonNull(severity);
-
-        log.log(severity.toLogLevel(), msg);
 
         this.diagnostics.add(new Diagnostic(Diagnostic.Stage.PARSING, severity,
                 new TextPosition(token.pos().line(), token.pos().column(), len), msg));

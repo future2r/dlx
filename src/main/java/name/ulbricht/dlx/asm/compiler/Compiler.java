@@ -46,6 +46,8 @@ public final class Compiler {
     public CompiledProgram compile(final ParsedProgram parsed) {
         requireNonNull(parsed);
 
+        log.log(System.Logger.Level.INFO, "Starting compilation of program " + parsed.id() + ".");
+
         this.diagnostics.clear();
         this.symbols.clear();
 
@@ -86,9 +88,16 @@ public final class Compiler {
             dataOffset = emitData(program, dataOffset, decl);
         }
 
-        if (hasErrors())
+        if (hasErrors()) {
+            final var errorCount = this.diagnostics.stream()
+                    .filter(d -> d.severity() == Diagnostic.Severity.ERROR).count();
+            log.log(System.Logger.Level.ERROR, "Compilation of program " + parsed.id()
+                    + " failed with " + errorCount + " error(s); no program produced.");
             return new CompiledProgram(parsed.id(), new byte[0], this.diagnostics);
+        }
 
+        log.log(System.Logger.Level.INFO,
+                "Compilation of program " + parsed.id() + " completed successfully.");
         return new CompiledProgram(parsed.id(), program, this.diagnostics);
     }
 
@@ -400,8 +409,6 @@ public final class Compiler {
 
     private void addDiagnostic(final Diagnostic.Severity severity, final String msg, final ParsedElement element) {
         requireNonNull(severity);
-
-        log.log(severity.toLogLevel(), msg);
 
         this.diagnostics.add(new Diagnostic(Diagnostic.Stage.COMPILING, severity, element.pos(), msg));
     }
