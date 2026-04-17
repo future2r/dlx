@@ -34,25 +34,23 @@ import name.ulbricht.dlx.asm.parser.Parser;
 ///         trap 0
 /// ```
 ///
-/// Memory layout:
-/// - `0x00`: `0x0000000A` (a = 10)
-/// - `0x04`: `0x00000020` (b = 32)
-/// - `0x08`: `0x00000000` (res = 0)
-/// - `0x0C`: `0x8C010000` (LW R1, 0(R0))
-/// - `0x10`: `0x8C020004` (LW R2, 4(R0))
-/// - `0x14`: `0x00221820` (ADD R3, R1, R2)
-/// - `0x18`: `0xAC030008` (SW 8(R0), R3)
-/// - `0x1C`: `0xFC000000` (TRAP #0x00)
-///
-/// Entry point: `0x0C`
+/// Memory layout (code-first):
+/// - `0x00`: `0x8C010014` (LW R1, 20(R0))
+/// - `0x04`: `0x8C020018` (LW R2, 24(R0))
+/// - `0x08`: `0x00221820` (ADD R3, R1, R2)
+/// - `0x0C`: `0xAC03001C` (SW 28(R0), R3)
+/// - `0x10`: `0xFC000000` (TRAP #0x00)
+/// - `0x14`: `0x0000000A` (a = 10)
+/// - `0x18`: `0x00000020` (b = 32)
+/// - `0x1C`: `0x00000000` (res = 0)
 @DisplayName("Pipeline")
 final class PipelineTest {
 
     /// Instruction words for reference in assertions.
-    private static final int LW_R1 = 0x8C010000;
-    private static final int LW_R2 = 0x8C020004;
+    private static final int LW_R1 = 0x8C010014;
+    private static final int LW_R2 = 0x8C020018;
     private static final int ADD_R3 = 0x00221820;
-    private static final int SW_RES = 0xAC030008;
+    private static final int SW_RES = 0xAC03001C;
     private static final int TRAP_0 = 0xFC000000;
     private static final int NOP = 0x00000000;
 
@@ -73,10 +71,9 @@ final class PipelineTest {
                 trap 0""");
         assertFalse(compiled.hasErrors(),
                 "Expected no errors but got: " + compiled.diagnostics());
-        assertEquals(12, compiled.entryPoint());
 
         this.cpu = new CPU();
-        this.cpu.loadProgram(compiled.program(), compiled.entryPoint());
+        this.cpu.loadProgram(compiled.program());
     }
 
     private CPU.PipelineSnapshot step() throws InterruptedException {
@@ -98,7 +95,7 @@ final class PipelineTest {
             assertEquals(ExMemLatch.BUBBLE, snap.exMem());
             assertEquals(MemWbLatch.BUBBLE, snap.memWb());
 
-            assertEquals(0x0C, PipelineTest.this.cpu.getProgramCounter());
+            assertEquals(0x00, PipelineTest.this.cpu.getProgramCounter());
             assertEquals(0, PipelineTest.this.cpu.getCycles());
             assertFalse(PipelineTest.this.cpu.isHalted());
         }
@@ -108,8 +105,8 @@ final class PipelineTest {
         void cycle1() throws InterruptedException {
             final var snap = step();
 
-            // IF/ID: LW R1, 0(R0) fetched from address 0x0C
-            assertEquals(0x0C, snap.ifId().pc());
+            // IF/ID: LW R1, 20(R0) fetched from address 0x00
+            assertEquals(0x00, snap.ifId().pc());
             assertEquals(LW_R1, snap.ifId().instructionWord());
 
             // All other latches still bubbles
@@ -117,7 +114,7 @@ final class PipelineTest {
             assertEquals(ExMemLatch.BUBBLE, snap.exMem());
             assertEquals(MemWbLatch.BUBBLE, snap.memWb());
 
-            assertEquals(0x10, PipelineTest.this.cpu.getProgramCounter());
+            assertEquals(0x04, PipelineTest.this.cpu.getProgramCounter());
             assertEquals(1, PipelineTest.this.cpu.getCycles());
         }
 
@@ -127,25 +124,25 @@ final class PipelineTest {
             step(); // cycle 1
             final var snap = step();
 
-            // IF/ID: LW R2, 4(R0)
-            assertEquals(0x10, snap.ifId().pc());
+            // IF/ID: LW R2, 24(R0)
+            assertEquals(0x04, snap.ifId().pc());
             assertEquals(LW_R2, snap.ifId().instructionWord());
 
-            // ID/EX: LW R1 decoded — rs1=R0, rd=R1, immediate=0
+            // ID/EX: LW R1 decoded — rs1=R0, rd=R1, immediate=20 (a at 0x14)
             final var idEx = snap.idEx();
-            assertEquals(0x0C, idEx.pc());
+            assertEquals(0x00, idEx.pc());
             assertTrue(idEx.ctrl().memory().memRead(), "LW R1 is a load");
             assertTrue(idEx.ctrl().regWrite(), "LW R1 writes a register");
             assertTrue(idEx.ctrl().memToReg(), "LW R1 selects memory data");
             assertEquals(0, idEx.rs1());
             assertEquals(0, idEx.rs1Val());
             assertEquals(1, idEx.rd());
-            assertEquals(0, idEx.immediate());
+            assertEquals(20, idEx.immediate());
 
             assertEquals(ExMemLatch.BUBBLE, snap.exMem());
             assertEquals(MemWbLatch.BUBBLE, snap.memWb());
 
-            assertEquals(0x14, PipelineTest.this.cpu.getProgramCounter());
+            assertEquals(0x08, PipelineTest.this.cpu.getProgramCounter());
             assertEquals(2, PipelineTest.this.cpu.getCycles());
         }
 
@@ -157,26 +154,26 @@ final class PipelineTest {
             final var snap = step();
 
             // IF/ID: ADD R3, R1, R2
-            assertEquals(0x14, snap.ifId().pc());
+            assertEquals(0x08, snap.ifId().pc());
             assertEquals(ADD_R3, snap.ifId().instructionWord());
 
-            // ID/EX: LW R2 decoded — rs1=R0, rd=R2, immediate=4
+            // ID/EX: LW R2 decoded — rs1=R0, rd=R2, immediate=24 (b at 0x18)
             final var idEx = snap.idEx();
-            assertEquals(0x10, idEx.pc());
+            assertEquals(0x04, idEx.pc());
             assertTrue(idEx.ctrl().memory().memRead());
             assertEquals(0, idEx.rs1());
             assertEquals(2, idEx.rd());
-            assertEquals(4, idEx.immediate());
+            assertEquals(24, idEx.immediate());
 
-            // EX/MEM: LW R1 executed — effective address = R0 + 0 = 0
+            // EX/MEM: LW R1 executed — effective address = R0 + 20 = 20
             final var exMem = snap.exMem();
             assertTrue(exMem.ctrl().memory().memRead());
-            assertEquals(0x00000000, exMem.aluResult());
+            assertEquals(0x00000014, exMem.aluResult());
             assertEquals(1, exMem.rd());
 
             assertEquals(MemWbLatch.BUBBLE, snap.memWb());
 
-            assertEquals(0x18, PipelineTest.this.cpu.getProgramCounter());
+            assertEquals(0x0C, PipelineTest.this.cpu.getProgramCounter());
             assertEquals(3, PipelineTest.this.cpu.getCycles());
         }
     }
@@ -194,28 +191,28 @@ final class PipelineTest {
             final var snap = step();
 
             // IF/ID: ADD R3, R1, R2 — frozen, same as cycle 3
-            assertEquals(0x14, snap.ifId().pc());
+            assertEquals(0x08, snap.ifId().pc());
             assertEquals(ADD_R3, snap.ifId().instructionWord());
 
             // ID/EX: bubble injected by stall
             assertSame(IdExLatch.BUBBLE, snap.idEx());
 
-            // EX/MEM: LW R2 executed — effective address = R0 + 4 = 4
+            // EX/MEM: LW R2 executed — effective address = R0 + 24 = 24
             final var exMem = snap.exMem();
             assertTrue(exMem.ctrl().memory().memRead());
-            assertEquals(0x00000004, exMem.aluResult());
+            assertEquals(0x00000018, exMem.aluResult());
             assertEquals(2, exMem.rd());
 
             // MEM/WB: LW R1 completed memory read — loaded value 10
             final var memWb = snap.memWb();
             assertTrue(memWb.ctrl().memory().memRead());
             assertTrue(memWb.ctrl().memToReg());
-            assertEquals(0x00000000, memWb.aluResult());
+            assertEquals(0x00000014, memWb.aluResult());
             assertEquals(10, memWb.memData());
             assertEquals(1, memWb.rd());
 
             // PC did not advance (stall)
-            assertEquals(0x18, PipelineTest.this.cpu.getProgramCounter());
+            assertEquals(0x0C, PipelineTest.this.cpu.getProgramCounter());
             assertEquals(4, PipelineTest.this.cpu.getCycles());
         }
 
@@ -228,14 +225,14 @@ final class PipelineTest {
             step(); // cycle 4 (stall)
             final var snap = step();
 
-            // IF/ID: SW 8(R0), R3
-            assertEquals(0x18, snap.ifId().pc());
+            // IF/ID: SW 28(R0), R3
+            assertEquals(0x0C, snap.ifId().pc());
             assertEquals(SW_RES, snap.ifId().instructionWord());
 
             // ID/EX: ADD decoded — rs1=R1, rs2=R2, rd=R3
             // R1 was just written by WB (=10), R2 still 0 (in MEM, not yet written)
             final var idEx = snap.idEx();
-            assertEquals(0x14, idEx.pc());
+            assertEquals(0x08, idEx.pc());
             assertFalse(idEx.ctrl().memory().memRead(), "ADD is not a load");
             assertTrue(idEx.ctrl().regWrite(), "ADD writes a register");
             assertFalse(idEx.ctrl().memToReg(), "ADD uses ALU result");
@@ -252,14 +249,14 @@ final class PipelineTest {
             // MEM/WB: LW R2 completed memory read — loaded value 32
             final var memWb = snap.memWb();
             assertTrue(memWb.ctrl().memory().memRead());
-            assertEquals(0x00000004, memWb.aluResult());
+            assertEquals(0x00000018, memWb.aluResult());
             assertEquals(32, memWb.memData());
             assertEquals(2, memWb.rd());
 
             // R1 was written by WB this cycle
             assertEquals(10, PipelineTest.this.cpu.getRegisters().read(1));
 
-            assertEquals(0x1C, PipelineTest.this.cpu.getProgramCounter());
+            assertEquals(0x10, PipelineTest.this.cpu.getProgramCounter());
             assertEquals(5, PipelineTest.this.cpu.getCycles());
         }
     }
@@ -279,18 +276,18 @@ final class PipelineTest {
             final var snap = step();
 
             // IF/ID: TRAP #0x00
-            assertEquals(0x1C, snap.ifId().pc());
+            assertEquals(0x10, snap.ifId().pc());
             assertEquals(TRAP_0, snap.ifId().instructionWord());
 
             // ID/EX: SW decoded — rs1=R0 (base), rs2=R3 (data), rd=R0 (no writeback)
             final var idEx = snap.idEx();
-            assertEquals(0x18, idEx.pc());
+            assertEquals(0x0C, idEx.pc());
             assertTrue(idEx.ctrl().memory().memWrite(), "SW is a store");
             assertFalse(idEx.ctrl().regWrite(), "SW does not write a register");
             assertEquals(0, idEx.rs1());
             assertEquals(3, idEx.rs2());
             assertEquals(0, idEx.rd());
-            assertEquals(8, idEx.immediate());
+            assertEquals(28, idEx.immediate());
 
             // EX/MEM: ADD executed — 10 + 32 = 42 (R2 was forwarded from MEM/WB)
             final var exMem = snap.exMem();
@@ -306,7 +303,7 @@ final class PipelineTest {
             // R2 was written by WB this cycle
             assertEquals(32, PipelineTest.this.cpu.getRegisters().read(2));
 
-            assertEquals(0x20, PipelineTest.this.cpu.getProgramCounter());
+            assertEquals(0x14, PipelineTest.this.cpu.getProgramCounter());
             assertEquals(6, PipelineTest.this.cpu.getCycles());
         }
 
@@ -321,22 +318,23 @@ final class PipelineTest {
             step(); // cycle 6
             final var snap = step();
 
-            // IF/ID: NOP fetched from beyond program (address 0x20 contains zero)
-            assertEquals(0x20, snap.ifId().pc());
-            assertEquals(NOP, snap.ifId().instructionWord());
+            // IF/ID: data word a=10 fetched from 0x14 (first data address, code-first layout)
+            // trapFlush is not yet active — TRAP is still in ID, not EX
+            assertEquals(0x14, snap.ifId().pc());
+            assertEquals(0x0000000A, snap.ifId().instructionWord());
 
             // ID/EX: TRAP decoded
             final var idEx = snap.idEx();
-            assertEquals(0x1C, idEx.pc());
+            assertEquals(0x10, idEx.pc());
             assertTrue(idEx.ctrl().trap(), "instruction is a trap");
             assertEquals(0, idEx.immediate());
 
-            // EX/MEM: SW executed — effective address = R0 + 8 = 8,
+            // EX/MEM: SW executed — effective address = R0 + 28 = 28,
             // store data = 42 (forwarded from EX/MEM for R3)
             final var exMem = snap.exMem();
             assertTrue(exMem.ctrl().memory().memWrite(), "SW writes memory");
             assertFalse(exMem.ctrl().regWrite(), "SW does not write a register");
-            assertEquals(8, exMem.aluResult());
+            assertEquals(28, exMem.aluResult());
             assertEquals(42, exMem.rs2Val());
             assertEquals(0, exMem.rd());
 
@@ -347,7 +345,7 @@ final class PipelineTest {
             assertEquals(42, memWb.aluResult());
             assertEquals(3, memWb.rd());
 
-            assertEquals(0x24, PipelineTest.this.cpu.getProgramCounter());
+            assertEquals(0x18, PipelineTest.this.cpu.getProgramCounter());
             assertEquals(7, PipelineTest.this.cpu.getCycles());
         }
     }
@@ -357,7 +355,7 @@ final class PipelineTest {
     class TrapFlushAndDrain {
 
         @Test
-        @DisplayName("Cycle 8: TRAP in EX flushes IF, SW writes memory[8]=42, WB writes R3=42")
+        @DisplayName("Cycle 8: TRAP in EX flushes IF, SW writes memory[0x1C]=42, WB writes R3=42")
         void cycle8_trapFlush() throws InterruptedException {
             stepTo(8);
             final var snap = PipelineTest.this.cpu.getPipelineSnapshot();
@@ -365,7 +363,7 @@ final class PipelineTest {
             // IF/ID: bubble — trap flush suppressed IF
             assertSame(IfIdLatch.BUBBLE, snap.ifId());
 
-            // ID/EX: bubble — NOP at 0x20 decoded as bubble
+            // ID/EX: bubble — data word at 0x14 has invalid opcode, caught by trapFlush safety
             assertSame(IdExLatch.BUBBLE, snap.idEx());
 
             // EX/MEM: TRAP executed
@@ -378,12 +376,12 @@ final class PipelineTest {
             assertTrue(memWb.ctrl().memory().memWrite());
             assertFalse(memWb.ctrl().regWrite());
 
-            // Verify side effects: R3=42 written by WB, memory[8]=42 written by MEM
+            // Verify side effects: R3=42 written by WB, memory[0x1C]=42 written by MEM
             assertEquals(42, PipelineTest.this.cpu.getRegisters().read(3));
-            assertEquals(42, PipelineTest.this.cpu.getMemory().loadWord(8));
+            assertEquals(42, PipelineTest.this.cpu.getMemory().loadWord(0x1C));
 
             // PC did not advance (trap flush held it)
-            assertEquals(0x24, PipelineTest.this.cpu.getProgramCounter());
+            assertEquals(0x18, PipelineTest.this.cpu.getProgramCounter());
             assertEquals(8, PipelineTest.this.cpu.getCycles());
             assertFalse(PipelineTest.this.cpu.isHalted());
         }
@@ -394,9 +392,9 @@ final class PipelineTest {
             stepTo(9);
             final var snap = PipelineTest.this.cpu.getPipelineSnapshot();
 
-            // IF/ID: NOP fetched (IF resumed since no trapFlush this cycle)
-            assertEquals(0x24, snap.ifId().pc());
-            assertEquals(NOP, snap.ifId().instructionWord());
+            // IF/ID: data word b=32 fetched from 0x18 (IF resumed since no trapFlush this cycle)
+            assertEquals(0x18, snap.ifId().pc());
+            assertEquals(0x00000020, snap.ifId().instructionWord());
 
             // ID/EX: bubble
             assertSame(IdExLatch.BUBBLE, snap.idEx());
@@ -446,8 +444,8 @@ final class PipelineTest {
             assertEquals(32, PipelineTest.this.cpu.getRegisters().read(2));
             assertEquals(42, PipelineTest.this.cpu.getRegisters().read(3));
 
-            // Memory: res at address 8 = 42
-            assertEquals(42, PipelineTest.this.cpu.getMemory().loadWord(8));
+            // Memory: res at address 0x1C (28) = 42
+            assertEquals(42, PipelineTest.this.cpu.getMemory().loadWord(0x1C));
         }
     }
 
@@ -459,10 +457,10 @@ final class PipelineTest {
         @DisplayName("Formats all instructions in the example program")
         void formatsExampleInstructions() {
             assertEquals("NOP", InstructionFormatter.format(NOP));
-            assertEquals("LW R1, 0(R0)", InstructionFormatter.format(LW_R1));
-            assertEquals("LW R2, 4(R0)", InstructionFormatter.format(LW_R2));
+            assertEquals("LW R1, 20(R0)", InstructionFormatter.format(LW_R1));
+            assertEquals("LW R2, 24(R0)", InstructionFormatter.format(LW_R2));
             assertEquals("ADD R3, R1, R2", InstructionFormatter.format(ADD_R3));
-            assertEquals("SW 8(R0), R3", InstructionFormatter.format(SW_RES));
+            assertEquals("SW 28(R0), R3", InstructionFormatter.format(SW_RES));
             assertEquals("TRAP #0x00", InstructionFormatter.format(TRAP_0));
         }
     }

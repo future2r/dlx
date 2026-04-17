@@ -59,9 +59,5 @@ final class CompilationPipelineIT {
 
                 assertTrue(compiled.program().length > 0,
                                 "Compiled program should not be empty");
-                assertTrue(compiled.entryPoint() >= 0,
-                                "Entry point should be non-negative");
-                assertTrue(compiled.entryPoint() <= compiled.program().length,
-                                "Entry point should not exceed program size");
         }
 }

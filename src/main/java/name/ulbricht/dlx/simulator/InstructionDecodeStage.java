@@ -81,7 +81,7 @@ final class InstructionDecodeStage {
                 // All other I-format immediates are sign-extended.
                 final var imm = switch (i.opcode()) {
                     case ANDI, ORI, XORI -> i.immediate() & 0xFFFF;
-                    default -> (int) i.immediate();
+                    default -> i.immediate();
                 };
                 final var rs1Val = regs.read(i.rs1());
 

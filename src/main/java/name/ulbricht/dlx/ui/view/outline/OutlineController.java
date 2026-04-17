@@ -55,7 +55,7 @@ public final class OutlineController {
 
         // create the invisible root for the sections
         final var root = new TreeItem<OutlineItem>();
-        root.getChildren().addAll(List.of(this.dataRoot, this.codeRoot));
+        root.getChildren().addAll(List.of(this.codeRoot, this.dataRoot));
         this.structureTreeTableView.setRoot(root);
 
         // Update the tree on changes to the compiled program

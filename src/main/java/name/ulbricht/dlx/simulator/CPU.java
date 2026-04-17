@@ -178,19 +178,18 @@ public final class CPU {
 
     /// Loads a program and resets all CPU state to its initial values.
     ///
-    /// The encoded data and instructions are written to memory starting at address
-    /// 0, the PC is set to `entryPoint`, the cycle counter is reset, and all four
-    /// pipeline latches are flushed to their bubble values. The memory outside the
+    /// The program bytes are written to memory starting at address 0 and the PC is
+    /// set to 0 (the first instruction). The cycle counter is reset and all four
+    /// pipeline latches are flushed to their bubble values. Memory outside the
     /// program area retains its previous contents (or zero on first load).
     ///
-    /// @param program    array of bytes representing the program; must not be `null`
-    ///                   `program[0]` is placed at address 0
-    /// @param entryPoint the initial PC value
-    public void loadProgram(final byte[] program, final int entryPoint) {
+    /// @param program array of bytes representing the program; must not be `null`;
+    ///                `program[0]` is placed at address 0 and executed first
+    public void loadProgram(final byte[] program) {
         requireNonNull(program, "program must not be null");
 
         // Reset all mutable CPU state.
-        this.programCounter = entryPoint;
+        this.programCounter = 0;
         this.halted = false;
         this.cycles = 0;
 
@@ -203,7 +202,7 @@ public final class CPU {
         notifyProcessingListeners();
 
         // Write the program bytes into memory.
-        this.memory.storeProgram(program, 0);
+        this.memory.storeProgram(program);
     }
 
     /// Advances the simulation by exactly one clock cycle.
@@ -257,7 +256,7 @@ public final class CPU {
         // continue to work.
         // -----------------------------------------------------------------
         final var trapFlush = this.idEx.ctrl().trap();
-        final var newIdEx = decodeNextIdEx(stall);
+        final var newIdEx = decodeNextIdEx(stall, trapFlush);
         final var ifStageDecision = decideIfStage(stall, exResult, trapFlush, newIdEx);
 
         commitCycle(ifStageDecision, newExMem, newMemWb);
@@ -268,9 +267,20 @@ public final class CPU {
         Thread.sleep(this.stageDuration);
     }
 
-    private IdExLatch decodeNextIdEx(final boolean stall) {
+    private IdExLatch decodeNextIdEx(final boolean stall, final boolean trapFlush) {
         if (stall)
             return IdExLatch.BUBBLE;
+        if (trapFlush) {
+            // The trap flush allows the already-fetched instruction in IF/ID to advance
+            // (needed for trap 1 / trap 0 sequences). However, if IF/ID holds a data word
+            // rather than a valid instruction (possible with code-first memory layout), the
+            // decoder will throw. Treat any such word as a bubble — it will never commit.
+            try {
+                return InstructionDecodeStage.execute(this.ifId, this.registers);
+            } catch (final IllegalArgumentException _) {
+                return IdExLatch.BUBBLE;
+            }
+        }
         return InstructionDecodeStage.execute(this.ifId, this.registers);
     }
 

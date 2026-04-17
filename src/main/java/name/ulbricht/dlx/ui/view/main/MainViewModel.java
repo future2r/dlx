@@ -131,7 +131,7 @@ public final class MainViewModel implements ProcessingListener {
     void loadProgram(final CompiledProgram compiledProgram) {
         requireNonNull(compiledProgram);
 
-        this.processor.get().loadProgram(compiledProgram.program(), compiledProgram.entryPoint());
+        this.processor.get().loadProgram(compiledProgram.program());
         this.programId.set(compiledProgram.id());
     }
 

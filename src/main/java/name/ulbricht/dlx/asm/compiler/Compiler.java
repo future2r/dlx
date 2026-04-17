@@ -50,40 +50,46 @@ public final class Compiler {
         this.symbols.clear();
 
         // --- Pass 1: measure sizes and collect labels ---
-
-        var dataSize = 0;
-        for (final var decl : parsed.data()) {
-            registerLabel(decl.label(), decl, dataSize);
-            dataSize = advanceDataAddress(dataSize, decl);
-        }
+        // Code labels start at 0 (code is first in memory).
+        // Data labels start at codeSize (data follows code).
 
         final var codeSize = parsed.code().size() * 4;
-        var codeAddr = dataSize;
+
+        var codeAddr = 0;
         for (final var instr : parsed.code()) {
             registerLabel(instr.label(), instr, codeAddr);
             codeAddr += 4;
         }
 
-        // --- Pass 2: emit bytes ---
-
-        final var program = new byte[dataSize + codeSize];
-
-        var offset = 0;
+        var dataAddr = codeSize;
+        var dataSize = 0;
         for (final var decl : parsed.data()) {
-            offset = emitData(program, offset, decl);
+            registerLabel(decl.label(), decl, dataAddr);
+            final var newAddr = advanceDataAddress(dataAddr, decl);
+            dataSize += newAddr - dataAddr;
+            dataAddr = newAddr;
         }
 
-        var instrAddr = dataSize;
+        // --- Pass 2: emit bytes ---
+
+        final var program = new byte[codeSize + dataSize];
+
+        var instrAddr = 0;
         for (final var instr : parsed.code()) {
             final var word = encodeInstruction(instr, instrAddr);
             emitWord(program, instrAddr, word);
             instrAddr += 4;
         }
 
-        if (hasErrors())
-            return new CompiledProgram(parsed.id(), new byte[0], 0, this.diagnostics);
+        var dataOffset = codeSize;
+        for (final var decl : parsed.data()) {
+            dataOffset = emitData(program, dataOffset, decl);
+        }
 
-        return new CompiledProgram(parsed.id(), program, dataSize, this.diagnostics);
+        if (hasErrors())
+            return new CompiledProgram(parsed.id(), new byte[0], this.diagnostics);
+
+        return new CompiledProgram(parsed.id(), program, this.diagnostics);
     }
 
     private void registerLabel(final String label, final ParsedElement element, final int address) {

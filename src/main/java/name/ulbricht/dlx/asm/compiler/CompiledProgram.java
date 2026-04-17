@@ -11,13 +11,11 @@ import name.ulbricht.dlx.asm.Diagnostic;
 /// The result of compiling a DLX assembly source file.
 ///
 /// @param id          a unique identifier for the compiled program
-/// @param program     the assembled binary (data section followed by code
-///                    section), or an empty array if compilation produced errors
-/// @param entryPoint  the byte offset where the code section begins (i.e. the
-///                    data section size); meaningful only when compilation
-///                    succeeds
+/// @param program     the assembled binary (code section at offset 0, followed by
+///                    the data section), or an empty array if compilation produced
+///                    errors; the CPU program counter always starts at address 0
 /// @param diagnostics a list of diagnostics produced during compilation
-public record CompiledProgram(UUID id, byte[] program, int entryPoint, List<Diagnostic> diagnostics) {
+public record CompiledProgram(UUID id, byte[] program, List<Diagnostic> diagnostics) {
 
     /// Validates and defensively copies all fields.
     public CompiledProgram {

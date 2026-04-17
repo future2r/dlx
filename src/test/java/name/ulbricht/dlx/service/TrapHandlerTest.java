@@ -84,7 +84,7 @@ final class TrapHandlerTest {
         final var console = new Console();
         final var cpu = new CPU();
         cpu.addTrapListener(new TrapHandler(console));
-        cpu.loadProgram(compiled.program(), compiled.entryPoint());
+        cpu.loadProgram(compiled.program());
         cpu.run();
         return new ExecutionResult(cpu, console);
     }

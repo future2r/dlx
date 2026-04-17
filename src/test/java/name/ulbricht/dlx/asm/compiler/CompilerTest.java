@@ -32,7 +32,6 @@ final class CompilerTest {
                                         .word 10""");
                         assertNoErrors(compiled);
                         assertArrayEquals(new byte[] { 0, 0, 0, 10 }, compiled.program());
-                        assertEquals(4, compiled.entryPoint());
                 }
 
                 @Test
@@ -162,10 +161,11 @@ final class CompilerTest {
                 @Test
                 @DisplayName("Data labels resolve to correct addresses")
                 void dataLabels() {
-                        // a: .word 10 (addr 0)
-                        // b: .word 20 (addr 4)
-                        // lw r1, a(r0) should encode offset=0
-                        // lw r2, b(r0) should encode offset=4
+                        // 3 instructions × 4 bytes = 12 bytes of code at 0x00–0x0B
+                        // a: .word 10 at addr 12 (0x0C)
+                        // b: .word 20 at addr 16 (0x10)
+                        // lw r1, a(r0) should encode offset=12
+                        // lw r2, b(r0) should encode offset=16
                         final var compiled = compile("""
                                         .data
                                         a: .word 10
@@ -175,14 +175,13 @@ final class CompilerTest {
                                         lw r2, b(r0)
                                         trap 0""");
                         assertNoErrors(compiled);
-                        assertEquals(8, compiled.entryPoint());
-                        // Check instruction at offset 8: lw r1, 0(r0)
-                        // opcode LW=0x23, rs1=0, rd=1, imm=0
-                        final var word0 = readWord(compiled.program(), 8);
-                        assertEquals(0x8C010000, word0); // (0x23<<26)|(0<<21)|(1<<16)|0
-                        // Check instruction at offset 12: lw r2, 4(r0)
-                        final var word1 = readWord(compiled.program(), 12);
-                        assertEquals(0x8C020004, word1); // (0x23<<26)|(0<<21)|(2<<16)|4
+                        // Check instruction at offset 0: lw r1, 12(r0)
+                        // opcode LW=0x23, rs1=0, rd=1, imm=12
+                        final var word0 = readWord(compiled.program(), 0);
+                        assertEquals(0x8C01000C, word0); // (0x23<<26)|(0<<21)|(1<<16)|12
+                        // Check instruction at offset 4: lw r2, 16(r0)
+                        final var word1 = readWord(compiled.program(), 4);
+                        assertEquals(0x8C020010, word1); // (0x23<<26)|(0<<21)|(2<<16)|16
                 }
         }
 
@@ -444,20 +443,20 @@ final class CompilerTest {
                                         trap 0""");
                         assertNoErrors(compiled);
 
-                        // Verify structure
-                        assertEquals(12, compiled.entryPoint());
+                        // Verify structure: 5 instructions (20 bytes) + 3 data words (12 bytes) = 32 bytes
                         assertEquals(32, compiled.program().length);
 
-                        // Verify code section encoding
-                        assertEquals(0x8C010000, readWord(compiled.program(), 12)); // lw r1, 0(r0)
-                        assertEquals(0x8C020004, readWord(compiled.program(), 16)); // lw r2, 4(r0)
-                        assertEquals(0x00221820, readWord(compiled.program(), 20)); // add r3, r1, r2
-                        assertEquals(0xAC030008, readWord(compiled.program(), 24)); // sw 8(r0), r3
-                        assertEquals(0xFC000000, readWord(compiled.program(), 28)); // trap 0
+                        // Verify code section encoding (offsets 0–19, code-first layout)
+                        // a at 0x14 (20), b at 0x18 (24), res at 0x1C (28)
+                        assertEquals(0x8C010014, readWord(compiled.program(), 0));  // lw r1, 20(r0)
+                        assertEquals(0x8C020018, readWord(compiled.program(), 4));  // lw r2, 24(r0)
+                        assertEquals(0x00221820, readWord(compiled.program(), 8));  // add r3, r1, r2
+                        assertEquals(0xAC03001C, readWord(compiled.program(), 12)); // sw 28(r0), r3
+                        assertEquals(0xFC000000, readWord(compiled.program(), 16)); // trap 0
 
                         // Run on CPU and verify results
                         final var cpu = new CPU();
-                        cpu.loadProgram(compiled.program(), compiled.entryPoint());
+                        cpu.loadProgram(compiled.program());
                         cpu.run();
 
                         assertTrue(cpu.isHalted());
@@ -489,7 +488,7 @@ final class CompilerTest {
                         assertNoErrors(compiled);
 
                         final var cpu = new CPU(64);
-                        cpu.loadProgram(compiled.program(), compiled.entryPoint());
+                        cpu.loadProgram(compiled.program());
                         cpu.run();
 
                         // r1 = 0xFFFFFFFF
