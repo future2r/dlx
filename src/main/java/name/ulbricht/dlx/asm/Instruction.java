@@ -103,13 +103,13 @@ public enum Instruction {
     // I-format - logic immediate
     // -------------------------------------------------------------------------
 
-    /// Bitwise AND immediate: `rd = rs1 & sign_extend(imm16)`.
+    /// Bitwise AND immediate: `rd = rs1 & zero_extend(imm16)`.
     ANDI("andi", OperandFormat.I_ARITH, OperationCode.ANDI),
 
-    /// Bitwise OR immediate: `rd = rs1 | sign_extend(imm16)`.
+    /// Bitwise OR immediate: `rd = rs1 | zero_extend(imm16)`.
     ORI("ori", OperandFormat.I_ARITH, OperationCode.ORI),
 
-    /// Bitwise XOR immediate: `rd = rs1 ^ sign_extend(imm16)`.
+    /// Bitwise XOR immediate: `rd = rs1 ^ zero_extend(imm16)`.
     XORI("xori", OperandFormat.I_ARITH, OperationCode.XORI),
 
     // -------------------------------------------------------------------------

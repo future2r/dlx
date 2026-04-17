@@ -23,16 +23,16 @@ import static java.util.Objects.requireNonNull;
 ///   address. `rd` is unused except for `JALR`, where the hardware implicitly
 ///   writes `PC + 4` to R31 (the link register).
 ///
-/// The 16-bit `immediate` field is stored as a Java `short` so that it is
-/// automatically sign-extended when assigned to an `int`.
+/// The 16-bit `immediate` field is stored as a Java `short`. The decode stage
+/// sign-extends it to 32 bits for arithmetic instructions, but **zero-extends**
+/// it for logical instructions (`ANDI`, `ORI`, `XORI`) per the DLX specification.
 ///
 /// @param opcode    the instruction opcode (never [OperationCode#SPECIAL] or a
 ///                  J-format opcode)
 /// @param rs1       index of the first source register (0–31)
 /// @param rd        index of the destination register **or** the store-data
 ///                  source register, depending on instruction class (0–31)
-/// @param immediate 16-bit signed immediate value; sign-extended to 32 bits
-///                  during decode
+/// @param immediate raw 16-bit immediate value; extension mode depends on opcode
 public record ImmediateInstruction(OperationCode opcode, int rs1, int rd, short immediate)
         implements Instruction {
 

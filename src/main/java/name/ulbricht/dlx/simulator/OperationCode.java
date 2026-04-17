@@ -93,17 +93,17 @@ public enum OperationCode {
 
     /// Bitwise AND immediate (I-format, 0x0C).
     ///
-    /// `rd = rs1 & sign_extend(imm16)`.
+    /// `rd = rs1 & zero_extend(imm16)`.
     ANDI(0x0C),
 
     /// Bitwise OR immediate (I-format, 0x0D).
     ///
-    /// `rd = rs1 | sign_extend(imm16)`.
+    /// `rd = rs1 | zero_extend(imm16)`.
     ORI(0x0D),
 
     /// Bitwise XOR immediate (I-format, 0x0E).
     ///
-    /// `rd = rs1 ^ sign_extend(imm16)`.
+    /// `rd = rs1 ^ zero_extend(imm16)`.
     XORI(0x0E),
 
     // -------------------------------------------------------------------------

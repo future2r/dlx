@@ -473,6 +473,33 @@ final class CompilerTest {
                         assertNoErrors(compiled);
                         assertEquals(0, compiled.program().length);
                 }
+
+                @Test
+                @DisplayName("ANDI/ORI/XORI zero-extend their immediates")
+                void logicalImmediatesAreZeroExtended() throws InterruptedException {
+                        // All three instructions use an immediate with the sign bit set (0x8000).
+                        // Zero-extension must produce 0x00008000, NOT 0xFFFF8000.
+                        final var compiled = compile("""
+                                        .text
+                                        addi  r1, r0, -1
+                                        andi  r2, r1, 0x8000
+                                        ori   r3, r0, 0x8000
+                                        xori  r4, r1, 0x8000
+                                        trap  0""");
+                        assertNoErrors(compiled);
+
+                        final var cpu = new CPU(64);
+                        cpu.loadProgram(compiled.program(), compiled.entryPoint());
+                        cpu.run();
+
+                        // r1 = 0xFFFFFFFF
+                        // r2 = 0xFFFFFFFF & 0x00008000 = 0x00008000
+                        assertEquals(0x00008000, cpu.getRegisters().read(2));
+                        // r3 = 0x00000000 | 0x00008000 = 0x00008000
+                        assertEquals(0x00008000, cpu.getRegisters().read(3));
+                        // r4 = 0xFFFFFFFF ^ 0x00008000 = 0xFFFF7FFF
+                        assertEquals(0xFFFF7FFF, cpu.getRegisters().read(4));
+                }
         }
 
         // =====================================================================

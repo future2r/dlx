@@ -77,8 +77,12 @@ final class InstructionDecodeStage {
             // store instructions also have a data-source register in the rd field
             // -----------------------------------------------------------------
             case final ImmediateInstruction i -> {
-                // The short→int cast sign-extends the 16-bit immediate to 32 bits.
-                final var imm = (int) i.immediate();
+                // Logical immediates (ANDI, ORI, XORI) are zero-extended per DLX spec.
+                // All other I-format immediates are sign-extended.
+                final var imm = switch (i.opcode()) {
+                    case ANDI, ORI, XORI -> i.immediate() & 0xFFFF;
+                    default -> (int) i.immediate();
+                };
                 final var rs1Val = regs.read(i.rs1());
 
                 // For stores the 'rd' field of the instruction word holds the
