@@ -271,10 +271,10 @@ final class CompilerTest {
                                         addi r2, r0, 1
                                         end: trap 0""");
                         assertNoErrors(compiled);
-                        // beqz at addr 0, end at addr 8: offset = 8
-                        // BEQZ=0x04<<26 | rs1=1<<21 | rd=0<<16 | imm=8
+                        // beqz at addr 0, end at addr 8: offset = 8 - (0+4) = 4
+                        // BEQZ=0x04<<26 | rs1=1<<21 | rd=0<<16 | imm=4
                         final var word = readWord(compiled.program(), 0);
-                        assertEquals(0x10200008, word);
+                        assertEquals(0x10200004, word);
                 }
 
                 @Test
@@ -285,9 +285,9 @@ final class CompilerTest {
                                         loop: addi r1, r1, -1
                                         bnez r1, loop""");
                         assertNoErrors(compiled);
-                        // bnez at addr 4, loop at addr 0: offset = -4 = 0xFFFC
+                        // bnez at addr 4, loop at addr 0: offset = 0 - (4+4) = -8 = 0xFFF8
                         final var word = readWord(compiled.program(), 4);
-                        assertEquals(0x1420FFFC, word);
+                        assertEquals(0x1420FFF8, word);
                 }
 
                 @Test
@@ -334,10 +334,10 @@ final class CompilerTest {
                                         addi r1, r0, 1
                                         end: trap 0""");
                         assertNoErrors(compiled);
-                        // j at addr 0, end at addr 8: distance = 8
-                        // J=0x02<<26 | dist=8
+                        // j at addr 0, end at addr 8: distance = 8 - (0+4) = 4
+                        // J=0x02<<26 | dist=4
                         final var word = readWord(compiled.program(), 0);
-                        assertEquals(0x08000008, word);
+                        assertEquals(0x08000004, word);
                 }
 
                 @Test
@@ -349,10 +349,10 @@ final class CompilerTest {
                                         trap 0
                                         func: jr r31""");
                         assertNoErrors(compiled);
-                        // jal at addr 0, func at addr 8: distance = 8
-                        // JAL=0x03<<26 | dist=8
+                        // jal at addr 0, func at addr 8: distance = 8 - (0+4) = 4
+                        // JAL=0x03<<26 | dist=4
                         final var word = readWord(compiled.program(), 0);
-                        assertEquals(0x0C000008, word);
+                        assertEquals(0x0C000004, word);
                 }
         }
 

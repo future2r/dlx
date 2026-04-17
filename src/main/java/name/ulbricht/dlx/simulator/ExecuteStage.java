@@ -19,13 +19,14 @@ import static java.util.Objects.requireNonNull;
 ///    [ExecuteResult#pcRedirect()].
 ///
 /// ## Branch target convention
-/// All offsets are treated as **signed byte offsets** added to the address of
-/// the branch or jump instruction itself (stored in [IdExLatch#pc()]):
+/// All offsets are treated as **signed byte offsets** added to `PC + 4` (the
+/// address of the instruction following the branch or jump), where `PC` is the
+/// address of the branch/jump instruction stored in [IdExLatch#pc()]:
 ///
 /// | Instruction | Target |
 /// |-------------|--------|
-/// | BEQZ / BNEZ | `PC + sign_extend(imm16)` |
-/// | J / JAL     | `PC + sign_extend(dist26)` |
+/// | BEQZ / BNEZ | `PC + 4 + sign_extend(imm16)` |
+/// | J / JAL     | `PC + 4 + sign_extend(dist26)` |
 /// | JR / JALR   | `rs1` (register value) |
 ///
 /// ## JAL / JALR link address
@@ -105,14 +106,14 @@ final class ExecuteStage {
             final var condition = ctrl.flow().branchNotZero() ? (aVal != 0) : (aVal == 0);
             if (condition) {
                 taken = true;
-                // Branch target: PC of the branch instruction + signed byte offset.
-                newPc = idEx.pc() + idEx.immediate();
+                // Branch target: (PC + 4) of the branch instruction + signed byte offset.
+                newPc = idEx.pc() + 4 + idEx.immediate();
             }
         } else if (ctrl.flow().jump()) {
             taken = true;
             // JR / JALR: target is the value of rs1 (already forwarded in aVal).
-            // J / JAL: target is PC + sign_extend(dist26) stored in immediate.
-            newPc = ctrl.flow().jumpReg() ? aVal : (idEx.pc() + idEx.immediate());
+            // J / JAL: target is (PC + 4) + sign_extend(dist26) stored in immediate.
+            newPc = ctrl.flow().jumpReg() ? aVal : (idEx.pc() + 4 + idEx.immediate());
         }
 
         // -----------------------------------------------------------------

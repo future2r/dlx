@@ -336,7 +336,7 @@ public final class Compiler {
         final var op = instr.operands().get(index);
         if (op instanceof final LabelOperand label) {
             final var targetAddr = resolveLabel(instr, label.name());
-            return targetAddr - instrAddr;
+            return targetAddr - (instrAddr + 4);
         }
         addError("Expected label operand", instr);
         return 0;
