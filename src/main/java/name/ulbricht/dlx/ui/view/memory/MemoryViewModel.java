@@ -17,11 +17,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import name.ulbricht.dlx.simulator.Access;
 import name.ulbricht.dlx.simulator.CPU;
+import name.ulbricht.dlx.simulator.CycleListener;
 import name.ulbricht.dlx.simulator.MemoryAccessListener;
-import name.ulbricht.dlx.simulator.ProcessingListener;
 
 /// View model for the memory hex viewer.
-public final class MemoryViewModel implements ProcessingListener, MemoryAccessListener {
+public final class MemoryViewModel implements CycleListener, MemoryAccessListener {
 
     private final Executor uiExecutor;
 
@@ -101,7 +101,7 @@ public final class MemoryViewModel implements ProcessingListener, MemoryAccessLi
 
     private void processorChanged(final CPU oldProcessor, final CPU newProcessor) {
         if (oldProcessor != null) {
-            oldProcessor.removeProcessingListener(this);
+            oldProcessor.removeCycleListener(this);
             oldProcessor.getMemory().removeAccessListener(this);
         }
 
@@ -118,7 +118,7 @@ public final class MemoryViewModel implements ProcessingListener, MemoryAccessLi
                 this.modifiableRows.add(new MemoryRow(i * MemoryRow.BYTES_PER_ROW, this.shadow, this.accessState));
             }
 
-            newProcessor.addProcessingListener(this);
+            newProcessor.addCycleListener(this);
             newProcessor.getMemory().addAccessListener(this);
         } else {
             this.shadow = new byte[0];
@@ -153,13 +153,15 @@ public final class MemoryViewModel implements ProcessingListener, MemoryAccessLi
     }
 
     @Override
-    public void processing(final ProcessStep step) {
-        // Events may originate from the CPU's virtual thread.
-        this.uiExecutor.execute(this::clearMemoryAccess);
+    public void onCycle(final CycleListener.Cycle cycle) {
+        // Fires before any stage runs — queue the clear so it arrives on the FX
+        // thread before this cycle's access-highlight events.
+        if (cycle.state() == CycleListener.CycleState.START)
+            this.uiExecutor.execute(this::clearMemoryAccess);
     }
 
     /// Clears all per-byte access highlights without changing the shadow data.
-    /// Called before each simulation step to reset the previous cycle's highlights.
+    /// Called before each simulation cycle to reset the previous cycle's highlights.
     void clearMemoryAccess() {
         Arrays.fill(this.accessState, null);
         signalRefresh();

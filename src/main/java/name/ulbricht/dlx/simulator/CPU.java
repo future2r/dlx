@@ -97,8 +97,8 @@ public final class CPU {
     /// observe the pipeline behaviour more clearly.
     private Duration stageDuration = Duration.ZERO;
 
-    /// Listeners for processing steps.
-    private final List<ProcessingListener> processingListeners = new ArrayList<>();
+    /// Listeners for cycle start and end events.
+    private final List<CycleListener> cycleListeners = new ArrayList<>();
 
     /// Listeners for non-halt trap retirement.
     private final List<TrapListener> trapListeners = new ArrayList<>();
@@ -199,7 +199,7 @@ public final class CPU {
         this.exMem = ExMemLatch.BUBBLE;
         this.memWb = MemWbLatch.BUBBLE;
 
-        notifyProcessingListeners();
+        notifyCycleListeners(CycleListener.CycleState.END);
 
         // Write the program bytes into memory.
         this.memory.storeProgram(program);
@@ -221,6 +221,8 @@ public final class CPU {
         // A halted CPU does nothing.
         if (this.halted)
             return;
+
+        notifyCycleListeners(CycleListener.CycleState.START);
 
         // -----------------------------------------------------------------
         // Pre-stage: detect load-use hazard using the current latch values.
@@ -260,7 +262,7 @@ public final class CPU {
         final var ifStageDecision = decideIfStage(stall, exResult, trapFlush, newIdEx);
 
         commitCycle(ifStageDecision, newExMem, newMemWb);
-        notifyProcessingListeners();
+        notifyCycleListeners(CycleListener.CycleState.END);
         handleRetiredTrap(newMemWb);
 
         // Wait to simulate processing time
@@ -403,18 +405,18 @@ public final class CPU {
         return this.cycles;
     }
 
-    /// Registers a listener to be notified after every processing step.
-    /// 
+    /// Registers a listener to be notified at the start and end of every cycle.
+    ///
     /// @param listener the listener to register; must not be `null`
-    public synchronized void addProcessingListener(final ProcessingListener listener) {
-        this.processingListeners.add(listener);
+    public synchronized void addCycleListener(final CycleListener listener) {
+        this.cycleListeners.add(listener);
     }
 
-    /// Unregisters a previously registered processing listener.
+    /// Unregisters a previously registered cycle listener.
     ///
     /// @param listener the listener to unregister; must not be `null`
-    public synchronized void removeProcessingListener(final ProcessingListener listener) {
-        this.processingListeners.remove(listener);
+    public synchronized void removeCycleListener(final CycleListener listener) {
+        this.cycleListeners.remove(listener);
     }
 
     /// Registers a listener to be notified when a non-halt trap retires.
@@ -431,17 +433,16 @@ public final class CPU {
         this.trapListeners.remove(listener);
     }
 
-    private void notifyProcessingListeners() {
-        final List<ProcessingListener> currentListeners;
+    private void notifyCycleListeners(final CycleListener.CycleState state) {
+        final List<CycleListener> current;
         synchronized (this) {
-            if (this.processingListeners.isEmpty())
+            if (this.cycleListeners.isEmpty())
                 return;
-            currentListeners = List.copyOf(this.processingListeners);
+            current = List.copyOf(this.cycleListeners);
         }
-
         final var pipeline = new PipelineSnapshot(this.ifId, this.idEx, this.exMem, this.memWb);
-        final var step = new ProcessingListener.ProcessStep(this.cycles, this.programCounter, this.halted, pipeline);
-        currentListeners.forEach(listener -> listener.processing(step));
+        final var cycle = new CycleListener.Cycle(state, this.cycles, this.programCounter, this.halted, pipeline);
+        current.forEach(listener -> listener.onCycle(cycle));
     }
 
     private void notifyTrapListeners(final int trapNumber) {

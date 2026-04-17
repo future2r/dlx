@@ -19,10 +19,10 @@ import name.ulbricht.dlx.config.UserPreferences;
 import name.ulbricht.dlx.service.Services;
 import name.ulbricht.dlx.service.TrapHandler;
 import name.ulbricht.dlx.simulator.CPU;
-import name.ulbricht.dlx.simulator.ProcessingListener;
+import name.ulbricht.dlx.simulator.CycleListener;
 
 /// View model for the main application view.
-public final class MainViewModel implements ProcessingListener {
+public final class MainViewModel implements CycleListener {
 
     private final ReadOnlyObjectWrapper<CPU> processor = new ReadOnlyObjectWrapper<>();
     private final ReadOnlyObjectWrapper<UUID> programId = new ReadOnlyObjectWrapper<>();
@@ -90,7 +90,7 @@ public final class MainViewModel implements ProcessingListener {
 
     private void processorChanged(final CPU oldProcessor, final CPU newProcessor) {
         if (oldProcessor != null) {
-            oldProcessor.removeProcessingListener(this);
+            oldProcessor.removeCycleListener(this);
             oldProcessor.removeTrapListener(this.trapHandler);
         }
 
@@ -100,7 +100,7 @@ public final class MainViewModel implements ProcessingListener {
         this.halted.set(false);
 
         if (newProcessor != null) {
-            newProcessor.addProcessingListener(this);
+            newProcessor.addCycleListener(this);
             newProcessor.addTrapListener(this.trapHandler);
             this.cycles.set(newProcessor.getCycles());
             this.programCounter.set(newProcessor.getProgramCounter());
@@ -142,14 +142,15 @@ public final class MainViewModel implements ProcessingListener {
     }
 
     @Override
-    public void processing(final ProcessStep step) {
+    public void onCycle(final CycleListener.Cycle cycle) {
         // Events may originate from the CPU's virtual thread.
-        this.uiExecutor.execute(() -> handleProcessing(step));
+        if (cycle.state() == CycleListener.CycleState.END)
+            this.uiExecutor.execute(() -> handleCycleEnd(cycle));
     }
 
-    private void handleProcessing(final ProcessStep step) {
-        this.cycles.set(step.cycles());
-        this.programCounter.set(step.programCounter());
-        this.halted.set(step.halted());
+    private void handleCycleEnd(final CycleListener.Cycle cycle) {
+        this.cycles.set(cycle.cycles());
+        this.programCounter.set(cycle.programCounter());
+        this.halted.set(cycle.halted());
     }
 }

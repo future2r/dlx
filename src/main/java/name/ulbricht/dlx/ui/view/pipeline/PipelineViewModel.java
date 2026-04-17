@@ -12,16 +12,16 @@ import javafx.beans.property.SimpleObjectProperty;
 import name.ulbricht.dlx.simulator.CPU;
 import name.ulbricht.dlx.simulator.CPU.PipelineSnapshot;
 import name.ulbricht.dlx.simulator.ControlSignals;
+import name.ulbricht.dlx.simulator.CycleListener;
 import name.ulbricht.dlx.simulator.ExMemLatch;
 import name.ulbricht.dlx.simulator.IdExLatch;
 import name.ulbricht.dlx.simulator.IfIdLatch;
 import name.ulbricht.dlx.simulator.InstructionFormatter;
 import name.ulbricht.dlx.simulator.MemWbLatch;
-import name.ulbricht.dlx.simulator.ProcessingListener;
 
 /// View model for the pipeline view. Exposes per-stage display strings derived
-/// from the [PipelineSnapshot] delivered with each [ProcessStep].
-public final class PipelineViewModel implements ProcessingListener {
+/// from the [CycleListener.Cycle] snapshot delivered with each cycle end event.
+public final class PipelineViewModel implements CycleListener {
 
     private final Executor uiExecutor;
 
@@ -247,23 +247,19 @@ public final class PipelineViewModel implements ProcessingListener {
         return this.wbRd.get();
     }
 
-    // -- ProcessingListener --
-
     @Override
-    public void processing(final ProcessStep step) {
-        final var pipeline = step.pipeline();
-        this.uiExecutor.execute(() -> updateFromSnapshot(pipeline));
+    public void onCycle(final CycleListener.Cycle cycle) {
+        if (cycle.state() == CycleListener.CycleState.END)
+            this.uiExecutor.execute(() -> updateFromSnapshot(cycle.pipeline()));
     }
-
-    // -- internal --
 
     private void processorChanged(final CPU oldProcessor, final CPU newProcessor) {
         if (oldProcessor != null) {
-            oldProcessor.removeProcessingListener(this);
+            oldProcessor.removeCycleListener(this);
         }
         clearAll();
         if (newProcessor != null) {
-            newProcessor.addProcessingListener(this);
+            newProcessor.addCycleListener(this);
         }
     }
 

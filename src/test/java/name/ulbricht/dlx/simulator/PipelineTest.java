@@ -466,17 +466,17 @@ final class PipelineTest {
     }
 
     @Nested
-    @DisplayName("ProcessStep includes pipeline snapshot")
-    class ProcessStepSnapshot {
+    @DisplayName("Cycle includes pipeline snapshot")
+    class CycleSnapshot {
 
         @Test
-        @DisplayName("Processing listener receives pipeline snapshot matching CPU state")
+        @DisplayName("cycleEnd delivers post-commit pipeline snapshot matching CPU state")
         void listenerReceivesSnapshot() throws InterruptedException {
-            // The listener fires AFTER commitCycle(), so it delivers the
-            // post-cycle state. Run one cycle, capture the listener output,
-            // then compare it against a snapshot taken after the step.
-            final var holder = new ProcessingListener.ProcessStep[1];
-            PipelineTest.this.cpu.addProcessingListener(step -> holder[0] = step);
+            // cycleEnd fires AFTER commitCycle(), so it delivers the post-cycle
+            // state. Run one cycle, capture the cycle snapshot, then compare it
+            // against a snapshot taken directly from the CPU after the step.
+            final var holder = new CycleListener.Cycle[1];
+            PipelineTest.this.cpu.addCycleListener(cycle -> holder[0] = cycle);
 
             PipelineTest.this.cpu.step(); // cycle 1 — fills IF/ID with LW R1
 
@@ -484,10 +484,10 @@ final class PipelineTest {
             final var expectedCycles = PipelineTest.this.cpu.getCycles();
             final var expectedPc = PipelineTest.this.cpu.getProgramCounter();
 
-            final var step = holder[0];
-            assertEquals(expectedCycles, step.cycles());
-            assertEquals(expectedPc, step.programCounter());
-            assertEquals(expectedSnapshot, step.pipeline());
+            final var cycle = holder[0];
+            assertEquals(expectedCycles, cycle.cycles());
+            assertEquals(expectedPc, cycle.programCounter());
+            assertEquals(expectedSnapshot, cycle.pipeline());
         }
     }
 

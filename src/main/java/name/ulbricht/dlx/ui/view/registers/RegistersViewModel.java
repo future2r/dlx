@@ -14,11 +14,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import name.ulbricht.dlx.simulator.Access;
 import name.ulbricht.dlx.simulator.CPU;
-import name.ulbricht.dlx.simulator.ProcessingListener;
+import name.ulbricht.dlx.simulator.CycleListener;
 import name.ulbricht.dlx.simulator.RegisterAccessListener;
 
 /// View model for the registers view.
-public final class RegistersViewModel implements ProcessingListener, RegisterAccessListener {
+public final class RegistersViewModel implements CycleListener, RegisterAccessListener {
 
     private final Executor uiExecutor;
 
@@ -66,7 +66,7 @@ public final class RegistersViewModel implements ProcessingListener, RegisterAcc
 
     private void processorChanged(final CPU oldProcessor, final CPU newProcessor) {
         if (oldProcessor != null) {
-            oldProcessor.removeProcessingListener(this);
+            oldProcessor.removeCycleListener(this);
             oldProcessor.getRegisters().removeAccessListener(this);
         }
 
@@ -78,7 +78,7 @@ public final class RegistersViewModel implements ProcessingListener, RegisterAcc
                 this.modifiableRegisters.add(new RegisterItem(i, registerValues[i]));
             }
 
-            newProcessor.addProcessingListener(this);
+            newProcessor.addCycleListener(this);
             newProcessor.getRegisters().addAccessListener(this);
         }
     }
@@ -103,9 +103,11 @@ public final class RegistersViewModel implements ProcessingListener, RegisterAcc
     }
 
     @Override
-    public void processing(final ProcessStep step) {
-        // Events may originate from the CPU's virtual thread.
-        this.uiExecutor.execute(this::clearRegisterAccess);
+    public void onCycle(final CycleListener.Cycle cycle) {
+        // Fires before any stage runs — queue the clear so it arrives on the FX
+        // thread before this cycle's access-highlight events.
+        if (cycle.state() == CycleListener.CycleState.START)
+            this.uiExecutor.execute(this::clearRegisterAccess);
     }
 
     private void clearRegisterAccess() {
