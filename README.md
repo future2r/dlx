@@ -47,6 +47,7 @@ The project uses the [Maven Wrapper](https://maven.apache.org/wrapper/), so you 
 ```powershell
 .\mvnw compile       # compile sources and generate Javadoc
 .\mvnw test          # run unit tests
+.\mvnw javafx:run    # start the JavaFX application
 .\mvnw package       # build JAR in target/lib/
 .\mvnw clean         # remove build artifacts
 ```

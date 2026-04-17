@@ -101,6 +101,10 @@
 				"command": "versions:display-property-updates -U -DallowSnapshots=false -DallowMinorUpdates=true -DallowMajorUpdates=true"
 			},
 			{
+				"alias": "Run application",
+				"command": "javafx:run"
+			},
+			{
 				"alias": "Create runtime image (jlink)",
 				"command": "clean package -Pjlink"
 			},
