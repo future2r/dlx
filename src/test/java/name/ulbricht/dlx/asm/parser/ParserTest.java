@@ -22,7 +22,7 @@ final class ParserTest {
 
         @Nested
         @DisplayName("Segments")
-        class Segments {
+        final class Segments {
 
                 @Test
                 @DisplayName("Empty source produces empty program")
@@ -75,7 +75,7 @@ final class ParserTest {
 
         @Nested
         @DisplayName("Data directives")
-        class DataDirectives {
+        final class DataDirectives {
 
                 @Test
                 @DisplayName(".word with single value")
@@ -192,7 +192,7 @@ final class ParserTest {
 
         @Nested
         @DisplayName("Labels")
-        class Labels {
+        final class Labels {
 
                 @Test
                 @DisplayName("Label-only line floats to next")
@@ -223,7 +223,7 @@ final class ParserTest {
 
         @Nested
         @DisplayName("Instructions")
-        class Instructions {
+        final class Instructions {
 
                 @Test
                 @DisplayName("trap instruction — single immediate operand")
@@ -477,7 +477,7 @@ final class ParserTest {
 
         @Nested
         @DisplayName("Complete programs")
-        class Programs {
+        final class Programs {
 
                 @Test
                 @DisplayName("Simple program")
@@ -518,7 +518,7 @@ final class ParserTest {
 
         @Nested
         @DisplayName("Error handling")
-        class ErrorHandling {
+        final class ErrorHandling {
 
                 @Test
                 @DisplayName("Unsupported directive produces error")

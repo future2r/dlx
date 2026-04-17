@@ -83,7 +83,7 @@ final class PipelineTest {
 
     @Nested
     @DisplayName("Pipeline filling")
-    class PipelineFilling {
+    final class PipelineFilling {
 
         @Test
         @DisplayName("Initial state: all latches are bubbles")
@@ -180,7 +180,7 @@ final class PipelineTest {
 
     @Nested
     @DisplayName("Load-use hazard stall")
-    class LoadUseHazard {
+    final class LoadUseHazard {
 
         @Test
         @DisplayName("Cycle 4: stall — ADD depends on R2 from LW R2 in EX")
@@ -263,7 +263,7 @@ final class PipelineTest {
 
     @Nested
     @DisplayName("Forwarding and execution")
-    class ForwardingAndExecution {
+    final class ForwardingAndExecution {
 
         @Test
         @DisplayName("Cycle 6: ADD executes with R2 forwarded from MEM/WB, result = 42")
@@ -318,7 +318,8 @@ final class PipelineTest {
             step(); // cycle 6
             final var snap = step();
 
-            // IF/ID: data word a=10 fetched from 0x14 (first data address, code-first layout)
+            // IF/ID: data word a=10 fetched from 0x14 (first data address, code-first
+            // layout)
             // trapFlush is not yet active — TRAP is still in ID, not EX
             assertEquals(0x14, snap.ifId().pc());
             assertEquals(0x0000000A, snap.ifId().instructionWord());
@@ -352,7 +353,7 @@ final class PipelineTest {
 
     @Nested
     @DisplayName("Trap flush and pipeline drain")
-    class TrapFlushAndDrain {
+    final class TrapFlushAndDrain {
 
         @Test
         @DisplayName("Cycle 8: TRAP in EX flushes IF, SW writes memory[0x1C]=42, WB writes R3=42")
@@ -363,7 +364,8 @@ final class PipelineTest {
             // IF/ID: bubble — trap flush suppressed IF
             assertSame(IfIdLatch.BUBBLE, snap.ifId());
 
-            // ID/EX: bubble — data word at 0x14 has invalid opcode, caught by trapFlush safety
+            // ID/EX: bubble — data word at 0x14 has invalid opcode, caught by trapFlush
+            // safety
             assertSame(IdExLatch.BUBBLE, snap.idEx());
 
             // EX/MEM: TRAP executed
@@ -392,7 +394,8 @@ final class PipelineTest {
             stepTo(9);
             final var snap = PipelineTest.this.cpu.getPipelineSnapshot();
 
-            // IF/ID: data word b=32 fetched from 0x18 (IF resumed since no trapFlush this cycle)
+            // IF/ID: data word b=32 fetched from 0x18 (IF resumed since no trapFlush this
+            // cycle)
             assertEquals(0x18, snap.ifId().pc());
             assertEquals(0x00000020, snap.ifId().instructionWord());
 
@@ -429,7 +432,7 @@ final class PipelineTest {
 
     @Nested
     @DisplayName("Final program results")
-    class FinalResults {
+    final class FinalResults {
 
         @Test
         @DisplayName("Program completes in 9 cycles with correct register and memory state")
@@ -451,7 +454,7 @@ final class PipelineTest {
 
     @Nested
     @DisplayName("Instruction formatter")
-    class InstructionFormatting {
+    final class InstructionFormatting {
 
         @Test
         @DisplayName("Formats all instructions in the example program")
@@ -467,7 +470,7 @@ final class PipelineTest {
 
     @Nested
     @DisplayName("Cycle includes pipeline snapshot")
-    class CycleSnapshot {
+    final class CycleSnapshot {
 
         @Test
         @DisplayName("cycleEnd delivers post-commit pipeline snapshot matching CPU state")

@@ -32,7 +32,7 @@ final class MemoryTest {
 
     @Nested
     @DisplayName("Byte access")
-    class ByteAccess {
+    final class ByteAccess {
 
         @Test
         void storeAndLoadByte() {
@@ -62,7 +62,7 @@ final class MemoryTest {
 
     @Nested
     @DisplayName("Half-word access")
-    class HalfWordAccess {
+    final class HalfWordAccess {
 
         @Test
         void storeAndLoadHalfWordBigEndian() {
@@ -92,7 +92,7 @@ final class MemoryTest {
 
     @Nested
     @DisplayName("Word access")
-    class WordAccess {
+    final class WordAccess {
 
         @Test
         void storeAndLoadWordBigEndian() {
@@ -126,7 +126,7 @@ final class MemoryTest {
 
     @Nested
     @DisplayName("Program loading")
-    class ProgramLoading {
+    final class ProgramLoading {
 
         @Test
         void loadProgramWritesWordsSequentially() {
@@ -144,7 +144,7 @@ final class MemoryTest {
 
     @Nested
     @DisplayName("Boundary checks")
-    class BoundaryChecks {
+    final class BoundaryChecks {
 
         @Test
         void loadByteAtLastValidAddress() {

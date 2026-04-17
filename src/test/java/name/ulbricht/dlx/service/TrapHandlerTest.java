@@ -23,7 +23,7 @@ final class TrapHandlerTest {
 
     @Nested
     @DisplayName("CPU integration")
-    class CpuIntegration {
+    final class CpuIntegration {
 
         @Test
         @DisplayName("trap 1 prints an integer")

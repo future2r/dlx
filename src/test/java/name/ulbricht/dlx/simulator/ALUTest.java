@@ -40,7 +40,7 @@ final class ALUTest {
 
     @Nested
     @DisplayName("Arithmetic operations")
-    class Arithmetic {
+    final class Arithmetic {
 
         @Test
         void addTwoPositives() {
@@ -138,7 +138,7 @@ final class ALUTest {
 
     @Nested
     @DisplayName("Bitwise operations")
-    class Bitwise {
+    final class Bitwise {
 
         @Test
         void andBasic() {
@@ -189,7 +189,7 @@ final class ALUTest {
 
     @Nested
     @DisplayName("Shift operations")
-    class Shifts {
+    final class Shifts {
 
         @Test
         void sllByOne() {
@@ -252,7 +252,7 @@ final class ALUTest {
 
     @Nested
     @DisplayName("Comparison operations")
-    class Comparisons {
+    final class Comparisons {
 
         @Test
         void seqEqualValues() {

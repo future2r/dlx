@@ -22,7 +22,7 @@ final class CompilerTest {
 
         @Nested
         @DisplayName("Data section")
-        class DataSection {
+        final class DataSection {
 
                 @Test
                 @DisplayName(".word emits 4 bytes big-endian")
@@ -187,7 +187,7 @@ final class CompilerTest {
 
         @Nested
         @DisplayName("Instruction encoding")
-        class InstructionEncoding {
+        final class InstructionEncoding {
 
                 @Test
                 @DisplayName("R-format: add r3, r1, r2")
@@ -357,7 +357,7 @@ final class CompilerTest {
 
         @Nested
         @DisplayName("Error handling")
-        class ErrorHandling {
+        final class ErrorHandling {
 
                 @Test
                 @DisplayName("Duplicate label produces error")
@@ -425,7 +425,7 @@ final class CompilerTest {
 
         @Nested
         @DisplayName("Integration")
-        class Integration {
+        final class Integration {
 
                 @Test
                 @DisplayName("Example program compiles and runs correctly")
@@ -443,14 +443,15 @@ final class CompilerTest {
                                         trap 0""");
                         assertNoErrors(compiled);
 
-                        // Verify structure: 5 instructions (20 bytes) + 3 data words (12 bytes) = 32 bytes
+                        // Verify structure: 5 instructions (20 bytes) + 3 data words (12 bytes) = 32
+                        // bytes
                         assertEquals(32, compiled.program().length);
 
                         // Verify code section encoding (offsets 0–19, code-first layout)
                         // a at 0x14 (20), b at 0x18 (24), res at 0x1C (28)
-                        assertEquals(0x8C010014, readWord(compiled.program(), 0));  // lw r1, 20(r0)
-                        assertEquals(0x8C020018, readWord(compiled.program(), 4));  // lw r2, 24(r0)
-                        assertEquals(0x00221820, readWord(compiled.program(), 8));  // add r3, r1, r2
+                        assertEquals(0x8C010014, readWord(compiled.program(), 0)); // lw r1, 20(r0)
+                        assertEquals(0x8C020018, readWord(compiled.program(), 4)); // lw r2, 24(r0)
+                        assertEquals(0x00221820, readWord(compiled.program(), 8)); // add r3, r1, r2
                         assertEquals(0xAC03001C, readWord(compiled.program(), 12)); // sw 28(r0), r3
                         assertEquals(0xFC000000, readWord(compiled.program(), 16)); // trap 0
 

@@ -67,7 +67,6 @@ public final class Logging {
     }
 
     private final List<LogRecord> records = new ArrayList<>();
-
     private final List<LogListener> listeners = new ArrayList<>();
 
     private final Handler handler = new Handler() {
@@ -94,6 +93,12 @@ public final class Logging {
     public Logging() {
         this.handler.setLevel(Level.ALL);
         rootLogger.addHandler(this.handler);
+    }
+
+    /// Removes this instance's handler from the root logger. Call this when the
+    /// service is no longer needed to release the registration.
+    public void dispose() {
+        rootLogger.removeHandler(this.handler);
     }
 
     /// Returns an immutable snapshot of the currently retained records.

@@ -16,7 +16,7 @@ final class LexerTest {
 
     @Nested
     @DisplayName("Basic tokens")
-    class BasicTokens {
+    final class BasicTokens {
 
         @Test
         @DisplayName("Empty line produces whitespace and EOL")
@@ -79,7 +79,7 @@ final class LexerTest {
 
     @Nested
     @DisplayName("Data directives")
-    class DataDirectives {
+    final class DataDirectives {
 
         @Test
         @DisplayName(".byte data declaration")
@@ -174,7 +174,7 @@ final class LexerTest {
 
     @Nested
     @DisplayName("Instructions")
-    class Instructions {
+    final class Instructions {
 
         @Test
         @DisplayName("Instruction with label and trailing comment")
@@ -261,7 +261,7 @@ final class LexerTest {
 
     @Nested
     @DisplayName("Complete programs")
-    class Programs {
+    final class Programs {
 
         @Test
         @DisplayName("Simple program")

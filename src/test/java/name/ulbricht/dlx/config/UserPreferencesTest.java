@@ -99,7 +99,7 @@ final class UserPreferencesTest {
 
     @Nested
     @DisplayName("Recent Files")
-    class RecentFiles {
+    final class RecentFiles {
 
         @Test
         @DisplayName("recent files list is empty by default")
