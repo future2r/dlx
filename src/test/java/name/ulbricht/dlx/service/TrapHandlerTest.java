@@ -14,6 +14,7 @@ import name.ulbricht.dlx.asm.compiler.CompiledProgram;
 import name.ulbricht.dlx.asm.compiler.Compiler;
 import name.ulbricht.dlx.asm.lexer.Lexer;
 import name.ulbricht.dlx.asm.lexer.LexerMode;
+import name.ulbricht.dlx.asm.linker.LinkedProgram;
 import name.ulbricht.dlx.asm.parser.ParsedProgram;
 import name.ulbricht.dlx.asm.parser.Parser;
 import name.ulbricht.dlx.simulator.CPU;
@@ -102,7 +103,7 @@ final class TrapHandlerTest {
 
     private static ParsedProgram parse(final String source) {
         final var tokenized = new Lexer(LexerMode.ASSEMBLER).tokenize(UUID.randomUUID(), source);
-        return new Parser().parse(tokenized);
+        return new Parser().parse(LinkedProgram.singleUnit(tokenized));
     }
 
     private record ExecutionResult(CPU cpu, Console console) {

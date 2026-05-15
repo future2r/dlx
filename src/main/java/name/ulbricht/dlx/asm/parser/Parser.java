@@ -4,12 +4,12 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import name.ulbricht.dlx.asm.Diagnostic;
 import name.ulbricht.dlx.asm.Instruction;
 import name.ulbricht.dlx.asm.lexer.CommaToken;
 import name.ulbricht.dlx.asm.lexer.DirectiveToken;
-import name.ulbricht.dlx.asm.lexer.EOLToken;
 import name.ulbricht.dlx.asm.lexer.InstructionToken;
 import name.ulbricht.dlx.asm.lexer.IntLiteralToken;
 import name.ulbricht.dlx.asm.lexer.LabelDefinitionToken;
@@ -19,19 +19,25 @@ import name.ulbricht.dlx.asm.lexer.RegisterToken;
 import name.ulbricht.dlx.asm.lexer.RightParenToken;
 import name.ulbricht.dlx.asm.lexer.StringLiteralToken;
 import name.ulbricht.dlx.asm.lexer.Token;
-import name.ulbricht.dlx.asm.lexer.TokenizedProgram;
+import name.ulbricht.dlx.asm.linker.LinkedProgram;
 import name.ulbricht.dlx.util.TextPosition;
 
 /// DLX assembler parser.
 ///
-/// Consumes a flat token list produced by [name.ulbricht.dlx.asm.lexer.Lexer] in
-/// [name.ulbricht.dlx.asm.lexer.LexerMode#ASSEMBLER] mode and builds a
-/// [ParsedProgram] that groups all data declarations and all instructions into
-/// separate merged sections.
+/// Consumes a [LinkedProgram] produced by
+/// [name.ulbricht.dlx.asm.linker.Linker] and builds a [ParsedProgram] that
+/// groups all data declarations and all instructions into separate merged
+/// sections.
 ///
 /// Multiple `.data` and `.text` segment switches are handled transparently;
 /// their contents are merged into the respective section lists. Content that
 /// appears before any segment directive is treated as data.
+///
+/// Lines may originate from different source units when the master file
+/// included others. The parser stamps every parsed element and every
+/// diagnostic with the originating
+/// [name.ulbricht.dlx.asm.linker.SourceUnit#id] so downstream stages can keep
+/// cross-file attribution.
 ///
 /// Error recovery is line-oriented: when a parse error occurs on a line the
 /// remainder of that line is discarded and parsing continues from the next line.
@@ -47,26 +53,35 @@ public final class Parser {
     private List<ParsedInstruction> code;
     private List<Diagnostic> diagnostics;
     private String pendingLabel;
+    private UUID currentSourceId;
 
-    /// Parses the token stream into a [ParsedProgram].
+    /// Parses the linker's output into a [ParsedProgram].
     ///
-    /// The [TokenizedProgram] must come from [name.ulbricht.dlx.asm.lexer.Lexer] in
-    /// [name.ulbricht.dlx.asm.lexer.LexerMode#ASSEMBLER] mode (whitespace and
-    /// comments already stripped). [EOLToken]s act as line boundaries.
+    /// Iterates the linked lines in order and stamps each parsed element with
+    /// the corresponding entry from [LinkedProgram#lineSourceIds] so the
+    /// compiler can later attribute its diagnostics to the originating file.
     ///
-    /// @param tokenized the lexer output to parse
+    /// The returned program's diagnostic list contains only parser-emitted
+    /// diagnostics. Callers that need lexer or linker diagnostics should read
+    /// them from [LinkedProgram#diagnostics] directly.
+    ///
+    /// @param linked the linked program to parse
     /// @return the parsed program with merged data and code sections and diagnostics
-    public ParsedProgram parse(final TokenizedProgram tokenized) {
-        requireNonNull(tokenized);
+    public ParsedProgram parse(final LinkedProgram linked) {
+        requireNonNull(linked, "linked must not be null");
 
-        log.log(System.Logger.Level.INFO, "Starting parsing of program " + tokenized.id() + ".");
+        log.log(System.Logger.Level.INFO, "Starting parsing of program " + linked.masterId() + ".");
 
         this.data = new ArrayList<>();
         this.code = new ArrayList<>();
         this.diagnostics = new ArrayList<>();
         this.pendingLabel = null;
 
-        for (final var line : splitLines(tokenized.tokens())) {
+        final var lines = linked.linesByUnit();
+        final var sourceIds = linked.lineSourceIds();
+        for (var i = 0; i < lines.size(); i++) {
+            this.currentSourceId = sourceIds.get(i);
+            final var line = lines.get(i);
             if (!line.isEmpty()) {
                 parseLine(line);
             }
@@ -76,31 +91,14 @@ public final class Parser {
                 .filter(d -> d.severity() == Diagnostic.Severity.ERROR).count();
         if (errorCount == 0) {
             log.log(System.Logger.Level.INFO,
-                    "Parsing of program " + tokenized.id() + " completed successfully.");
+                    "Parsing of program " + linked.masterId() + " completed successfully.");
         } else {
             log.log(System.Logger.Level.WARNING,
-                    "Parsing of program " + tokenized.id() + " completed with " + errorCount + " error(s).");
+                    "Parsing of program " + linked.masterId() + " completed with " + errorCount + " error(s).");
         }
 
-        return new ParsedProgram(tokenized.id(), List.copyOf(this.data), List.copyOf(this.code),
+        return new ParsedProgram(linked.masterId(), List.copyOf(this.data), List.copyOf(this.code),
                 List.copyOf(this.diagnostics));
-    }
-
-    private static List<List<Token>> splitLines(final List<Token> tokens) {
-        final var lines = new ArrayList<List<Token>>();
-        var current = new ArrayList<Token>();
-        for (final var token : tokens) {
-            if (token instanceof EOLToken) {
-                lines.add(current);
-                current = new ArrayList<>();
-            } else {
-                current.add(token);
-            }
-        }
-        if (!current.isEmpty()) {
-            lines.add(current);
-        }
-        return lines;
     }
 
     private void parseLine(final List<Token> line) {
@@ -146,25 +144,28 @@ public final class Parser {
             case "word", "half", "byte" -> {
                 final var values = parseIntList(rest, dt);
                 if (values != null) {
-                    this.data.add(new ParsedDataDeclaration(dt.pos(), label, dt.name(), values));
+                    this.data.add(new ParsedDataDeclaration(this.currentSourceId, dt.pos(), label, dt.name(), values));
                 }
             }
             case "ascii" -> {
                 final var str = parseSingleString(rest, dt);
                 if (str != null) {
-                    this.data.add(new ParsedDataDeclaration(dt.pos(), label, "ascii", List.of(str)));
+                    this.data.add(new ParsedDataDeclaration(this.currentSourceId, dt.pos(), label, "ascii",
+                            List.of(str)));
                 }
             }
             case "asciiz" -> {
                 final var str = parseSingleString(rest, dt);
                 if (str != null) {
-                    this.data.add(new ParsedDataDeclaration(dt.pos(), label, "asciiz", List.of(str)));
+                    this.data.add(new ParsedDataDeclaration(this.currentSourceId, dt.pos(), label, "asciiz",
+                            List.of(str)));
                 }
             }
             case "space", "align" -> {
                 final var value = parseSingleInt(rest, dt);
                 if (value != null) {
-                    this.data.add(new ParsedDataDeclaration(dt.pos(), label, dt.name(), List.of(value)));
+                    this.data.add(new ParsedDataDeclaration(this.currentSourceId, dt.pos(), label, dt.name(),
+                            List.of(value)));
                 }
             }
             default -> addError("Directive not supported: ." + dt.name(), dt, dt.raw().length());
@@ -192,7 +193,7 @@ public final class Parser {
         };
 
         if (operands != null) {
-            this.code.add(new ParsedInstruction(it.pos(), label, op, operands));
+            this.code.add(new ParsedInstruction(this.currentSourceId, it.pos(), label, op, operands));
         }
     }
 
@@ -522,7 +523,7 @@ public final class Parser {
     private void addDiagnostic(final Diagnostic.Severity severity, final String msg, final Token token, final int len) {
         requireNonNull(severity);
 
-        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.PARSING, severity,
+        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.PARSING, severity, this.currentSourceId,
                 new TextPosition(token.pos().line(), token.pos().column(), len), msg));
     }
 

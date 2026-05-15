@@ -16,6 +16,17 @@ import java.util.stream.Stream;
 public enum Directive {
 
     // -------------------------------------------------------------------------
+    // Preprocessor
+    // -------------------------------------------------------------------------
+
+    /// Include the contents of another source file, resolved relative to the
+    /// directory of the including file. Absolute paths are rejected. The same
+    /// file may be included more than once along different paths; cycles are
+    /// detected and reported as a diagnostic. Handled by the linker stage
+    /// before parsing.
+    INCLUDE("include"),
+
+    // -------------------------------------------------------------------------
     // Segment switches
     // -------------------------------------------------------------------------
 

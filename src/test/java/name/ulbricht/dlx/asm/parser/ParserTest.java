@@ -13,12 +13,18 @@ import org.junit.jupiter.api.Test;
 
 import name.ulbricht.dlx.asm.lexer.Lexer;
 import name.ulbricht.dlx.asm.lexer.LexerMode;
-import name.ulbricht.dlx.asm.lexer.TokenizedProgram;
+import name.ulbricht.dlx.asm.linker.LinkedProgram;
 import name.ulbricht.dlx.util.TextPosition;
 
 @SuppressWarnings("boxing")
 @DisplayName("Parser")
 final class ParserTest {
+
+        /// Fixed sourceId reused as both the lexer's program id and the
+        /// expected sourceId on every constructed [ParsedDataDeclaration] /
+        /// [ParsedInstruction] so equality checks against literal expected
+        /// values match.
+        private static final UUID SOURCE_ID = UUID.fromString("00000000-0000-0000-0000-0000000000aa");
 
         @Nested
         @DisplayName("Segments")
@@ -60,11 +66,11 @@ final class ParserTest {
                                         .word 2""");
                         assertIterableEquals(
                                         List.of(
-                                                        new ParsedDataDeclaration(pos(0, 0), null, "word", List.of(1)),
-                                                        new ParsedDataDeclaration(pos(0, 0), null, "word", List.of(2))),
+                                                        new ParsedDataDeclaration(SOURCE_ID, pos(0, 0), null, "word", List.of(1)),
+                                                        new ParsedDataDeclaration(SOURCE_ID, pos(0, 0), null, "word", List.of(2))),
                                         // note: positions differ — normalise to a fixed pos for comparison
                                         program.data().stream()
-                                                        .map(d -> new ParsedDataDeclaration(pos(0, 0), null,
+                                                        .map(d -> new ParsedDataDeclaration(SOURCE_ID, pos(0, 0), null,
                                                                         d.directive(),
                                                                         d.values()))
                                                         .toList());
@@ -84,7 +90,7 @@ final class ParserTest {
                                         .data
                                         .word 42""");
                         assertIterableEquals(
-                                        List.of(new ParsedDataDeclaration(pos(1, 0), null, "word", List.of(42))),
+                                        List.of(new ParsedDataDeclaration(SOURCE_ID, pos(1, 0), null, "word", List.of(42))),
                                         program.data());
                         assertTrue(program.code().isEmpty());
                 }
@@ -96,7 +102,7 @@ final class ParserTest {
                                         .data
                                         .word 1, 2, 3""");
                         assertIterableEquals(
-                                        List.of(new ParsedDataDeclaration(pos(1, 0), null, "word", List.of(1, 2, 3))),
+                                        List.of(new ParsedDataDeclaration(SOURCE_ID, pos(1, 0), null, "word", List.of(1, 2, 3))),
                                         program.data());
                 }
 
@@ -107,7 +113,7 @@ final class ParserTest {
                                         .data
                                         .word 0xBABE123""");
                         assertIterableEquals(
-                                        List.of(new ParsedDataDeclaration(pos(1, 0), null, "word", List.of(0xBABE123))),
+                                        List.of(new ParsedDataDeclaration(SOURCE_ID, pos(1, 0), null, "word", List.of(0xBABE123))),
                                         program.data());
                 }
 
@@ -118,7 +124,7 @@ final class ParserTest {
                                         .data
                                         .half -1000""");
                         assertIterableEquals(
-                                        List.of(new ParsedDataDeclaration(pos(1, 0), null, "half", List.of(-1000))),
+                                        List.of(new ParsedDataDeclaration(SOURCE_ID, pos(1, 0), null, "half", List.of(-1000))),
                                         program.data());
                 }
 
@@ -129,7 +135,7 @@ final class ParserTest {
                                         .data
                                         .byte 42""");
                         assertIterableEquals(
-                                        List.of(new ParsedDataDeclaration(pos(1, 0), null, "byte", List.of(42))),
+                                        List.of(new ParsedDataDeclaration(SOURCE_ID, pos(1, 0), null, "byte", List.of(42))),
                                         program.data());
                 }
 
@@ -140,7 +146,7 @@ final class ParserTest {
                                         .data
                                         .ascii "Hello, World!" \s""");
                         assertIterableEquals(
-                                        List.of(new ParsedDataDeclaration(pos(1, 0), null, "ascii",
+                                        List.of(new ParsedDataDeclaration(SOURCE_ID, pos(1, 0), null, "ascii",
                                                         List.of("Hello, World!"))),
                                         program.data());
                 }
@@ -152,7 +158,7 @@ final class ParserTest {
                                         .data
                                         .asciiz "hi" \s""");
                         assertIterableEquals(
-                                        List.of(new ParsedDataDeclaration(pos(1, 0), null, "asciiz", List.of("hi"))),
+                                        List.of(new ParsedDataDeclaration(SOURCE_ID, pos(1, 0), null, "asciiz", List.of("hi"))),
                                         program.data());
                 }
 
@@ -163,7 +169,7 @@ final class ParserTest {
                                         .data
                                         .space 100""");
                         assertIterableEquals(
-                                        List.of(new ParsedDataDeclaration(pos(1, 0), null, "space", List.of(100))),
+                                        List.of(new ParsedDataDeclaration(SOURCE_ID, pos(1, 0), null, "space", List.of(100))),
                                         program.data());
                 }
 
@@ -174,7 +180,7 @@ final class ParserTest {
                                         .data
                                         .align 4""");
                         assertIterableEquals(
-                                        List.of(new ParsedDataDeclaration(pos(1, 0), null, "align", List.of(4))),
+                                        List.of(new ParsedDataDeclaration(SOURCE_ID, pos(1, 0), null, "align", List.of(4))),
                                         program.data());
                 }
 
@@ -185,7 +191,7 @@ final class ParserTest {
                                         .data
                                         op: .word 0""");
                         assertIterableEquals(
-                                        List.of(new ParsedDataDeclaration(pos(1, 4), "op", "word", List.of(0))),
+                                        List.of(new ParsedDataDeclaration(SOURCE_ID, pos(1, 4), "op", "word", List.of(0))),
                                         program.data());
                 }
         }
@@ -202,7 +208,7 @@ final class ParserTest {
                                         main:
                                         trap 0""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(2, 0), "main", "trap",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(2, 0), "main", "trap",
                                                         List.of(new ImmediateOperand(0)))),
                                         program.code());
                 }
@@ -215,7 +221,7 @@ final class ParserTest {
                                         foo:
                                         bar: trap 0""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(2, 5), "bar", "trap",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(2, 5), "bar", "trap",
                                                         List.of(new ImmediateOperand(0)))),
                                         program.code());
                 }
@@ -232,7 +238,7 @@ final class ParserTest {
                                         .text
                                         trap 0""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "trap",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "trap",
                                                         List.of(new ImmediateOperand(0)))),
                                         program.code());
                 }
@@ -244,7 +250,7 @@ final class ParserTest {
                                         .text
                                         add r3, r1, r2""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "add",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "add",
                                                         List.of(new RegisterOperand(3), new RegisterOperand(1),
                                                                         new RegisterOperand(2)))),
                                         program.code());
@@ -257,7 +263,7 @@ final class ParserTest {
                                         .text
                                         sub r3, r1, r2""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "sub",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "sub",
                                                         List.of(new RegisterOperand(3), new RegisterOperand(1),
                                                                         new RegisterOperand(2)))),
                                         program.code());
@@ -270,7 +276,7 @@ final class ParserTest {
                                         .text
                                         addi r2, r1, 10""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "addi",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "addi",
                                                         List.of(new RegisterOperand(2), new RegisterOperand(1),
                                                                         new ImmediateOperand(10)))),
                                         program.code());
@@ -283,7 +289,7 @@ final class ParserTest {
                                         .text
                                         addi r1, r0, str""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "addi",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "addi",
                                                         List.of(new RegisterOperand(1), new RegisterOperand(0),
                                                                         new LabelImmediateOperand("str")))),
                                         program.code());
@@ -296,7 +302,7 @@ final class ParserTest {
                                         .text
                                         addi r2, r1, -5""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "addi",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "addi",
                                                         List.of(new RegisterOperand(2), new RegisterOperand(1),
                                                                         new ImmediateOperand(-5)))),
                                         program.code());
@@ -309,7 +315,7 @@ final class ParserTest {
                                         .text
                                         lw r2, 100(r0)""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "lw",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "lw",
                                                         List.of(new RegisterOperand(2), new MemoryOperand(100, 0)))),
                                         program.code());
                 }
@@ -321,7 +327,7 @@ final class ParserTest {
                                         .text
                                         lw r1, op(r0)""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "lw",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "lw",
                                                         List.of(new RegisterOperand(1),
                                                                         new LabelMemoryOperand("op", 0)))),
                                         program.code());
@@ -334,7 +340,7 @@ final class ParserTest {
                                         .text
                                         lw r1, 8(r3)""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "lw",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "lw",
                                                         List.of(new RegisterOperand(1), new MemoryOperand(8, 3)))),
                                         program.code());
                 }
@@ -346,7 +352,7 @@ final class ParserTest {
                                         .text
                                         sw 8(r0), r2""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "sw",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "sw",
                                                         List.of(new MemoryOperand(8, 0), new RegisterOperand(2)))),
                                         program.code());
                 }
@@ -358,7 +364,7 @@ final class ParserTest {
                                         .text
                                         sw op(r0), r2""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "sw",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "sw",
                                                         List.of(new LabelMemoryOperand("op", 0),
                                                                         new RegisterOperand(2)))),
                                         program.code());
@@ -371,7 +377,7 @@ final class ParserTest {
                                         .text
                                         lhi r1, 0x1234""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "lhi",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "lhi",
                                                         List.of(new RegisterOperand(1), new ImmediateOperand(0x1234)))),
                                         program.code());
                 }
@@ -383,7 +389,7 @@ final class ParserTest {
                                         .text
                                         lhi r1, str""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "lhi",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "lhi",
                                                         List.of(new RegisterOperand(1),
                                                                         new LabelImmediateOperand("str")))),
                                         program.code());
@@ -396,7 +402,7 @@ final class ParserTest {
                                         .text
                                         ori r1, r1, str""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "ori",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "ori",
                                                         List.of(new RegisterOperand(1), new RegisterOperand(1),
                                                                         new LabelImmediateOperand("str")))),
                                         program.code());
@@ -409,7 +415,7 @@ final class ParserTest {
                                         .text
                                         beqz r1, loop""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "beqz",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "beqz",
                                                         List.of(new RegisterOperand(1), new LabelOperand("loop")))),
                                         program.code());
                 }
@@ -421,7 +427,7 @@ final class ParserTest {
                                         .text
                                         bnez r2, end""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "bnez",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "bnez",
                                                         List.of(new RegisterOperand(2), new LabelOperand("end")))),
                                         program.code());
                 }
@@ -433,7 +439,7 @@ final class ParserTest {
                                         .text
                                         j loop""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "j",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "j",
                                                         List.of(new LabelOperand("loop")))),
                                         program.code());
                 }
@@ -445,7 +451,7 @@ final class ParserTest {
                                         .text
                                         jal func""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "jal",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "jal",
                                                         List.of(new LabelOperand("func")))),
                                         program.code());
                 }
@@ -457,7 +463,7 @@ final class ParserTest {
                                         .text
                                         jr r31""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "jr",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "jr",
                                                         List.of(new RegisterOperand(31)))),
                                         program.code());
                 }
@@ -469,7 +475,7 @@ final class ParserTest {
                                         .text
                                         jalr r1""");
                         assertIterableEquals(
-                                        List.of(new ParsedInstruction(pos(1, 0), null, "jalr",
+                                        List.of(new ParsedInstruction(SOURCE_ID, pos(1, 0), null, "jalr",
                                                         List.of(new RegisterOperand(1)))),
                                         program.code());
                 }
@@ -494,23 +500,23 @@ final class ParserTest {
                                             trap 0""");
 
                         assertIterableEquals(
-                                        List.of(new ParsedDataDeclaration(pos(2, 4), "op", "word", List.of(42))),
+                                        List.of(new ParsedDataDeclaration(SOURCE_ID, pos(2, 4), "op", "word", List.of(42))),
                                         program.data());
 
                         assertIterableEquals(
                                         List.of(
-                                                        new ParsedInstruction(pos(5, 4), "main", "lw",
+                                                        new ParsedInstruction(SOURCE_ID, pos(5, 4), "main", "lw",
                                                                         List.of(new RegisterOperand(1),
                                                                                         new LabelMemoryOperand("op",
                                                                                                         0))),
-                                                        new ParsedInstruction(pos(6, 4), null, "addi",
+                                                        new ParsedInstruction(SOURCE_ID, pos(6, 4), null, "addi",
                                                                         List.of(new RegisterOperand(2),
                                                                                         new RegisterOperand(1),
                                                                                         new ImmediateOperand(10))),
-                                                        new ParsedInstruction(pos(7, 4), null, "sw",
+                                                        new ParsedInstruction(SOURCE_ID, pos(7, 4), null, "sw",
                                                                         List.of(new LabelMemoryOperand("op", 0),
                                                                                         new RegisterOperand(2))),
-                                                        new ParsedInstruction(pos(8, 4), null, "trap",
+                                                        new ParsedInstruction(SOURCE_ID, pos(8, 4), null, "trap",
                                                                         List.of(new ImmediateOperand(0)))),
                                         program.code());
                 }
@@ -565,7 +571,7 @@ final class ParserTest {
                 return program;
         }
 
-        private static TokenizedProgram lex(final String source) {
-                return new Lexer(LexerMode.ASSEMBLER).tokenize(UUID.randomUUID(), source);
+        private static LinkedProgram lex(final String source) {
+                return LinkedProgram.singleUnit(new Lexer(LexerMode.ASSEMBLER).tokenize(SOURCE_ID, source));
         }
 }

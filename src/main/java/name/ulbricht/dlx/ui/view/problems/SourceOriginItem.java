@@ -21,7 +21,9 @@ public final class SourceOriginItem implements ProblemItem {
     /// @param sourceOrigin the source origin this group represents
     public SourceOriginItem(final SourceOrigin sourceOrigin) {
         this.sourceOrigin = requireNonNull(sourceOrigin);
-        this.diagnosticCountSubscription = this.sourceOrigin.diagnosticsProperty().sizeProperty()
+        final var sizeProperty = this.sourceOrigin.diagnosticsProperty().sizeProperty();
+        this.diagnosticCount.set(sizeProperty.get());
+        this.diagnosticCountSubscription = sizeProperty
                 .subscribe((_, newSize) -> this.diagnosticCount.set(newSize.intValue()));
     }
 

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import name.ulbricht.dlx.asm.lexer.Lexer;
 import name.ulbricht.dlx.asm.lexer.LexerMode;
+import name.ulbricht.dlx.asm.linker.LinkedProgram;
 import name.ulbricht.dlx.asm.parser.ParsedProgram;
 import name.ulbricht.dlx.asm.parser.Parser;
 import name.ulbricht.dlx.simulator.CPU;
@@ -520,7 +521,7 @@ final class CompilerTest {
 
         private static ParsedProgram parse(final String source) {
                 final var tokenized = new Lexer(LexerMode.ASSEMBLER).tokenize(UUID.randomUUID(), source);
-                return new Parser().parse(tokenized);
+                return new Parser().parse(LinkedProgram.singleUnit(tokenized));
         }
 
         private static int readWord(final byte[] buf, final int offset) {

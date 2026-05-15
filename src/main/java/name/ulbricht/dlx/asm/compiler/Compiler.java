@@ -410,7 +410,8 @@ public final class Compiler {
     private void addDiagnostic(final Diagnostic.Severity severity, final String msg, final ParsedElement element) {
         requireNonNull(severity);
 
-        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.COMPILING, severity, element.pos(), msg));
+        this.diagnostics.add(
+                new Diagnostic(Diagnostic.Stage.COMPILING, severity, element.sourceId(), element.pos(), msg));
     }
 
     private boolean hasErrors() {

@@ -2,16 +2,25 @@ package name.ulbricht.dlx.asm;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.UUID;
+
 import name.ulbricht.dlx.util.TextPosition;
 
-/// A structured error or warning produced during lexing or parsing.
+/// A structured error or warning produced during a stage of the assembler
+/// pipeline.
 ///
-/// @param stage   the stage of the compilation process where the diagnostic was
-///                produced
+/// The [#sourceId] identifies the source unit the [#pos] is interpreted
+/// against. For single-file programs this is the master program id; for
+/// multi-file programs (after include resolution) it is the id of the file the
+/// diagnostic actually originates from.
+///
+/// @param stage    the stage of the compilation process where the diagnostic was
+///                 produced
 /// @param severity the severity level of the diagnostic
-/// @param pos     0-based source position of the problematic token
-/// @param message human-readable description of the problem
-public record Diagnostic(Stage stage, Severity severity, TextPosition pos, String message) {
+/// @param sourceId identifier of the source unit the [#pos] refers to
+/// @param pos      0-based source position of the problematic token
+/// @param message  human-readable description of the problem
+public record Diagnostic(Stage stage, Severity severity, UUID sourceId, TextPosition pos, String message) {
 
     /// The severity level of a diagnostic.
     public enum Severity {
@@ -41,6 +50,9 @@ public record Diagnostic(Stage stage, Severity severity, TextPosition pos, Strin
         /// Diagnostic produced during lexing.
         LEXING,
 
+        /// Diagnostic produced during include resolution by the linker stage.
+        LINKING,
+
         /// Diagnostic produced during parsing.
         PARSING,
 
@@ -52,6 +64,7 @@ public record Diagnostic(Stage stage, Severity severity, TextPosition pos, Strin
     public Diagnostic {
         requireNonNull(stage, "stage must not be null");
         requireNonNull(severity, "severity must not be null");
+        requireNonNull(sourceId, "sourceId must not be null");
         requireNonNull(pos, "pos must not be null");
         requireNonNull(message, "message must not be null");
     }

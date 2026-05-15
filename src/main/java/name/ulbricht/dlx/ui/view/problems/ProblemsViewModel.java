@@ -39,8 +39,8 @@ public final class ProblemsViewModel {
         return totalProblemsCountProperty().get();
     }
 
-    /// Adds a source origin to be tracked. Creates an origin node and subscribes to
-    /// its diagnostics.
+    /// Adds a source origin to be tracked. Creates an origin node, renders its
+    /// current diagnostics, and subscribes to future invalidations.
     ///
     /// @param source the source origin to add
     void addSource(final SourceOrigin source) {
@@ -56,17 +56,11 @@ public final class ProblemsViewModel {
         final var binding = new SourceBinding(source, originItem, treeItem);
         this.sourceBindings.put(id, binding);
 
-        // Subscribe to diagnostics property and list changes
+        // Render whatever diagnostics already exist at attach time, then watch
+        // for invalidations (list-content changes propagate to the property).
+        rebuildChildren(binding);
         binding.diagnosticsSubscription = source.diagnosticsProperty()
-                .subscribe((_, newList) -> {
-                    if (binding.listSubscription != null)
-                        binding.listSubscription.unsubscribe();
-
-                    rebuildChildren(binding);
-
-                    if (newList != null)
-                        binding.listSubscription = newList.subscribe(() -> rebuildChildren(binding));
-                });
+                .subscribe(() -> rebuildChildren(binding));
     }
 
     /// Removes a source origin from tracking. Unsubscribes from its diagnostics and
@@ -128,8 +122,6 @@ public final class ProblemsViewModel {
     }
 
     private static void disposeBinding(final SourceBinding binding) {
-        if (binding.listSubscription != null)
-            binding.listSubscription.unsubscribe();
         if (binding.diagnosticsSubscription != null)
             binding.diagnosticsSubscription.unsubscribe();
         binding.originItem.dispose();
@@ -141,7 +133,6 @@ public final class ProblemsViewModel {
         final SourceOriginItem originItem;
         final TreeItem<ProblemItem> treeItem;
         Subscription diagnosticsSubscription;
-        Subscription listSubscription;
 
         SourceBinding(final SourceOrigin source, final SourceOriginItem originItem,
                 final TreeItem<ProblemItem> treeItem) {

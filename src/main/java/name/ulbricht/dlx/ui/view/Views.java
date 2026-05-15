@@ -1,5 +1,7 @@
 package name.ulbricht.dlx.ui.view;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 
 import javafx.fxml.FXMLLoader;
@@ -32,6 +34,7 @@ public final class Views {
     /// @return the controller instance
     public static <C> C loadController(final Class<?> viewClass,
             final Callback<Class<?>, Object> controllerFactory) {
+        requireNonNull(viewClass);
 
         final var fxmlName = viewClass.getSimpleName() + ".fxml";
         final var fxmlLocation = viewClass.getResource(fxmlName);

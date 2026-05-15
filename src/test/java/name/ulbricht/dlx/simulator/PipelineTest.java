@@ -16,6 +16,7 @@ import name.ulbricht.dlx.asm.compiler.CompiledProgram;
 import name.ulbricht.dlx.asm.compiler.Compiler;
 import name.ulbricht.dlx.asm.lexer.Lexer;
 import name.ulbricht.dlx.asm.lexer.LexerMode;
+import name.ulbricht.dlx.asm.linker.LinkedProgram;
 import name.ulbricht.dlx.asm.parser.Parser;
 
 /// Verifies the cycle-by-cycle pipeline state for a small example program.
@@ -506,7 +507,7 @@ final class PipelineTest {
 
     private static CompiledProgram compile(final String source) {
         final var tokenized = new Lexer(LexerMode.ASSEMBLER).tokenize(UUID.randomUUID(), source);
-        final var parsed = new Parser().parse(tokenized);
+        final var parsed = new Parser().parse(LinkedProgram.singleUnit(tokenized));
         return new Compiler().compile(parsed);
     }
 }

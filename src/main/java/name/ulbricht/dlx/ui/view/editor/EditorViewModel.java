@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,12 +22,13 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import name.ulbricht.dlx.asm.Diagnostic;
 import name.ulbricht.dlx.asm.compiler.CompiledProgram;
 import name.ulbricht.dlx.asm.compiler.Compiler;
-import name.ulbricht.dlx.asm.lexer.Lexer;
-import name.ulbricht.dlx.asm.lexer.LexerMode;
-import name.ulbricht.dlx.asm.lexer.TokenizedProgram;
+import name.ulbricht.dlx.asm.linker.BufferProvider;
+import name.ulbricht.dlx.asm.linker.LinkedProgram;
+import name.ulbricht.dlx.asm.linker.Linker;
 import name.ulbricht.dlx.asm.parser.ParsedProgram;
 import name.ulbricht.dlx.asm.parser.Parser;
 import name.ulbricht.dlx.io.SourceFile;
@@ -34,6 +36,18 @@ import name.ulbricht.dlx.ui.i18n.Messages;
 import name.ulbricht.dlx.ui.view.problems.SourceOrigin;
 
 /// View model for the editor view.
+///
+/// Owns the source-text pipeline for one tab: source -> [Linker] ->
+/// [ParsedProgram] -> [CompiledProgram] (on demand). Linker output is exposed
+/// via [#linkedProgramProperty] and triggers automatic re-parsing whenever the
+/// source text or the file path changes; the workspace's [BufferProvider]
+/// additionally triggers re-links when an open included file is edited.
+///
+/// For programs that pull in other files via `.include`, the linker produces
+/// one [name.ulbricht.dlx.asm.linker.SourceUnit] per included file. Each
+/// non-master unit is published as a virtual [SourceOrigin] via
+/// [#includedOriginsProperty] so the problems view can group its errors and so
+/// the main controller can open the file on demand.
 public final class EditorViewModel implements SourceOrigin {
 
     private static final AtomicInteger UNTITLED_COUNTER = new AtomicInteger();
@@ -48,19 +62,32 @@ public final class EditorViewModel implements SourceOrigin {
     private final ReadOnlyBooleanWrapper dirty = new ReadOnlyBooleanWrapper();
 
     private final ObservableList<Diagnostic> modifiableDiagnostics = FXCollections.observableArrayList();
+    // Source-attributed view used by SourceOrigin.diagnosticsProperty: only
+    // entries whose sourceId matches this editor's own programId. Each
+    // IncludedFileOrigin exposes a similar filtered view for its included
+    // unit, so the problems view groups every error under exactly one source.
     private final ReadOnlyListWrapper<Diagnostic> diagnostics = new ReadOnlyListWrapper<>(
-            FXCollections.unmodifiableObservableList(this.modifiableDiagnostics));
+            FXCollections.unmodifiableObservableList(
+                    new FilteredList<>(this.modifiableDiagnostics, d -> this.programId.equals(d.sourceId()))));
 
-    private final ReadOnlyObjectWrapper<TokenizedProgram> tokenizedProgram = new ReadOnlyObjectWrapper<>();
+    private final ReadOnlyObjectWrapper<LinkedProgram> linkedProgram = new ReadOnlyObjectWrapper<>();
     private final ReadOnlyObjectWrapper<ParsedProgram> parsedProgram = new ReadOnlyObjectWrapper<>();
     private final ReadOnlyObjectWrapper<CompiledProgram> compiledProgram = new ReadOnlyObjectWrapper<>();
 
-    /// Creates a new editor view model instance.
+    private final ObservableList<SourceOrigin> modifiableIncludedOrigins = FXCollections.observableArrayList();
+    private final ReadOnlyListWrapper<SourceOrigin> includedOrigins = new ReadOnlyListWrapper<>(
+            FXCollections.unmodifiableObservableList(this.modifiableIncludedOrigins));
+
+    private BufferProvider bufferProvider = BufferProvider.NONE;
+
+    /// Creates a new editor view model instance. The buffer provider defaults
+    /// to [BufferProvider#NONE]; callers that want cross-tab live-buffer
+    /// resolution should call [#setBufferProvider] before setting the source.
     public EditorViewModel() {
         this.name.bind(this.file.map(f -> f.getFileName().toString())
                 .orElse(Messages.getString("editor.title.untitled") + "-" + this.untitledNumber));
-        this.tokenizedProgram.bind(this.source.map(this::tokenize));
-        this.parsedProgram.bind(this.tokenizedProgram.map(this::parse));
+        this.source.subscribe(this::relink);
+        this.file.subscribe(this::relink);
     }
 
     @Override
@@ -77,6 +104,11 @@ public final class EditorViewModel implements SourceOrigin {
     @Override
     public String getName() {
         return nameProperty().get();
+    }
+
+    @Override
+    public Optional<Path> path() {
+        return Optional.ofNullable(getFile());
     }
 
     /// {@return a read-only property representing the currently loaded file, or
@@ -101,10 +133,19 @@ public final class EditorViewModel implements SourceOrigin {
     }
 
     /// Sets the source code.
-    /// 
+    ///
     /// @param source the new source code
     void setSource(final String source) {
         this.source.set(source);
+    }
+
+    /// Replaces the buffer provider used during include resolution. Should be
+    /// called by the main controller right after construction, before the
+    /// first source text is loaded.
+    ///
+    /// @param bufferProvider the new provider; must not be null
+    public void setBufferProvider(final BufferProvider bufferProvider) {
+        this.bufferProvider = requireNonNull(bufferProvider, "bufferProvider must not be null");
     }
 
     /// {@return a read-only property indicating whether the current file has
@@ -118,29 +159,31 @@ public final class EditorViewModel implements SourceOrigin {
         return dirtyProperty().get();
     }
 
-    /// {@return a read-only property representing the list of diagnostics produced
-    /// during lexing, parsing, and compilation}
+    /// {@return a read-only property representing the diagnostics produced during
+    /// linking, parsing, and compilation that originate from this editor's
+    /// own source. Diagnostics from included files are exposed separately via
+    /// each [IncludedFileOrigin] in [#includedOriginsProperty].}
     @Override
     public ReadOnlyListProperty<Diagnostic> diagnosticsProperty() {
         return this.diagnostics.getReadOnlyProperty();
     }
 
-    /// {@return the list of diagnostics produced during lexing, parsing,
-    /// and compilation}
+    /// {@return the list of diagnostics produced during linking, parsing, and
+    /// compilation, filtered to only those originating from this editor's own
+    /// source.}
     public ObservableList<Diagnostic> getDiagnostics() {
         return diagnosticsProperty().get();
     }
 
-    /// {@return a read-only property representing the tokenized program, or `null`
-    /// if the source code has not been tokenized}
-    public ReadOnlyObjectProperty<TokenizedProgram> tokenizedProgramProperty() {
-        return this.tokenizedProgram.getReadOnlyProperty();
+    /// {@return a read-only property representing the linker output, or `null`
+    /// if no source has been set yet}
+    public ReadOnlyObjectProperty<LinkedProgram> linkedProgramProperty() {
+        return this.linkedProgram.getReadOnlyProperty();
     }
 
-    /// {@return the tokenized program, or `null` if the source code has not
-    /// been tokenized}
-    public TokenizedProgram getTokenizedProgram() {
-        return tokenizedProgramProperty().get();
+    /// {@return the current linker output, or `null` if no source has been set}
+    public LinkedProgram getLinkedProgram() {
+        return linkedProgramProperty().get();
     }
 
     /// {@return a read-only property representing the parsed program, or `null` if
@@ -165,31 +208,48 @@ public final class EditorViewModel implements SourceOrigin {
         return compiledProgramProperty().get();
     }
 
-    private TokenizedProgram tokenize(final String src) {
-        // Clear the diagnostics before starting a new tokenization
-        this.modifiableDiagnostics.clear();
-
-        if (src != null) {
-            final var lexer = new Lexer(LexerMode.ASSEMBLER);
-            final var tokenized = lexer.tokenize(this.programId, src);
-
-            this.modifiableDiagnostics.addAll(tokenized.diagnostics());
-
-            return tokenized;
-        }
-        return null;
+    /// {@return a read-only property listing virtual source origins for every
+    /// file this editor's master includes (transitively). Empty when the
+    /// program has no `.include` directives.}
+    public ReadOnlyListProperty<SourceOrigin> includedOriginsProperty() {
+        return this.includedOrigins.getReadOnlyProperty();
     }
 
-    private ParsedProgram parse(final TokenizedProgram tokenized) {
-        if (tokenized != null) {
-            final var parser = new Parser();
-            final var parsed = parser.parse(tokenized);
+    /// Forces a re-link with the current source, file, and buffer provider.
+    /// Called by the workspace when another editor's source changes so that
+    /// masters whose included files are open get an up-to-date view.
+    public void refresh() {
+        relink();
+    }
 
-            this.modifiableDiagnostics.addAll(parsed.diagnostics());
+    private void relink() {
+        this.modifiableDiagnostics.clear();
+        this.compiledProgram.set(null);
 
-            return parsed;
+        final var src = this.source.get();
+        if (src == null) {
+            this.linkedProgram.set(null);
+            this.parsedProgram.set(null);
+            this.modifiableIncludedOrigins.clear();
+            return;
         }
-        return null;
+
+        final var linked = new Linker().link(this.programId, getFile(), src, this.bufferProvider);
+        this.linkedProgram.set(linked);
+        this.modifiableDiagnostics.addAll(linked.diagnostics());
+        rebuildIncludedOrigins(linked);
+
+        final var parsed = new Parser().parse(linked);
+        this.modifiableDiagnostics.addAll(parsed.diagnostics());
+        this.parsedProgram.set(parsed);
+    }
+
+    private void rebuildIncludedOrigins(final LinkedProgram linked) {
+        final var newOrigins = linked.units().stream()
+                .filter(unit -> !this.programId.equals(unit.id()))
+                .map(unit -> (SourceOrigin) new IncludedFileOrigin(unit, this.modifiableDiagnostics))
+                .toList();
+        this.modifiableIncludedOrigins.setAll(newOrigins);
     }
 
     /// Creates a new file with example source code.
@@ -235,15 +295,29 @@ public final class EditorViewModel implements SourceOrigin {
     /// they are added to the view model's diagnostics list. If the diagnostics
     /// contain errors, the compiled program is set to `null`. If compilation is
     /// successful, the compiled program is stored in the view model.
-    /// 
+    ///
+    /// Refuses to compile when the current diagnostics list already contains
+    /// errors from earlier pipeline stages (linking, lexing, parsing) — the
+    /// parser skips bad lines and produces a partial program from whatever was
+    /// salvageable, so compiling that subset would yield a misleadingly
+    /// successful build. This matters especially for include errors: a problem
+    /// in an included file otherwise lets the master appear to compile.
+    ///
     /// @return `true` if compilation succeeded without errors, `false` otherwise
     public boolean compile() {
         // Remove all compiler problems
         this.modifiableDiagnostics.removeIf(d -> d.stage() == Diagnostic.Stage.COMPILING);
 
         final var parsed = getParsedProgram();
-        if (parsed == null)
+        if (parsed == null) {
+            this.compiledProgram.set(null);
             return false;
+        }
+
+        if (hasPreCompileErrors()) {
+            this.compiledProgram.set(null);
+            return false;
+        }
 
         final var compiler = new Compiler();
         final var compiled = compiler.compile(parsed);
@@ -257,6 +331,15 @@ public final class EditorViewModel implements SourceOrigin {
 
         this.compiledProgram.set(compiled);
         return true;
+    }
+
+    /// {@return whether the diagnostics list currently contains any
+    /// error-severity entry from a pre-compile stage (linking, lexing, or
+    /// parsing).}
+    private boolean hasPreCompileErrors() {
+        return this.modifiableDiagnostics.stream()
+                .anyMatch(d -> d.severity() == Diagnostic.Severity.ERROR
+                        && d.stage() != Diagnostic.Stage.COMPILING);
     }
 
     /// Marks the editor content as modified.

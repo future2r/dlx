@@ -11,6 +11,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.Parent;
+import name.ulbricht.dlx.asm.linker.BufferProvider;
 import name.ulbricht.dlx.ui.view.View;
 import name.ulbricht.dlx.ui.view.Views;
 import name.ulbricht.dlx.util.TextPosition;
@@ -18,12 +19,14 @@ import name.ulbricht.dlx.util.TextPosition;
 /// View for the editor.
 public final class EditorView implements View<Parent, EditorViewModel> {
 
-    /// Loads the editor view from the FXML file.
-    /// 
+    /// Loads the editor view from the FXML file with an empty source.
+    ///
+    /// @param buffers the workspace buffer provider used to resolve `.include`
+    ///                directives against open dirty editors
     /// @return The editor view with the loaded content.
-    public static EditorView load() {
+    public static EditorView load(final BufferProvider buffers) {
         try {
-            return load(null);
+            return load(null, buffers);
         } catch (final IOException ex) {
             throw new IllegalStateException("Failed to create an editor for an empty source file", ex);
         }
@@ -31,11 +34,16 @@ public final class EditorView implements View<Parent, EditorViewModel> {
 
     /// Loads the editor view from the FXML file.
     ///
-    /// @param file the file to load into the editor, or null for an empty editor
+    /// @param file    the file to load into the editor, or null for an empty editor
+    /// @param buffers the workspace buffer provider used to resolve `.include`
+    ///                directives against open dirty editors
     /// @return The configured editor view with the loaded content.
     /// @throws IOException if an I/O error occurs while loading the file
-    public static EditorView load(final Path file) throws IOException {
+    public static EditorView load(final Path file, final BufferProvider buffers) throws IOException {
+        requireNonNull(buffers, "buffers must not be null");
         final var controller = Views.<EditorController>loadController(EditorView.class);
+
+        controller.getViewModel().setBufferProvider(buffers);
 
         if (file != null)
             controller.getViewModel().loadFile(file);

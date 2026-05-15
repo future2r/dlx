@@ -1,5 +1,7 @@
 package name.ulbricht.dlx.ui.view.problems;
 
+import java.nio.file.Path;
+import java.util.Optional;
 import java.util.UUID;
 
 import javafx.beans.property.ReadOnlyListProperty;
@@ -25,4 +27,11 @@ public interface SourceOrigin {
     /// {@return a read-only property representing the diagnostics produced by this
     /// source origin}
     ReadOnlyListProperty<Diagnostic> diagnosticsProperty();
+
+    /// {@return the on-disk path of this source origin, if known. Returned for
+    /// editor view models that have a saved file as well as for virtual origins
+    /// that represent an included file; empty for unsaved editors.}
+    default Optional<Path> path() {
+        return Optional.empty();
+    }
 }

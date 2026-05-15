@@ -16,10 +16,17 @@ public final class Lexer {
 
     private static final System.Logger log = System.getLogger(Lexer.class.getName());
 
+    /// Sentinel used to stamp diagnostics emitted by [#tokenizeLine] callers
+    /// that have no source identity (e.g. the syntax highlighter, which
+    /// discards diagnostics). Real assembler-mode runs override this in
+    /// [#tokenize].
+    private static final UUID NO_SOURCE = new UUID(0L, 0L);
+
     private final LexerMode mode;
     private final List<Token> tokens = new ArrayList<>();
     private final List<Diagnostic> diagnostics = new ArrayList<>();
 
+    private UUID sourceId = NO_SOURCE; // id of the source unit being lexed
     private String src; // current line text
     private int line; // 0-based line index
     private int pos; // current character position in src
@@ -63,6 +70,8 @@ public final class Lexer {
         requireNonNull(lines);
 
         log.log(System.Logger.Level.INFO, "Starting lexing of program " + id + ".");
+
+        this.sourceId = id;
 
         final var allTokens = new ArrayList<Token>();
         final var allDiagnostics = new ArrayList<Diagnostic>();
@@ -324,7 +333,7 @@ public final class Lexer {
     private void addDiagnostic(final Diagnostic.Severity severity, final String msg, final int col, final int length) {
         requireNonNull(severity);
 
-        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.LEXING, severity,
+        this.diagnostics.add(new Diagnostic(Diagnostic.Stage.LEXING, severity, this.sourceId,
                 new TextPosition(this.line, col, length), msg));
     }
 

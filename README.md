@@ -15,7 +15,7 @@ This project is also intended as a programming tutorial. Here is what it demonst
 - **Build & Packaging** — Maven Wrapper, toolchains for JDK management, and profiles for jlink runtime images and jpackage native installers
 - **CI/CD** — GitHub Actions workflow with branch-based triggers
 - **Code Quality** — All compiler warnings as errors, strict Javadoc linting for accessibility, HTML, syntax, and references
-- **Compiler Pipeline** — Three-stage assembler (lexer, parser, compiler) with algebraic data types for tokens, AST nodes, and operands
+- **Compiler Pipeline** — Four-stage assembler (lexer, linker, parser, compiler) with algebraic data types for tokens, AST nodes, and operands; the linker resolves cross-file `.include` directives and preserves per-file diagnostic attribution
 - **CPU Simulation** — 5-stage pipeline with hazard detection, data forwarding, and snapshot-then-commit execution model
 
 ## Development
@@ -66,3 +66,18 @@ The recommended editor is [Visual Studio Code](https://code.visualstudio.com/) w
 2. Choose *Compile and Load*.
 3. Choose *Run*.
 4. Watch the magic happen! 😉
+
+### Source file syntax
+
+A DLX source file is a stream of lines containing labels, instructions, comments, and assembler directives:
+
+- **Segments**: `.data` and `.text` switch between data and code sections.
+- **Data declarations**: `.word`, `.half`, `.byte`, `.ascii`, `.asciiz`, `.space`, `.align`.
+- **Includes**: `.include "relative/path.s"` splices another source file in at this point.
+  - The path is resolved relative to the directory of the **including** file (the master for top-level includes; the included file for nested ones).
+  - Absolute paths are rejected. So is including from an unsaved master, since there is no directory to resolve against — save the master first.
+  - Includes can be nested arbitrarily; cycles are detected and reported as a diagnostic. The same file may be included more than once; it is loaded just once but its contents are spliced in at every inclusion point.
+  - If an included file is open in another editor tab with unsaved changes, the linker uses the live buffer rather than the on-disk content, so errors update as you type.
+  - Errors in an included file are attributed to that file in the Problems view — clicking one opens the file (loading it into a new tab if needed) and jumps to the line.
+
+See [`assets/examples/include_main.s`](assets/examples/include_main.s) and [`assets/examples/include_utils.s`](assets/examples/include_utils.s) for a minimal include pair.

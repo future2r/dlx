@@ -4,7 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.module.ModuleDescriptor.Version;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -34,6 +38,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
+import javafx.util.Subscription;
 import name.ulbricht.dlx.asm.compiler.CompiledProgram;
 import name.ulbricht.dlx.config.UserPreferences;
 import name.ulbricht.dlx.io.SourceFile;
@@ -48,6 +53,7 @@ import name.ulbricht.dlx.ui.util.FormatUtil;
 import name.ulbricht.dlx.ui.view.View;
 import name.ulbricht.dlx.ui.view.console.ConsoleView;
 import name.ulbricht.dlx.ui.view.editor.EditorView;
+import name.ulbricht.dlx.ui.view.editor.EditorViewModel;
 import name.ulbricht.dlx.ui.view.log.LogView;
 import name.ulbricht.dlx.ui.view.memory.MemoryView;
 import name.ulbricht.dlx.ui.view.outline.OutlineView;
@@ -57,6 +63,7 @@ import name.ulbricht.dlx.ui.view.problems.ProblemsView;
 import name.ulbricht.dlx.ui.view.problems.SourceOrigin;
 import name.ulbricht.dlx.ui.view.reference.ReferenceView;
 import name.ulbricht.dlx.ui.view.registers.RegistersView;
+import name.ulbricht.dlx.ui.workspace.OpenBuffers;
 
 /// Controller for the main application view.
 @SuppressWarnings("checkstyle:MethodCount")
@@ -119,6 +126,10 @@ public final class MainController {
 
     private final ReadOnlyObjectWrapper<EditorView> activeEditorView = new ReadOnlyObjectWrapper<>();
     private final ObservableList<SourceOrigin> sourceOrigins = FXCollections.observableArrayList();
+    private final OpenBuffers openBuffers = new OpenBuffers();
+    // LinkedHashMap so rebuildSourceOrigins iterates editors in attach order;
+    // this keeps the Problems-view group order stable across rebuilds.
+    private final Map<EditorViewModel, Subscription> includedOriginsSubscriptions = new LinkedHashMap<>();
 
     /// Creates a new main controller instance.
     public MainController() {
@@ -703,7 +714,7 @@ public final class MainController {
     }
 
     private void openNewEditor() {
-        addEditorTab(EditorView.load());
+        addEditorTab(EditorView.load(this.openBuffers));
     }
 
     private void openEditor(final Path file) {
@@ -713,7 +724,7 @@ public final class MainController {
             this.userPreferences.addRecentFile(file);
         }, () -> {
             try {
-                addEditorTab(EditorView.load(file));
+                addEditorTab(EditorView.load(file, this.openBuffers));
                 this.userPreferences.addRecentFile(file);
             } catch (final IOException ex) {
                 this.userPreferences.removeRecentFile(file);
@@ -820,16 +831,38 @@ public final class MainController {
 
     private void showTextPosition(final TextPositionEvent event) {
         final var sourceId = event.getSourceId();
-        if (sourceId != null) {
-            findEditorTabBySourceId(sourceId).ifPresent(tab -> {
-                this.editorsTabPane.getSelectionModel().select(tab);
-                getEditorView(tab).ifPresent(
-                        editorView -> editorView.showEditPosition(event.getTextPosition()));
-            });
-        } else {
+        if (sourceId == null) {
             getActiveEditorView().ifPresent(
                     editorView -> editorView.showEditPosition(event.getTextPosition()));
+            return;
         }
+
+        final var existingTab = findEditorTabBySourceId(sourceId);
+        if (existingTab.isPresent()) {
+            this.editorsTabPane.getSelectionModel().select(existingTab.get());
+            getEditorView(existingTab.get()).ifPresent(
+                    editorView -> editorView.showEditPosition(event.getTextPosition()));
+            return;
+        }
+
+        // No open tab carries this sourceId directly. If it corresponds to a
+        // virtual origin (a file included from a master), open or focus that
+        // file's tab and navigate to the same position.
+        findVirtualOriginPath(sourceId).ifPresentOrElse(
+                path -> {
+                    openEditor(path);
+                    getActiveEditorView().ifPresent(
+                            editorView -> editorView.showEditPosition(event.getTextPosition()));
+                },
+                () -> getActiveEditorView().ifPresent(
+                        editorView -> editorView.showEditPosition(event.getTextPosition())));
+    }
+
+    private Optional<Path> findVirtualOriginPath(final UUID sourceId) {
+        return this.sourceOrigins.stream()
+                .filter(origin -> sourceId.equals(origin.id()))
+                .findFirst()
+                .flatMap(SourceOrigin::path);
     }
 
     private Optional<Tab> findEditorTabBySourceId(final UUID sourceId) {
@@ -841,30 +874,96 @@ public final class MainController {
     }
 
     private void syncSourceOrigins() {
-        this.sourceOrigins.setAll(
-                this.editorsTabPane.getTabs().stream()
-                        .map(MainController::getEditorView)
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .map(EditorView::getViewModel)
-                        .map(SourceOrigin.class::cast)
-                        .toList());
+        this.editorsTabPane.getTabs().stream()
+                .map(MainController::getEditorView)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(EditorView::getViewModel)
+                .forEach(this::attachEditor);
     }
 
     private void editorTabsChanged(final ListChangeListener.Change<? extends Tab> change) {
         while (change.next()) {
             if (change.wasRemoved()) {
                 for (final var tab : change.getRemoved()) {
-                    getEditorView(tab).ifPresent(
-                            editorView -> this.sourceOrigins.remove(editorView.getViewModel()));
+                    getEditorView(tab).ifPresent(view -> detachEditor(view.getViewModel()));
                 }
             }
             if (change.wasAdded()) {
                 for (final var tab : change.getAddedSubList()) {
-                    getEditorView(tab).ifPresent(
-                            editorView -> this.sourceOrigins.add(editorView.getViewModel()));
+                    getEditorView(tab).ifPresent(view -> attachEditor(view.getViewModel()));
                 }
             }
+        }
+    }
+
+    /// Registers an editor as a source origin (itself plus any currently
+    /// resolved included files) and subscribes to future include changes so
+    /// newly resolved files appear in the problems view and removed ones
+    /// disappear. Also registers the editor with [#openBuffers] so its live
+    /// source is visible to other editors' include resolution.
+    private void attachEditor(final EditorViewModel editor) {
+        if (this.includedOriginsSubscriptions.containsKey(editor)) {
+            return;
+        }
+        this.openBuffers.add(editor);
+        // Rebuild whenever an editor's include list changes (relink) or its
+        // file path changes (Save As) — both affect whether an IncludedFileOrigin
+        // should be suppressed in favour of a standalone tab for the same path.
+        final var includedSubscription = editor.includedOriginsProperty().subscribe(this::rebuildSourceOrigins);
+        final var fileSubscription = editor.fileProperty().subscribe(this::rebuildSourceOrigins);
+        this.includedOriginsSubscriptions.put(editor, includedSubscription.and(fileSubscription));
+        rebuildSourceOrigins();
+    }
+
+    /// Reverses [#attachEditor].
+    private void detachEditor(final EditorViewModel editor) {
+        final var subscription = this.includedOriginsSubscriptions.remove(editor);
+        if (subscription != null) {
+            subscription.unsubscribe();
+        }
+        this.openBuffers.remove(editor);
+        rebuildSourceOrigins();
+    }
+
+    /// Rebuilds [#sourceOrigins] from every attached editor's current state
+    /// (the editor itself followed by its included origins). Called on every
+    /// editor attach/detach and whenever any editor's includedOrigins list
+    /// invalidates.
+    ///
+    /// If the same file is open as a standalone tab AND referenced from a
+    /// master as an included file, the master's virtual origin for that file
+    /// is suppressed — the standalone tab is the authoritative origin since
+    /// the user is actively editing it. Diagnostics are identical anyway: the
+    /// linker reads the live buffer through [#openBuffers].
+    private void rebuildSourceOrigins() {
+        final var coveredByStandalone = new HashSet<Path>();
+        for (final var editor : this.includedOriginsSubscriptions.keySet()) {
+            final var file = editor.getFile();
+            if (file != null) {
+                coveredByStandalone.add(canonicalOrNormalized(file));
+            }
+        }
+
+        final var snapshot = new ArrayList<SourceOrigin>();
+        for (final var editor : this.includedOriginsSubscriptions.keySet()) {
+            snapshot.add(editor);
+            for (final var included : editor.includedOriginsProperty().get()) {
+                final var path = included.path().map(MainController::canonicalOrNormalized);
+                if (path.isPresent() && coveredByStandalone.contains(path.get())) {
+                    continue;
+                }
+                snapshot.add(included);
+            }
+        }
+        this.sourceOrigins.setAll(snapshot);
+    }
+
+    private static Path canonicalOrNormalized(final Path path) {
+        try {
+            return path.toRealPath();
+        } catch (final IOException _) {
+            return path.toAbsolutePath().normalize();
         }
     }
 

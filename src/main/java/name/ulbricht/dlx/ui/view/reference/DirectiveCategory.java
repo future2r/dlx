@@ -10,6 +10,9 @@ import name.ulbricht.dlx.asm.Directive;
 /// Groups [Directive] constants into logical categories for the reference view.
 public enum DirectiveCategory {
 
+    /// Preprocessor directives, handled by the linker stage before parsing.
+    PREPROCESSOR(List.of(Directive.INCLUDE)),
+
     /// Segment control directives.
     SEGMENTS(List.of(Directive.DATA, Directive.TEXT)),
 
